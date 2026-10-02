@@ -4,9 +4,12 @@ import { JwtPayload } from '../types/index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'swaad_sevak_jwt_secret_key_super_secure_2026_india';
 
-export interface AuthenticatedRequest extends Request {
+export type AuthenticatedRequest = Request<any, any, any, any> & {
   manager?: JwtPayload;
-}
+  body: any;
+  params: any;
+  query: any;
+};
 
 export function signManagerToken(payload: JwtPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });

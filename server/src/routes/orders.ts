@@ -53,6 +53,13 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
     if (restaurant) {
       kotData = PrinterService.generateKotData(restaurant, updatedOrder, printerConfig);
       thermalText = PrinterService.generateThermalText(kotData);
+
+      // Auto-send directly to kitchen thermal printer if network printer is configured
+      if (printerConfig?.printerType === 'NETWORK' && printerConfig.printerIp) {
+        PrinterService.sendToNetworkPrinter(printerConfig.printerIp, thermalText).catch(err => {
+          console.warn('[OrdersRoute] Network print dispatch error:', err);
+        });
+      }
     }
   }
 

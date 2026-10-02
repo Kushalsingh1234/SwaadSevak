@@ -47,6 +47,7 @@ export function getIO(): SocketIOServer {
 export function emitNewOrder(restaurantId: string, order: Order) {
   if (ioInstance) {
     ioInstance.to(`restaurant_${restaurantId}`).emit('order:new', order);
+    ioInstance.emit(`order:new_${restaurantId}`, order);
   }
 }
 
@@ -54,18 +55,21 @@ export function emitOrderStatus(restaurantId: string, tableId: string, order: Or
   if (ioInstance) {
     ioInstance.to(`restaurant_${restaurantId}`).emit('order:status_updated', order);
     ioInstance.to(`table_${restaurantId}_${tableId}`).emit('order:status_updated', order);
+    ioInstance.emit(`order:status_updated_${restaurantId}`, order);
   }
 }
 
 export function emitBillRequested(restaurantId: string, tableId: string, order: Order) {
   if (ioInstance) {
-    ioInstance.to(`restaurant_${restaurantId}`).emit('bill:requested', {
+    const payload = {
       orderId: order.id,
       orderNumber: order.orderNumber,
       tableNumber: order.tableNumber,
       tableId: order.tableId,
       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-    });
+    };
+    ioInstance.to(`restaurant_${restaurantId}`).emit('bill:requested', payload);
+    ioInstance.emit(`bill:requested_${restaurantId}`, payload);
     ioInstance.to(`table_${restaurantId}_${tableId}`).emit('bill:request_acknowledged', {
       orderId: order.id
     });
@@ -76,6 +80,7 @@ export function emitBillGenerated(restaurantId: string, tableId: string, bill: B
   if (ioInstance) {
     ioInstance.to(`restaurant_${restaurantId}`).emit('bill:generated', bill);
     ioInstance.to(`table_${restaurantId}_${tableId}`).emit('bill:generated', bill);
+    ioInstance.emit(`bill:generated_${restaurantId}`, bill);
   }
 }
 

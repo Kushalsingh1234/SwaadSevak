@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Printer, Download, CheckCircle2 } from 'lucide-react';
 import { Order, Restaurant, Bill } from '../types';
+import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 interface InvoiceModalProps {
   order: Order | null;
@@ -164,7 +165,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
@@ -172,11 +173,18 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             Close
           </button>
           <button
+            onClick={() => downloadInvoicePdf(order, bill || null, restaurant)}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download PDF
+          </button>
+          <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-sm transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-sm transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
-            Print / Save PDF
+            Print
           </button>
         </div>
       </div>

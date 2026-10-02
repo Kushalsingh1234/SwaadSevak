@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
-import { emitBillGenerated } from '../realtime/socket.js';
+import { emitBillGenerated, emitOrderStatus } from '../realtime/socket.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -43,6 +43,13 @@ router.patch('/:id/settle', (req: AuthenticatedRequest, res: Response) => {
   const updatedBill = db.settleBill(restaurantId, req.params.id as string, paymentStatus);
   if (!updatedBill) {
     return res.status(404).json({ success: false, message: 'Bill not found' });
+  }
+
+  // Real-time broadcast to customer table and restaurant dashboard
+  const order = db.getOrder(restaurantId, updatedBill.orderId);
+  if (order) {
+    emitBillGenerated(restaurantId, order.tableId, updatedBill);
+    emitOrderStatus(restaurantId, order.tableId, order);
   }
 
   return res.json({

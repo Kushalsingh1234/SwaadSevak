@@ -105,6 +105,13 @@ export function App() {
     if (!restaurant?.id) return;
     const socket = getSocket();
 
+    const joinRooms = () => {
+      joinRestaurantRoom(restaurant.id);
+    };
+
+    joinRooms();
+    socket.on('connect', joinRooms);
+
     const handleNewOrder = (newOrder: Order) => {
       setOrders(prev => [newOrder, ...prev.filter(o => o.id !== newOrder.id)]);
       // Trigger pleasant ting order chime!
@@ -127,17 +134,44 @@ export function App() {
     };
 
     socket.on('order:new', handleNewOrder);
+    socket.on(`order:new_${restaurant.id}`, handleNewOrder);
     socket.on('order:status_updated', handleStatusUpdate);
+    socket.on(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
     socket.on('bill:requested', handleBillRequested);
+    socket.on(`bill:requested_${restaurant.id}`, handleBillRequested);
     socket.on('bill:generated', handleBillGenerated);
+    socket.on(`bill:generated_${restaurant.id}`, handleBillGenerated);
+
+    // Fast 5-second polling sync fallback so orders ALWAYS appear instantly even across network hiccups
+    const syncInterval = setInterval(() => {
+      api.getOrders().then(res => {
+        if (res.success && res.orders) {
+          setOrders(prev => {
+            // Check if there are new orders to trigger ting sound
+            const prevIds = new Set(prev.map(o => o.id));
+            const hasNewPending = res.orders.some((o: any) => !prevIds.has(o.id) && o.status === 'PENDING');
+            if (hasNewPending) {
+              soundManager.playTing(1046.5, 0.4);
+            }
+            return res.orders;
+          });
+        }
+      }).catch(() => {});
+    }, 5000);
 
     return () => {
+      socket.off('connect', joinRooms);
       socket.off('order:new', handleNewOrder);
+      socket.off(`order:new_${restaurant.id}`, handleNewOrder);
       socket.off('order:status_updated', handleStatusUpdate);
+      socket.off(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
       socket.off('bill:requested', handleBillRequested);
+      socket.off(`bill:requested_${restaurant.id}`, handleBillRequested);
       socket.off('bill:generated', handleBillGenerated);
+      socket.off(`bill:generated_${restaurant.id}`, handleBillGenerated);
+      clearInterval(syncInterval);
     };
-  }, [restaurant]);
+  }, [restaurant?.id]);
 
   // Auth Handlers
   const handleRegisterSuccess = async (data: any) => {
@@ -145,7 +179,10 @@ export function App() {
     setManager(data.manager);
     setIsFirstSetup(true);
     setAuthView('APP');
-    await refreshAllData();
+    if (data.restaurant?.id) {
+      joinRestaurantRoom(data.restaurant.id);
+    }
+    await refreshAllData(data.restaurant?.id);
   };
 
   const handleLoginSuccess = async (data: any) => {
@@ -153,7 +190,10 @@ export function App() {
     setManager(data.manager);
     setIsFirstSetup(false);
     setAuthView('APP');
-    await refreshAllData();
+    if (data.restaurant?.id) {
+      joinRestaurantRoom(data.restaurant.id);
+    }
+    await refreshAllData(data.restaurant?.id);
   };
 
   const handleLogout = () => {
@@ -170,13 +210,6 @@ export function App() {
       const res = await api.updateOrderStatus(orderId, status);
       if (res.success) {
         setOrders(prev => prev.map(o => o.id === orderId ? res.order : o));
-
-        // If order was accepted and printer config has autoPrintKot enabled, trigger print
-        if (status === 'ACCEPTED' && printerConfig?.autoPrintKot) {
-          setTimeout(() => {
-            window.print();
-          }, 400);
-        }
       }
     } catch (e) {
       console.error('Failed to update order status:', e);

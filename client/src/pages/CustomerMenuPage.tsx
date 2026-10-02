@@ -12,12 +12,14 @@ import {
   X,
   Sparkles,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-react';
 import { VegIcon } from '../components/VegIcon';
 import { api } from '../services/api';
 import { getSocket, joinTableRoom } from '../services/socket';
 import { InvoiceModal } from '../components/InvoiceModal';
+import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 interface CustomerMenuPageProps {
   restaurantSlug: string;
@@ -125,18 +127,29 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
       }
     };
 
+    // Reconnect handler
+    const handleConnect = () => {
+      joinTableRoom(restaurant.id, table.id);
+    };
+    socket.on('connect', handleConnect);
+
     socket.on('menu:stock_updated', handleStockUpdate);
     socket.on(`menu:stock_updated_${restaurant.id}`, handleStockUpdate);
     socket.on('order:status_updated', handleOrderStatus);
+    socket.on(`order:status_updated_${restaurant.id}`, handleOrderStatus);
     socket.on('bill:generated', handleBillGenerated);
+    socket.on(`bill:generated_${restaurant.id}`, handleBillGenerated);
 
     return () => {
+      socket.off('connect', handleConnect);
       socket.off('menu:stock_updated', handleStockUpdate);
       socket.off(`menu:stock_updated_${restaurant.id}`, handleStockUpdate);
       socket.off('order:status_updated', handleOrderStatus);
+      socket.off(`order:status_updated_${restaurant.id}`, handleOrderStatus);
       socket.off('bill:generated', handleBillGenerated);
+      socket.off(`bill:generated_${restaurant.id}`, handleBillGenerated);
     };
-  }, [restaurant, table, activeOrder]);
+  }, [restaurant?.id, table?.id, activeOrder?.id]);
 
   // Cart operations
   const addToCart = (item: any) => {
@@ -324,18 +337,22 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         </div>
       </header>
 
-      {/* Active Order Live Tracker Bar (if order already placed) */}
-      {activeOrder && activeOrder.status !== 'COMPLETED' && (
+      {/* Active Order Live Tracker Bar */}
+      {activeOrder && (
         <div className="m-3 p-4 rounded-2xl bg-slate-900 text-white shadow-card">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
+              <span className={`w-2.5 h-2.5 rounded-full ${
+                activeOrder.status === 'COMPLETED' ? 'bg-emerald-400' : 'bg-orange-500 animate-ping'
+              }`} />
               <span className="text-xs font-extrabold uppercase tracking-wider text-orange-400">
                 Order {activeOrder.orderNumber}
               </span>
             </div>
-            <span className="text-xs font-black px-2 py-0.5 rounded-full bg-orange-600 text-white">
-              {activeOrder.status}
+            <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+              activeOrder.status === 'COMPLETED' ? 'bg-emerald-600 text-white' : 'bg-orange-600 text-white'
+            }`}>
+              {activeOrder.status === 'READY' ? 'FOOD SERVED' : activeOrder.status}
             </span>
           </div>
 
@@ -343,24 +360,58 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             {activeOrder.status === 'PENDING' && 'Waiting for kitchen manager acceptance...'}
             {activeOrder.status === 'ACCEPTED' && 'Accepted! Kitchen is preparing your dishes.'}
             {activeOrder.status === 'PREPARING' && 'Your food is being freshly cooked on the stove.'}
-            {activeOrder.status === 'READY' && 'Your order is ready to be served to your table!'}
+            {activeOrder.status === 'READY' && '🍽️ Your food has been served to your table! Enjoy your meal.'}
+            {activeOrder.status === 'COMPLETED' && '✅ Bill settled & paid. Thank you for dining with us!'}
           </p>
 
-          <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">{activeOrder.items.length} items • ₹{activeOrder.total}</span>
-            {!billRequested ? (
-              <button
-                onClick={handleRequestBill}
-                className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition-colors"
-              >
-                Request Bill
-              </button>
-            ) : (
-              <span className="text-amber-400 font-bold flex items-center gap-1">
-                <Receipt className="w-3.5 h-3.5" />
-                <span>Bill Requested</span>
-              </span>
-            )}
+          <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-slate-400 font-medium">
+              {activeOrder.items?.length || 0} items • ₹{activeOrder.total}
+            </span>
+
+            <div className="flex items-center gap-2">
+              {activeOrder.status === 'COMPLETED' ? (
+                <>
+                  <button
+                    onClick={() => downloadInvoicePdf(activeOrder, activeBill, restaurant)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold transition-all shadow-xs"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Invoice (PDF)</span>
+                  </button>
+                  <button
+                    onClick={() => setShowInvoiceModal(true)}
+                    className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition-all"
+                  >
+                    View
+                  </button>
+                </>
+              ) : (
+                <>
+                  {!billRequested ? (
+                    <button
+                      onClick={handleRequestBill}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition-colors"
+                    >
+                      Request Bill
+                    </button>
+                  ) : (
+                    <span className="text-amber-400 font-bold flex items-center gap-1">
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>Bill Requested</span>
+                    </span>
+                  )}
+                  {activeBill && (
+                    <button
+                      onClick={() => setShowInvoiceModal(true)}
+                      className="px-2.5 py-1.5 rounded-lg bg-orange-500/20 text-orange-300 font-bold hover:bg-orange-500/30 transition-colors"
+                    >
+                      View Bill
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

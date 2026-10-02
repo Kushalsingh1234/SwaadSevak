@@ -74,4 +74,41 @@ export class PrinterService {
 
     return receipt;
   }
+
+  /**
+   * Directly sends raw ESC/POS text to a network thermal printer on port 9100 over TCP socket
+   */
+  static async sendToNetworkPrinter(ip: string, text: string, port = 9100): Promise<boolean> {
+    return new Promise((resolve) => {
+      import('net').then(({ default: net }) => {
+        const client = new net.Socket();
+        client.setTimeout(4000);
+
+        client.connect(port, ip, () => {
+          // ESC @ (initialize) + text + GS V 66 0 (cut paper)
+          const initCmd = Buffer.from([0x1B, 0x40]);
+          const cutCmd = Buffer.from([0x1D, 0x56, 0x42, 0x00]);
+          const content = Buffer.from(text, 'utf-8');
+          const payload = Buffer.concat([initCmd, content, cutCmd]);
+
+          client.write(payload, () => {
+            client.end();
+            resolve(true);
+          });
+        });
+
+        client.on('error', (err) => {
+          console.warn(`[PrinterService] Network printer at ${ip}:${port} unreachable:`, err.message);
+          client.destroy();
+          resolve(false);
+        });
+
+        client.on('timeout', () => {
+          console.warn(`[PrinterService] Network printer connection to ${ip}:${port} timed out.`);
+          client.destroy();
+          resolve(false);
+        });
+      }).catch(() => resolve(false));
+    });
+  }
 }

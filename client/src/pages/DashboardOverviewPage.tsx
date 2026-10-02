@@ -20,6 +20,7 @@ import { api } from '../services/api';
 import { SoundBanner } from '../components/SoundBanner';
 import { KotModal } from '../components/KotModal';
 import { InvoiceModal } from '../components/InvoiceModal';
+import { SettleBillModal } from '../components/SettleBillModal';
 
 interface DashboardOverviewPageProps {
   restaurant: Restaurant | null;
@@ -52,6 +53,37 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
   const [selectedKotOrder, setSelectedKotOrder] = useState<Order | null>(null);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
   const [activeBill, setActiveBill] = useState<Bill | null>(null);
+  const [settleOrder, setSettleOrder] = useState<Order | null>(null);
+
+  const handleSettleBill = async (orderId: string, paymentStatus: 'PAID_UPI' | 'PAID_CASH' | 'PAID_CARD') => {
+    try {
+      // 1. Generate or fetch bill
+      let billId: string | null = null;
+      try {
+        const billRes = await api.generateBill(orderId);
+        if (billRes.success && billRes.bill) {
+          billId = billRes.bill.id;
+        }
+      } catch {
+        // May already exist
+      }
+
+      if (!billId) {
+        const allBills = await api.getBills();
+        const existing = allBills.bills?.find((b: any) => b.orderId === orderId);
+        billId = existing?.id;
+      }
+
+      if (billId) {
+        await api.settleBill(billId, paymentStatus);
+      }
+
+      await onUpdateOrderStatus(orderId, 'COMPLETED');
+      onRefreshOrders();
+    } catch (e) {
+      console.error('Failed to settle bill from dashboard:', e);
+    }
+  };
 
   // Fetch dynamic stats
   useEffect(() => {
@@ -131,7 +163,7 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition-all"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>Open Table 01 Menu</span>
+            <span>View Menu</span>
           </button>
         </div>
       </div>
@@ -469,14 +501,16 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                           <button
                             onClick={() => handleOpenKot(order)}
                             className="py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
+                            title="Print KOT"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => onUpdateOrderStatus(order.id, 'COMPLETED')}
-                            className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
+                            onClick={() => setSettleOrder(order)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
                           >
-                            Mark Served / Settled
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Settle Bill</span>
                           </button>
                         </>
                       )}
@@ -488,6 +522,16 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                         >
                           <Receipt className="w-3.5 h-3.5" />
                           <span>View Tax Invoice</span>
+                        </button>
+                      )}
+
+                      {order.billRequested && order.status !== 'COMPLETED' && order.status !== 'READY' && (
+                        <button
+                          onClick={() => setSettleOrder(order)}
+                          className="w-full mt-2 py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold hover:bg-amber-100 transition-all flex items-center justify-center gap-1"
+                        >
+                          <Receipt className="w-3 h-3 text-amber-600" />
+                          <span>Customer Requested Bill • Settle Now</span>
                         </button>
                       )}
                     </div>
@@ -515,6 +559,14 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
         restaurant={restaurant}
         isOpen={Boolean(selectedInvoiceOrder)}
         onClose={() => setSelectedInvoiceOrder(null)}
+      />
+
+      {/* Settle Bill Modal */}
+      <SettleBillModal
+        order={settleOrder}
+        isOpen={Boolean(settleOrder)}
+        onClose={() => setSettleOrder(null)}
+        onSettle={handleSettleBill}
       />
     </div>
   );

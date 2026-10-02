@@ -37,17 +37,17 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Settle Bill & Complete Order</h3>
-            <p className="text-xs text-slate-500">{order.tableNumber} • {order.orderNumber}</p>
+            <h3 className="text-sm font-bold text-gray-900">Settle Bill & Complete Order</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{order.tableNumber} • {order.orderNumber}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -55,46 +55,46 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
 
         <div className="p-6 space-y-5">
           {/* Order Items Snapshot */}
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 max-h-40 overflow-y-auto space-y-1.5 text-xs">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-40 overflow-y-auto space-y-1.5 text-xs">
             {order.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center text-slate-700">
+              <div key={idx} className="flex justify-between items-center text-gray-700">
                 <span className="truncate pr-2">
-                  <span className="font-bold text-slate-900">{item.quantity}x</span> {item.name}
+                  <span className="font-semibold text-gray-900">{item.quantity}x</span> {item.name}
                 </span>
-                <span className="font-semibold shrink-0">₹{item.price * item.quantity}</span>
+                <span className="font-medium shrink-0">₹{item.price * item.quantity}</span>
               </div>
             ))}
           </div>
 
           {/* Amount Breakdown */}
-          <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100 space-y-1.5 text-xs">
-            <div className="flex justify-between text-slate-600">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1.5 text-xs">
+            <div className="flex justify-between text-gray-600">
               <span>Subtotal:</span>
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex justify-between text-gray-600">
               <span>GST (5%):</span>
               <span>₹{tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-orange-200/60">
+            <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
               <span>Total Payable:</span>
-              <span className="text-orange-600 text-lg">₹{grandTotal.toFixed(2)}</span>
+              <span className="text-orange-600 text-base">₹{grandTotal.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <label className="block text-xs font-semibold text-gray-700 mb-2">
               Select Payment Mode Received
             </label>
             <div className="grid grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_UPI')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
                   selectedMethod === 'PAID_UPI'
                     ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-xs'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <QrCode className="w-5 h-5 mb-1 text-orange-600" />
@@ -104,10 +104,10 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_CASH')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
                   selectedMethod === 'PAID_CASH'
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-xs'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <Banknote className="w-5 h-5 mb-1 text-emerald-600" />
@@ -117,14 +117,14 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_CARD')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
                   selectedMethod === 'PAID_CARD'
                     ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-xs'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <CreditCard className="w-5 h-5 mb-1 text-blue-600" />
-                <span>Card / POS</span>
+                <span>Card</span>
               </button>
             </div>
           </div>
@@ -133,13 +133,13 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full py-3 px-4 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
             {loading ? (
               <span>Settling Bill...</span>
             ) : (
               <>
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
+                <CheckCircle className="w-4 h-4 text-white" />
                 <span>Confirm Payment (₹{grandTotal}) & Free Table</span>
                 <ArrowRight className="w-4 h-4" />
               </>

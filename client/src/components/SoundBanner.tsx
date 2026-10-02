@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, BellRing } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { soundManager } from '../utils/sound';
 
 interface SoundBannerProps {
@@ -9,7 +9,6 @@ interface SoundBannerProps {
 export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
   const [audioEnabled, setAudioEnabled] = useState(soundManager.isEnabled());
 
-  // Keep state in sync with sound manager
   useEffect(() => {
     setAudioEnabled(soundManager.isEnabled());
   }, []);
@@ -27,30 +26,30 @@ export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
   return (
     <div className="flex items-center gap-2">
       {pendingCount > 0 && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-bold animate-pulse">
-          <BellRing className="w-3.5 h-3.5 animate-bounce text-amber-600" />
-          <span>{pendingCount} Pending Order{pendingCount > 1 ? 's' : ''}</span>
-        </div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          {pendingCount} Pending {pendingCount === 1 ? 'Order' : 'Orders'}
+        </span>
       )}
 
       <button
         onClick={handleToggleAudio}
         type="button"
-        title={audioEnabled ? 'Ting audio alert is ON (Click to mute)' : 'Click to un-mute order alerts'}
-        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
           audioEnabled
-            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 shadow-xs'
-            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+            ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
         }`}
+        title={audioEnabled ? 'Order sound alert is on (Click to mute)' : 'Order sound alert is muted (Click to enable)'}
       >
         {audioEnabled ? (
           <>
-            <Volume2 className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-            <span>Ting Alert ON</span>
+            <Volume2 className="w-3.5 h-3.5 text-orange-600" />
+            <span>Sound Alert On</span>
           </>
         ) : (
           <>
-            <VolumeX className="w-3.5 h-3.5 text-slate-500" />
+            <VolumeX className="w-3.5 h-3.5 text-gray-400" />
             <span>Muted</span>
           </>
         )}

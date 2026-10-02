@@ -30,7 +30,6 @@ interface LiveOrdersPageProps {
   onUpdateOrderStatus: (orderId: string, status: string) => Promise<void>;
   onRefreshOrders: () => void;
   printerConfig?: PrinterConfig;
-  onOpenLiveDinerDemo: () => void;
 }
 
 export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
@@ -40,7 +39,6 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   onUpdateOrderStatus,
   onRefreshOrders,
   printerConfig,
-  onOpenLiveDinerDemo,
 }) => {
   const [filterSource, setFilterSource] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -142,13 +140,6 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
         <div className="flex items-center gap-3 flex-wrap">
           <SoundBanner pendingCount={pendingOrders.length} />
-          <button
-            onClick={onOpenLiveDinerDemo}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition-all shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Simulate Customer QR Order</span>
-          </button>
         </div>
       </div>
 

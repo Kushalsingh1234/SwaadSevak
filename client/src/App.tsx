@@ -37,7 +37,7 @@ export function App() {
   const [authView, setAuthView] = useState<'LANDING' | 'REGISTER' | 'LOGIN' | 'APP'>(
     savedToken ? 'APP' : 'LANDING'
   );
-  const [currentTab, setCurrentTab] = useState<string>(savedTab || 'dashboard');
+  const [currentTab, setCurrentTab] = useState<string>(savedTab || 'orders');
   const [isFirstSetup, setIsFirstSetup] = useState<boolean>(false);
 
   const handleTabChange = (tab: string) => {
@@ -57,9 +57,6 @@ export function App() {
 
   // Manual Add Dish Modal
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
-
-  // Simulated Diner Drawer / Overlay for immediate testing
-  const [simulatedDinerUrl, setSimulatedDinerUrl] = useState<string | null>(null);
 
   // Check existing session on load
   useEffect(() => {
@@ -218,7 +215,7 @@ export function App() {
     setRestaurant(null);
     setManager(null);
     setAuthView('LANDING');
-    setCurrentTab('dashboard');
+    setCurrentTab('orders');
     soundManager.stopPendingLoop();
   };
 
@@ -321,18 +318,6 @@ export function App() {
     }
   };
 
-  // Launch live diner demo simulation
-  const handleOpenLiveDinerDemo = (customUrl?: string) => {
-    if (customUrl) {
-      setSimulatedDinerUrl(customUrl);
-    } else if (tables.length > 0 && restaurant) {
-      const table1 = tables[0];
-      setSimulatedDinerUrl(`/menu/${restaurant.slug}/${table1.qrToken}`);
-    } else {
-      setSimulatedDinerUrl('/menu/chai-and-chaat/qr_token_demo_tbl_01_a2cebc9c');
-    }
-  };
-
   // Demo Login Quick Launch from Landing Page
   const handleLaunchDemoFromLanding = async () => {
     try {
@@ -354,7 +339,7 @@ export function App() {
         onOpenLogin={() => setAuthView('LOGIN')}
         onLaunchDemoDashboard={handleLaunchDemoFromLanding}
         onLaunchDemoCustomerMenu={() => {
-          setSimulatedDinerUrl('/menu/chai-and-chaat/qr_token_demo_tbl_01_a2cebc9c');
+          window.open('/menu/chai-and-chaat/qr_token_demo_tbl_01_a2cebc9c', '_blank');
         }}
       />
     );
@@ -417,6 +402,15 @@ export function App() {
 
   const pendingCount = orders.filter(o => o.status === 'PENDING').length;
 
+  // Global continuous sound alert: rings continuously on any tab and in background Chrome tabs
+  useEffect(() => {
+    if (authView === 'APP' && pendingCount > 0) {
+      soundManager.startPendingLoop();
+    } else {
+      soundManager.stopPendingLoop();
+    }
+  }, [pendingCount, authView]);
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans">
       {/* Navigation (Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
@@ -426,7 +420,6 @@ export function App() {
         restaurant={restaurant}
         manager={manager}
         onLogout={handleLogout}
-        onOpenLiveDinerDemo={() => handleOpenLiveDinerDemo()}
         pendingOrdersCount={pendingCount}
       />
 
@@ -440,7 +433,6 @@ export function App() {
             tables={tables}
             menuItems={menuItems}
             onNavigateTab={handleTabChange}
-            onOpenLiveDinerDemo={(customUrl) => handleOpenLiveDinerDemo(customUrl)}
             onRefreshOrders={refreshAllData}
           />
         )}
@@ -453,7 +445,6 @@ export function App() {
             onUpdateOrderStatus={handleUpdateOrderStatus}
             onRefreshOrders={refreshAllData}
             printerConfig={printerConfig}
-            onOpenLiveDinerDemo={() => handleOpenLiveDinerDemo()}
           />
         )}
 
@@ -476,7 +467,6 @@ export function App() {
             restaurant={restaurant}
             tables={tables}
             onRefreshTables={refreshAllData}
-            onOpenLiveDinerDemo={(url) => handleOpenLiveDinerDemo(url)}
           />
         )}
 
@@ -504,26 +494,6 @@ export function App() {
         onClose={() => setIsAddDishModalOpen(false)}
         onSave={handleSaveDish}
       />
-
-      {/* Simulated Customer Diner Screen Overlay */}
-      {simulatedDinerUrl && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-          <div className="w-full max-w-md h-[92vh] rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-700 bg-white flex flex-col relative animate-in zoom-in-95 duration-200">
-            {(() => {
-              const parts = simulatedDinerUrl.replace('/menu/', '').split('/');
-              const slug = parts[0] || 'chai-and-chaat';
-              const token = parts[1] || 'qr_token_demo_tbl_01_a2cebc9c';
-              return (
-                <CustomerMenuPage
-                  restaurantSlug={slug}
-                  qrToken={token}
-                  onExitDinerDemo={() => setSimulatedDinerUrl(null)}
-                />
-              );
-            })()}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

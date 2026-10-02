@@ -21,14 +21,12 @@ interface TablesManagementPageProps {
   restaurant: Restaurant | null;
   tables: TableItem[];
   onRefreshTables: () => void;
-  onOpenLiveDinerDemo: (url?: string) => void;
 }
 
 export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
   restaurant,
   tables,
   onRefreshTables,
-  onOpenLiveDinerDemo,
 }) => {
   const [isAddingSingle, setIsAddingSingle] = useState(false);
   const [singleTableNumber, setSingleTableNumber] = useState('');
@@ -293,7 +291,6 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
             restaurantName={restaurant?.name || 'Swaad Sevak'}
             onRegenerate={handleRegenerate}
             onDelete={handleDelete}
-            onOpenMenu={(url) => onOpenLiveDinerDemo(url)}
           />
         ))}
       </div>

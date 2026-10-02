@@ -9,20 +9,17 @@ interface SoundBannerProps {
 export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
   const [audioEnabled, setAudioEnabled] = useState(soundManager.isEnabled());
 
+  // Keep state in sync with sound manager
   useEffect(() => {
-    if (pendingCount > 0 && audioEnabled) {
-      soundManager.startPendingLoop();
-    } else {
-      soundManager.stopPendingLoop();
-    }
-  }, [pendingCount, audioEnabled]);
+    setAudioEnabled(soundManager.isEnabled());
+  }, []);
 
   const handleToggleAudio = () => {
     if (!audioEnabled) {
-      const ok = soundManager.enableAudio();
-      setAudioEnabled(ok);
+      soundManager.enableAudio();
+      setAudioEnabled(true);
     } else {
-      soundManager.stopPendingLoop();
+      soundManager.disableAudio();
       setAudioEnabled(false);
     }
   };
@@ -30,8 +27,8 @@ export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
   return (
     <div className="flex items-center gap-2">
       {pendingCount > 0 && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 text-xs font-semibold animate-pulse">
-          <BellRing className="w-3.5 h-3.5 animate-bounce" />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-bold animate-pulse">
+          <BellRing className="w-3.5 h-3.5 animate-bounce text-amber-600" />
           <span>{pendingCount} Pending Order{pendingCount > 1 ? 's' : ''}</span>
         </div>
       )}
@@ -39,22 +36,22 @@ export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
       <button
         onClick={handleToggleAudio}
         type="button"
-        title={audioEnabled ? 'Sound alert enabled (Click to mute)' : 'Click to enable order sound alerts'}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+        title={audioEnabled ? 'Ting audio alert is ON (Click to mute)' : 'Click to un-mute order alerts'}
+        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
           audioEnabled
-            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-            : 'bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 animate-pulse'
+            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 shadow-xs'
+            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
         }`}
       >
         {audioEnabled ? (
           <>
-            <Volume2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Sound ON</span>
+            <Volume2 className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>Ting Alert ON</span>
           </>
         ) : (
           <>
-            <VolumeX className="w-3.5 h-3.5 text-orange-600" />
-            <span>Enable Ting Alert</span>
+            <VolumeX className="w-3.5 h-3.5 text-slate-500" />
+            <span>Muted</span>
           </>
         )}
       </button>

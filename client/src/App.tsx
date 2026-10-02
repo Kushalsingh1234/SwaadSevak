@@ -66,6 +66,17 @@ export function App() {
     }
   }, []);
 
+  const pendingCount = orders.filter(o => o.status === 'PENDING').length;
+
+  // Global continuous sound alert: rings continuously on any tab and in background Chrome tabs
+  useEffect(() => {
+    if (authView === 'APP' && pendingCount > 0) {
+      soundManager.startPendingLoop();
+    } else {
+      soundManager.stopPendingLoop();
+    }
+  }, [pendingCount, authView]);
+
   const loadInitialData = async () => {
     try {
       const meRes = await api.getMe();
@@ -399,17 +410,6 @@ export function App() {
       </div>
     );
   }
-
-  const pendingCount = orders.filter(o => o.status === 'PENDING').length;
-
-  // Global continuous sound alert: rings continuously on any tab and in background Chrome tabs
-  useEffect(() => {
-    if (authView === 'APP' && pendingCount > 0) {
-      soundManager.startPendingLoop();
-    } else {
-      soundManager.stopPendingLoop();
-    }
-  }, [pendingCount, authView]);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans">

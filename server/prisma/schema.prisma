@@ -1,0 +1,181 @@
+// Swaad Sevak - Prisma Schema
+// Configured for PostgreSQL (Neon Database ready)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id             String         @id @default(uuid())
+  slug           String         @unique
+  name           String
+  ownerName      String
+  phone          String
+  email          String
+  address        String
+  city           String
+  state          String
+  restaurantType String         @default("Café")
+  gstNumber      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  managers       Manager[]
+  categories     MenuCategory[]
+  items          MenuItem[]
+  tables         Table[]
+  orders         Order[]
+  bills          Bill[]
+  printerConfig  PrinterConfig?
+}
+
+model Manager {
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  username     String     @unique
+  pinHash      String
+  role         String     @default("OWNER")
+  createdAt    DateTime   @default(now())
+
+  @@index([restaurantId])
+}
+
+model MenuCategory {
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  displayOrder Int        @default(0)
+  items        MenuItem[]
+
+  @@index([restaurantId])
+}
+
+model MenuItem {
+  id           String       @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String
+  description  String       @default("")
+  price        Float
+  portion      String       @default("Standard")
+  isVeg        Boolean      @default(true)
+  isAvailable  Boolean      @default(true)
+  tags         String       @default("[]") // JSON string of tags: ["Bestseller", "Spicy"]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  orderItems   OrderItem[]
+
+  @@index([restaurantId])
+  @@index([categoryId])
+}
+
+model Table {
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tableNumber  String
+  qrToken      String     @unique
+  status       String     @default("AVAILABLE") // AVAILABLE, OCCUPIED, BILL_REQUESTED
+  createdAt    DateTime   @default(now())
+  orders       Order[]
+
+  @@index([restaurantId])
+}
+
+enum OrderSource {
+  DINE_IN
+  SWIGGY
+  ZOMATO
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  REJECTED
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  restaurantId   String
+  restaurant     Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tableId        String
+  table          Table        @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  orderNumber    String
+  source         String       @default("DINE_IN")
+  status         String       @default("PENDING")
+  customerNotes  String?
+  subtotal       Float
+  tax            Float        @default(0)
+  total          Float
+  kotGenerated   Boolean      @default(false)
+  kotNumber      String?
+  billRequested  Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  items          OrderItem[]
+  bill           Bill?
+
+  @@index([restaurantId])
+  @@index([tableId])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  name       String
+  price      Float
+  quantity   Int
+  portion    String   @default("Standard")
+  notes      String?
+
+  @@index([orderId])
+}
+
+model Bill {
+  id            String     @id @default(uuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderId       String     @unique
+  order         Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  billNumber    String
+  subtotal      Float
+  tax           Float      @default(0)
+  discount      Float      @default(0)
+  grandTotal    Float
+  paymentStatus String     @default("UNPAID") // UNPAID, PAID_CASH, PAID_UPI, PAID_CARD
+  createdAt     DateTime   @default(now())
+
+  @@index([restaurantId])
+}
+
+model PrinterConfig {
+  id           String     @id @default(uuid())
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  printerName  String     @default("Thermal Kitchen Printer")
+  paperWidth   String     @default("80mm") // 58mm, 80mm
+  autoPrintKot Boolean    @default(true)
+  printerType  String     @default("BROWSER") // BROWSER, USB, NETWORK
+  printerIp    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}

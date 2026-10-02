@@ -2,7 +2,7 @@ import pdfParse from 'pdf-parse';
 import { ExtractedMenuItem } from '../types/index.js';
 
 interface ParseResult {
-  source: 'GEMINI_AI' | 'SMART_PATTERN_PARSER';
+  source: 'GROQ_AI' | 'GEMINI_AI' | 'SMART_PATTERN_PARSER';
   categories: string[];
   items: ExtractedMenuItem[];
   rawTextPreview?: string;
@@ -23,18 +23,100 @@ export async function parseMenuPdfBuffer(buffer: Buffer): Promise<ParseResult> {
     return fallbackIndianMenuTemplate();
   }
 
+  const groqApiKey = process.env.GROQ_API_KEY;
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
-  if (geminiApiKey && geminiApiKey.trim() !== '') {
+  // 1. Try Groq (Ultra-fast LLM inference)
+  if (groqApiKey && groqApiKey.trim() !== '') {
     try {
-      return await parseWithGeminiAPI(extractedText, geminiApiKey);
-    } catch (geminiError) {
-      console.warn('Gemini API call failed, falling back to smart culinary pattern parser:', geminiError);
+      console.log('⚡ Attempting AI Menu extraction via Groq...');
+      return await parseWithGroqAPI(extractedText, groqApiKey.trim());
+    } catch (groqError: any) {
+      console.warn('Groq extraction failed, falling back to Gemini:', groqError.message);
     }
   }
 
-  // Smart heuristic parser tailored for Indian restaurant menus
+  // 2. Try Gemini (Google Multimodal AI)
+  if (geminiApiKey && geminiApiKey.trim() !== '') {
+    try {
+      console.log('✨ Attempting AI Menu extraction via Google Gemini...');
+      return await parseWithGeminiAPI(extractedText, geminiApiKey.trim());
+    } catch (geminiError: any) {
+      console.warn('Gemini API call failed, falling back to smart culinary pattern parser:', geminiError.message);
+    }
+  }
+
+  // 3. Smart heuristic parser tailored for Indian restaurant menus
   return parseWithSmartIndianHeuristics(extractedText);
+}
+
+// Call Groq API (High performance fast inference)
+async function parseWithGroqAPI(menuText: string, apiKey: string): Promise<ParseResult> {
+  const prompt = `You are an expert Indian restaurant menu digitization AI for "Swaad Sevak".
+Extract all dishes from this restaurant menu into a structured JSON array.
+For each dish extract:
+- "category": Category name (e.g. "Starters & Chaat", "Tandoori Special", "Main Course", "Breads & Roti", "Rice & Biryani", "Beverages", "Desserts", etc.)
+- "name": Dish name
+- "description": Short appetizing 1-line description
+- "price": Numerical price in INR (e.g. 250)
+- "portion": Portion size (e.g. "Standard", "Half", "Full", "6 Pcs", "1 Plate")
+- "isVeg": boolean (true for Vegetarian/Paneer/Dal/Mushroom/Veg/Roti, false for Chicken/Mutton/Fish/Egg/Prawn)
+- "tags": array of tags like ["Bestseller", "Chef's Special", "Spicy", "Recommended"]
+- "confidence": "HIGH" | "MEDIUM" | "LOW"
+
+Menu text:
+${menuText.slice(0, 15000)}
+
+Return ONLY valid JSON in this exact structure:
+{
+  "categories": ["Starters", "Main Course", "Breads", "Desserts"],
+  "items": [
+    {
+      "category": "Starters",
+      "name": "Paneer Tikka",
+      "description": "Cottage cheese marinated in spices and roasted in tandoor.",
+      "price": 249,
+      "portion": "Standard",
+      "isVeg": true,
+      "tags": ["Bestseller"],
+      "confidence": "HIGH"
+    }
+  ]
+}`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-oss-120b',
+      messages: [
+        { role: 'system', content: 'You are an Indian restaurant menu digitization AI. Return valid JSON only.' },
+        { role: 'user', content: prompt }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.1
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq API error: ${response.status} ${errorText}`);
+  }
+
+  const result = await response.json();
+  const rawText = result.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error('Empty response from Groq API');
+
+  const parsed = JSON.parse(rawText);
+  return {
+    source: 'GROQ_AI',
+    categories: parsed.categories || [],
+    items: parsed.items || [],
+    rawTextPreview: menuText.slice(0, 500)
+  };
 }
 
 // Call Google Gemini API
@@ -71,34 +153,45 @@ Return ONLY valid JSON in this exact structure without markdown:
   ]
 }`;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.2
-      }
-    })
-  });
+  // Try flash-latest then 2.5-flash-lite
+  const models = ['gemini-flash-latest', 'gemini-2.5-flash-lite'];
+  let lastError: any = null;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+  for (const model of models) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.2
+          }
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const parsed = JSON.parse(rawText);
+          return {
+            source: 'GEMINI_AI',
+            categories: parsed.categories || [],
+            items: parsed.items || [],
+            rawTextPreview: menuText.slice(0, 500)
+          };
+        }
+      } else {
+        lastError = new Error(`Gemini ${model} error: ${response.status}`);
+      }
+    } catch (e) {
+      lastError = e;
+    }
   }
 
-  const result = await response.json();
-  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Empty response from Gemini API');
-
-  const parsed = JSON.parse(rawText);
-  return {
-    source: 'GEMINI_AI',
-    categories: parsed.categories || [],
-    items: parsed.items || [],
-    rawTextPreview: menuText.slice(0, 500)
-  };
+  throw lastError || new Error('All Gemini models failed');
 }
 
 // Smart heuristic Indian menu parser for offline / pre-API-key use

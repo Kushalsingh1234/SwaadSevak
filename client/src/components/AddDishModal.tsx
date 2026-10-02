@@ -22,6 +22,8 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
   const [description, setDescription] = useState(dishToEdit?.description || '');
   const [price, setPrice] = useState(dishToEdit ? String(dishToEdit.price) : '');
   const [categoryId, setCategoryId] = useState(dishToEdit?.categoryId || (categories[0]?.id || ''));
+  const [isNewCategoryMode, setIsNewCategoryMode] = useState(categories.length === 0);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [portion, setPortion] = useState(dishToEdit?.portion || 'Standard');
   const [isVeg, setIsVeg] = useState(dishToEdit ? dishToEdit.isVeg : true);
   const [selectedTag, setSelectedTag] = useState(dishToEdit?.tags?.[0] || 'Bestseller');
@@ -42,9 +44,16 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
       setErrorMsg('Please enter a valid price in INR');
       return;
     }
-    if (!categoryId) {
-      setErrorMsg('Please select a category');
-      return;
+    if (isNewCategoryMode) {
+      if (!newCategoryName.trim()) {
+        setErrorMsg('Please enter a new category name');
+        return;
+      }
+    } else {
+      if (!categoryId) {
+        setErrorMsg('Please select a category or create a new one');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -54,7 +63,8 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
         name: name.trim(),
         description: description.trim(),
         price: parseFloat(price),
-        categoryId,
+        categoryId: isNewCategoryMode ? undefined : categoryId,
+        newCategoryName: isNewCategoryMode ? newCategoryName.trim() : undefined,
         portion,
         isVeg,
         tags: selectedTag !== 'None' ? [selectedTag] : []
@@ -135,20 +145,54 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
           </div>
 
           {/* Category & Price */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700">Category *</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewCategoryMode(!isNewCategoryMode);
+                    setErrorMsg('');
+                  }}
+                  className="text-[11px] font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                >
+                  {isNewCategoryMode ? '← Pick Existing' : '+ New Category'}
+                </button>
+              </div>
+
+              {isNewCategoryMode ? (
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="e.g. Tandoori Specials"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-orange-300 bg-orange-50/30 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  />
+                  <p className="text-[10px] text-slate-500">Creates new category & adds dish to it</p>
+                </div>
+              ) : (
+                <select
+                  value={categoryId}
+                  onChange={(e) => {
+                    if (e.target.value === '__NEW__') {
+                      setIsNewCategoryMode(true);
+                    } else {
+                      setCategoryId(e.target.value);
+                    }
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                  <option value="__NEW__">+ Create New Category...</option>
+                </select>
+              )}
             </div>
 
             <div>

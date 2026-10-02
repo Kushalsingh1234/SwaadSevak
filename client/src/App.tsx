@@ -230,14 +230,41 @@ export function App() {
 
   // Dish Handlers
   const handleSaveDish = async (dishData: any) => {
-    const res = await api.createMenuItem(dishData);
+    let finalCategoryId = dishData.categoryId;
+    if (dishData.newCategoryName && dishData.newCategoryName.trim()) {
+      const catRes = await api.createCategory(dishData.newCategoryName.trim());
+      if (catRes.success && catRes.category) {
+        setCategories(prev => [...prev, catRes.category]);
+        finalCategoryId = catRes.category.id;
+      }
+    }
+
+    const res = await api.createMenuItem({
+      ...dishData,
+      categoryId: finalCategoryId
+    });
     if (res.success) {
       setMenuItems(prev => [...prev, res.item]);
+      if (res.createdCategory) {
+        setCategories(prev => [...prev.filter(c => c.id !== res.createdCategory.id), res.createdCategory]);
+      }
     }
   };
 
   const handleUpdateDish = async (dishId: string, dishData: any) => {
-    const res = await api.updateMenuItem(dishId, dishData);
+    let finalCategoryId = dishData.categoryId;
+    if (dishData.newCategoryName && dishData.newCategoryName.trim()) {
+      const catRes = await api.createCategory(dishData.newCategoryName.trim());
+      if (catRes.success && catRes.category) {
+        setCategories(prev => [...prev, catRes.category]);
+        finalCategoryId = catRes.category.id;
+      }
+    }
+
+    const res = await api.updateMenuItem(dishId, {
+      ...dishData,
+      categoryId: finalCategoryId
+    });
     if (res.success) {
       setMenuItems(prev => prev.map(i => i.id === dishId ? res.item : i));
     }

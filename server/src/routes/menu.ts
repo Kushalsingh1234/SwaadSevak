@@ -69,10 +69,27 @@ router.get('/items', (req: AuthenticatedRequest, res: Response) => {
 
 router.post('/items', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
-  const { name, description, price, categoryId, portion, isVeg, tags } = req.body;
+  let { name, description, price, categoryId, newCategoryName, portion, isVeg, tags } = req.body;
 
-  if (!name || price === undefined || !categoryId) {
-    return res.status(400).json({ success: false, message: 'Dish name, price, and category are required' });
+  if (!name || price === undefined) {
+    return res.status(400).json({ success: false, message: 'Dish name and price are required' });
+  }
+
+  // If a new category name is provided, create it or reuse existing
+  let createdCategory = null;
+  if (newCategoryName && typeof newCategoryName === 'string' && newCategoryName.trim()) {
+    const trimmedCat = newCategoryName.trim();
+    const existingCats = db.getCategories(restaurantId);
+    let match = existingCats.find(c => c.name.toLowerCase() === trimmedCat.toLowerCase());
+    if (!match) {
+      match = db.createCategory(restaurantId, trimmedCat);
+      createdCategory = match;
+    }
+    categoryId = match.id;
+  }
+
+  if (!categoryId) {
+    return res.status(400).json({ success: false, message: 'Please select an existing category or enter a new category name' });
   }
 
   const item = db.createItem(restaurantId, {
@@ -86,7 +103,7 @@ router.post('/items', (req: AuthenticatedRequest, res: Response) => {
     tags: Array.isArray(tags) ? tags : []
   });
 
-  return res.status(201).json({ success: true, item });
+  return res.status(201).json({ success: true, item, createdCategory });
 });
 
 router.put('/items/:id', (req: AuthenticatedRequest, res: Response) => {

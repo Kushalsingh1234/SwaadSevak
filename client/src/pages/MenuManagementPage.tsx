@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -49,6 +49,11 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
   const [dishToEdit, setDishToEdit] = useState<MenuItem | null>(null);
   const [newCatName, setNewCatName] = useState('');
   const [showAddCatInput, setShowAddCatInput] = useState(false);
+
+  // Always sync latest menu items on page load
+  useEffect(() => {
+    onRefreshMenu();
+  }, []);
 
   // Filter items
   const filteredItems = items.filter((item) => {

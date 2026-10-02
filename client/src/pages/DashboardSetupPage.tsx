@@ -110,7 +110,9 @@ export const DashboardSetupPage: React.FC<DashboardSetupPageProps> = ({
       <AiMenuModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
-        onMenuImported={onProceedToDashboard}
+        onMenuImported={async () => {
+          await onProceedToDashboard();
+        }}
       />
     </div>
   );

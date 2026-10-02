@@ -367,8 +367,12 @@ export function App() {
     return (
       <DashboardSetupPage
         restaurant={restaurant}
-        onProceedToDashboard={() => setIsFirstSetup(false)}
-        onOpenManualAddDish={() => {
+        onProceedToDashboard={async () => {
+          await refreshAllData(restaurant?.id);
+          setIsFirstSetup(false);
+        }}
+        onOpenManualAddDish={async () => {
+          await refreshAllData(restaurant?.id);
           setIsFirstSetup(false);
           setCurrentTab('menu');
           setIsAddDishModalOpen(true);

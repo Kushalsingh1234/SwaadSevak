@@ -33,76 +33,84 @@ export async function downloadInvoicePdf(
 
   // 1. Build an off-screen mobile-optimized receipt DOM element
   const container = document.createElement('div');
+  container.id = 'swaad-invoice-container';
   container.style.position = 'fixed';
-  container.style.left = '-9999px';
+  container.style.left = '0';
   container.style.top = '0';
-  container.style.width = '390px'; // standard smartphone viewport width
+  container.style.zIndex = '-9999';
+  container.style.pointerEvents = 'none';
+  container.style.width = '420px';
   container.style.backgroundColor = '#ffffff';
-  container.style.padding = '24px 20px';
-  container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  container.style.padding = '24px 22px 20px 22px';
+  container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   container.style.color = '#0f172a';
   container.style.boxSizing = 'border-box';
-  container.style.lineHeight = '1.4';
+  container.style.lineHeight = '1.45';
 
   container.innerHTML = `
-    <div style="text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 16px; margin-bottom: 14px;">
-      <div style="display: inline-block; background-color: #ea580c; color: #ffffff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">
-        Tax Invoice • Cash Memo
-      </div>
-      <h1 style="margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em;">
+    <!-- Top Tax Invoice Tag -->
+    <div style="text-align: center; margin-bottom: 12px;">
+      <span style="display: inline-block; background-color: #ea580c; color: #ffffff; font-size: 11px; font-weight: 800; padding: 5px 14px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.06em; line-height: 14px;">
+        TAX INVOICE • CASH MEMO
+      </span>
+    </div>
+
+    <!-- Restaurant Header -->
+    <div style="text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 14px; margin-bottom: 14px;">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; line-height: 28px;">
         ${restaurant?.name || 'Swaad Sevak Restaurant'}
       </h1>
-      <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b;">
-        ${restaurant?.address ? `${restaurant.address}, ` : ''}${restaurant?.city || ''}
+      <p style="margin: 5px 0 0 0; font-size: 11.5px; color: #475569; line-height: 16px;">
+        ${restaurant?.address ? `${restaurant.address}, ` : ''}${restaurant?.city || ''}${restaurant?.state ? `, ${restaurant.state}` : ''}
       </p>
       ${
         restaurant?.phone || restaurant?.email
-          ? `<p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">Ph: ${restaurant?.phone || ''} ${restaurant?.email ? `• ${restaurant.email}` : ''}</p>`
+          ? `<p style="margin: 3px 0 0 0; font-size: 11px; color: #64748b; line-height: 15px;">Ph: ${restaurant?.phone || ''} ${restaurant?.email ? `• ${restaurant.email}` : ''}</p>`
           : ''
       }
-      ${
-        restaurant?.gstNumber
-          ? `<p style="margin: 3px 0 0 0; font-size: 10px; font-weight: 700; color: #ea580c;">GSTIN: ${restaurant.gstNumber}</p>`
-          : ''
-      }
+      <div style="margin-top: 6px;">
+        <span style="display: inline-block; font-size: 10.5px; font-weight: 700; color: #ea580c; background-color: #fff7ed; padding: 2px 8px; border-radius: 4px; border: 1px solid #ffedd5; line-height: 14px;">
+          ${restaurant?.gstNumber ? `GSTIN: ${restaurant.gstNumber}` : 'Composition / Regular GST Dealer'}
+        </span>
+      </div>
     </div>
 
-    <!-- Table & Meta Details -->
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px;">
+    <!-- Table & Meta Details Card -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 11.5px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-weight: 800; font-size: 13px; color: #ea580c; background-color: #fff7ed; padding: 2px 8px; border-radius: 6px; border: 1px solid #ffedd5;">
-          ${order.tableNumber}
+        <span style="font-weight: 800; font-size: 13px; color: #ea580c; background-color: #fff7ed; padding: 3px 10px; border-radius: 6px; border: 1px solid #fed7aa; line-height: 16px;">
+          ${order.tableNumber || 'Dine-In'}
         </span>
-        <span style="font-weight: 700; color: #334155;">
+        <span style="font-weight: 800; color: #1e293b; font-size: 12px;">
           ${invoiceNumber}
         </span>
       </div>
-      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10px;">
-        <span>Order ID: <b>${order.orderNumber}</b></span>
+      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; line-height: 15px;">
+        <span>Order ID: <b style="color: #334155;">${order.orderNumber}</b></span>
         <span>${orderDate} • ${orderTime}</span>
       </div>
     </div>
 
-    <!-- Items List -->
-    <div style="border-bottom: 2px dashed #cbd5e1; padding-bottom: 12px; margin-bottom: 14px;">
-      <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9;">
+    <!-- Items List Table -->
+    <div style="border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 6px; border-bottom: 1.5px solid #e2e8f0;">
         <span style="flex: 1;">Item Description</span>
-        <span style="width: 40px; text-align: center;">Qty</span>
-        <span style="width: 50px; text-align: right;">Rate</span>
-        <span style="width: 60px; text-align: right;">Total</span>
+        <span style="width: 44px; text-align: center;">Qty</span>
+        <span style="width: 55px; text-align: right;">Rate</span>
+        <span style="width: 65px; text-align: right;">Total</span>
       </div>
 
       ${order.items
         .map(
           item => `
-        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; padding: 7px 0; border-bottom: 1px dotted #f1f5f9;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; padding: 7px 0; border-bottom: 1px dotted #e2e8f0;">
           <div style="flex: 1; padding-right: 8px;">
-            <span style="font-weight: 700; color: #0f172a;">${item.name}</span>
-            ${item.portion ? `<span style="font-size: 9px; color: #64748b; display: block;">${item.portion}</span>` : ''}
+            <span style="font-weight: 700; color: #0f172a; line-height: 16px;">${item.name}</span>
+            ${item.portion ? `<span style="font-size: 9.5px; color: #64748b; display: block; line-height: 13px;">${item.portion}</span>` : ''}
           </div>
-          <span style="width: 40px; text-align: center; font-weight: 600; color: #475569;">x${item.quantity}</span>
-          <span style="width: 50px; text-align: right; color: #64748b;">₹${item.price}</span>
-          <span style="width: 60px; text-align: right; font-weight: 700; color: #0f172a;">₹${item.price * item.quantity}</span>
+          <span style="width: 44px; text-align: center; font-weight: 700; color: #334155;">x${item.quantity}</span>
+          <span style="width: 55px; text-align: right; color: #64748b;">₹${item.price}</span>
+          <span style="width: 65px; text-align: right; font-weight: 800; color: #0f172a;">₹${item.price * item.quantity}</span>
         </div>
       `
         )
@@ -110,37 +118,39 @@ export async function downloadInvoicePdf(
     </div>
 
     <!-- Calculation Breakdown -->
-    <div style="padding-bottom: 12px; margin-bottom: 14px; font-size: 11px;">
-      <div style="display: flex; justify-content: space-between; color: #475569; padding: 2px 0;">
+    <div style="padding-bottom: 10px; margin-bottom: 12px; font-size: 11.5px;">
+      <div style="display: flex; justify-content: space-between; color: #334155; padding: 2px 0;">
         <span>Item Subtotal</span>
-        <span style="font-weight: 600;">₹${subtotal.toFixed(2)}</span>
+        <span style="font-weight: 700;">₹${subtotal.toFixed(2)}</span>
       </div>
-      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10px; padding: 2px 0;">
+      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; padding: 2px 0;">
         <span>CGST (2.5%)</span>
         <span>₹${cgst.toFixed(2)}</span>
       </div>
-      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10px; padding: 2px 0;">
+      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; padding: 2px 0;">
         <span>SGST (2.5%)</span>
         <span>₹${sgst.toFixed(2)}</span>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; background-color: #0f172a; color: #ffffff; padding: 10px 14px; border-radius: 10px; margin-top: 8px;">
+
+      <!-- Grand Total Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; background-color: #0f172a; color: #ffffff; padding: 10px 14px; border-radius: 8px; margin-top: 8px;">
         <span style="font-weight: 800; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;">Grand Total</span>
-        <span style="font-size: 16px; font-weight: 900; color: #fb923c;">₹${grandTotal.toFixed(2)}</span>
+        <span style="font-size: 17px; font-weight: 900; color: #fb923c;">₹${grandTotal.toFixed(2)}</span>
       </div>
     </div>
 
     <!-- Payment Settled Badge -->
-    <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 9px; text-align: center; margin-bottom: 16px;">
-      <p style="margin: 0; font-size: 11px; font-weight: 800; color: #047857; letter-spacing: 0.02em;">
+    <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 8px 10px; text-align: center; margin-bottom: 14px;">
+      <p style="margin: 0; font-size: 11.5px; font-weight: 800; color: #047857; letter-spacing: 0.02em; line-height: 16px;">
         ✓ ${paymentMode} — SETTLED
       </p>
-      <p style="margin: 2px 0 0 0; font-size: 9px; color: #059669;">
+      <p style="margin: 2px 0 0 0; font-size: 9.5px; color: #059669; line-height: 13px;">
         Payment verified & recorded electronically
       </p>
     </div>
 
     <!-- Verification Footer -->
-    <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 12px; font-size: 10px; color: #94a3b8;">
+    <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; line-height: 14px;">
       <p style="margin: 0; font-weight: 600; color: #64748b;">Thank you for dining with us! Please visit again.</p>
       <p style="margin: 3px 0 0 0; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: #cbd5e1;">
         Computer Generated Tax Invoice • Powered by Swaad Sevak
@@ -151,150 +161,51 @@ export async function downloadInvoicePdf(
   document.body.appendChild(container);
 
   try {
-    // 2. Render container to high-res canvas (scale: 2 for crisp 300dpi retina text)
+    // Wait for DOM layout
+    await new Promise(resolve => setTimeout(resolve, 60));
+
+    const exactWidth = container.offsetWidth || 420;
+    const exactHeight = container.scrollHeight;
+
+    // 2. Render container to high-res canvas with STRICT width and height
     const canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 3, // 3x for ultra-sharp retina typography
       useCORS: true,
       backgroundColor: '#ffffff',
+      width: exactWidth,
+      height: exactHeight,
+      windowWidth: exactWidth,
+      windowHeight: exactHeight,
+      x: 0,
+      y: 0,
       logging: false
     });
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/png', 1.0);
 
-    // 3. Convert pixel dimensions to mm for PDF (portrait format)
-    const imgWidthMm = 80; // Standard 80mm portrait mobile receipt width
-    const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+    // 3. Convert pixel dimensions to mm for PDF:
+    // We set 90mm width (standard mobile portrait receipt width).
+    // The height is calculated STRICTLY from the exact content aspect ratio!
+    const pdfWidthMm = 90;
+    const pdfHeightMm = (exactHeight * pdfWidthMm) / exactWidth;
 
     // 4. Initialize jsPDF with EXACT computed dimensions so there is ZERO wasted empty space!
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [imgWidthMm, imgHeightMm]
+      format: [pdfWidthMm, pdfHeightMm]
     });
 
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidthMm, imgHeightMm);
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
 
     // 5. Save PDF directly to user's phone / device
     const safeFilename = `Invoice-${invoiceNumber.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
     pdf.save(safeFilename);
   } catch (error) {
-    console.error('Failed to generate canvas invoice PDF, falling back to pure PDF:', error);
-    // Fallback in case canvas fails
-    fallbackPurePdf(order, invoiceNumber, orderDate, orderTime, subtotal, cgst, sgst, grandTotal, paymentMode, restaurant);
+    console.error('Failed to generate canvas invoice PDF:', error);
   } finally {
-    document.body.removeChild(container);
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
   }
-}
-
-function fallbackPurePdf(
-  order: Order,
-  invoiceNumber: string,
-  orderDate: string,
-  orderTime: string,
-  subtotal: number,
-  cgst: number,
-  sgst: number,
-  grandTotal: number,
-  paymentMode: string,
-  restaurant: Restaurant | null
-) {
-  // Mobile portrait dimensions: 80mm width, dynamic height
-  const itemRowHeight = 6;
-  const baseHeight = 110;
-  const totalHeight = baseHeight + (order.items.length * itemRowHeight);
-
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: [80, totalHeight]
-  });
-
-  const margin = 5;
-  const width = 70;
-  let y = 8;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(234, 88, 12);
-  doc.text(restaurant?.name || 'Swaad Sevak Restaurant', 40, y, { align: 'center' });
-
-  y += 4;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 116, 139);
-  doc.text(restaurant?.address || 'Restaurant Address', 40, y, { align: 'center' });
-
-  y += 4;
-  doc.text(`GSTIN: ${restaurant?.gstNumber || 'URP'}`, 40, y, { align: 'center' });
-
-  y += 4;
-  doc.setDrawColor(203, 213, 225);
-  doc.line(margin, y, margin + width, y);
-
-  y += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`${order.tableNumber}`, margin, y);
-  doc.text(invoiceNumber, margin + width, y, { align: 'right' });
-
-  y += 3.5;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Order: ${order.orderNumber}`, margin, y);
-  doc.text(`${orderDate} ${orderTime}`, margin + width, y, { align: 'right' });
-
-  y += 4;
-  doc.line(margin, y, margin + width, y);
-
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(51, 65, 85);
-  doc.text('Item', margin, y);
-  doc.text('Qty', margin + 40, y);
-  doc.text('Amount (Rs)', margin + width, y, { align: 'right' });
-
-  y += 2;
-  doc.line(margin, y, margin + width, y);
-  y += 4;
-
-  doc.setFont('helvetica', 'normal');
-  for (const item of order.items) {
-    doc.text(item.name.slice(0, 22), margin, y);
-    doc.text(`x${item.quantity}`, margin + 40, y);
-    doc.text(`Rs.${item.price * item.quantity}`, margin + width, y, { align: 'right' });
-    y += itemRowHeight;
-  }
-
-  doc.line(margin, y, margin + width, y);
-  y += 4;
-
-  doc.text('Subtotal:', margin + 30, y);
-  doc.text(`Rs.${subtotal.toFixed(2)}`, margin + width, y, { align: 'right' });
-  y += 3.5;
-
-  doc.text('GST (5%):', margin + 30, y);
-  doc.text(`Rs.${(cgst + sgst).toFixed(2)}`, margin + width, y, { align: 'right' });
-  y += 4;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(234, 88, 12);
-  doc.text('Grand Total:', margin + 30, y);
-  doc.text(`Rs.${grandTotal.toFixed(2)}`, margin + width, y, { align: 'right' });
-  y += 6;
-
-  doc.setFontSize(7.5);
-  doc.setTextColor(5, 150, 105);
-  doc.text(`[ ${paymentMode} ]`, 40, y, { align: 'center' });
-
-  y += 5;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
-  doc.setTextColor(148, 163, 184);
-  doc.text('Powered by Swaad Sevak Restaurant OS', 40, y, { align: 'center' });
-
-  doc.save(`Invoice-${invoiceNumber}.pdf`);
 }

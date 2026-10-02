@@ -29,10 +29,21 @@ export function App() {
     return <CustomerMenuPage restaurantSlug={restaurantSlug} qrToken={qrToken} />;
   }
 
+  // Persisted session & active tab
+  const savedToken = typeof window !== 'undefined' ? localStorage.getItem('swaad_token') : null;
+  const savedTab = typeof window !== 'undefined' ? localStorage.getItem('swaad_active_tab') : null;
+
   // Manager App States
-  const [authView, setAuthView] = useState<'LANDING' | 'REGISTER' | 'LOGIN' | 'APP'>('LANDING');
-  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [authView, setAuthView] = useState<'LANDING' | 'REGISTER' | 'LOGIN' | 'APP'>(
+    savedToken ? 'APP' : 'LANDING'
+  );
+  const [currentTab, setCurrentTab] = useState<string>(savedTab || 'dashboard');
   const [isFirstSetup, setIsFirstSetup] = useState<boolean>(false);
+
+  const handleTabChange = (tab: string) => {
+    setCurrentTab(tab);
+    localStorage.setItem('swaad_active_tab', tab);
+  };
 
   // App Data State
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -73,9 +84,13 @@ export function App() {
         joinRestaurantRoom(meRes.restaurant.id);
       } else {
         localStorage.removeItem('swaad_token');
+        localStorage.removeItem('swaad_active_tab');
+        setAuthView('LANDING');
       }
     } catch {
       localStorage.removeItem('swaad_token');
+      localStorage.removeItem('swaad_active_tab');
+      setAuthView('LANDING');
     }
   };
 
@@ -199,9 +214,11 @@ export function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('swaad_token');
+    localStorage.removeItem('swaad_active_tab');
     setRestaurant(null);
     setManager(null);
     setAuthView('LANDING');
+    setCurrentTab('dashboard');
     soundManager.stopPendingLoop();
   };
 
@@ -375,10 +392,26 @@ export function App() {
         onOpenManualAddDish={async () => {
           await refreshAllData(restaurant?.id);
           setIsFirstSetup(false);
-          setCurrentTab('menu');
+          handleTabChange('menu');
           setIsAddDishModalOpen(true);
         }}
       />
+    );
+  }
+
+  // Seamless restoration screen when restoring an existing session
+  if (authView === 'APP' && !restaurant) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4">
+        <div className="w-12 h-12 rounded-2xl bg-orange-600 flex items-center justify-center font-black text-2xl animate-pulse shadow-lg shadow-orange-500/30">
+          S
+        </div>
+        <div className="mt-4 font-bold text-slate-200 text-sm tracking-wide">Swaad Sevak</div>
+        <div className="mt-1 text-xs text-slate-400 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+          <span>Restoring workspace...</span>
+        </div>
+      </div>
     );
   }
 
@@ -389,7 +422,7 @@ export function App() {
       {/* Navigation (Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
       <Navigation
         currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
+        setCurrentTab={handleTabChange}
         restaurant={restaurant}
         manager={manager}
         onLogout={handleLogout}
@@ -406,7 +439,7 @@ export function App() {
             orders={orders}
             tables={tables}
             menuItems={menuItems}
-            onNavigateTab={(tab) => setCurrentTab(tab)}
+            onNavigateTab={handleTabChange}
             onOpenLiveDinerDemo={(customUrl) => handleOpenLiveDinerDemo(customUrl)}
             onRefreshOrders={refreshAllData}
           />

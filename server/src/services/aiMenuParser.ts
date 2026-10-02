@@ -52,31 +52,35 @@ export async function parseMenuPdfBuffer(buffer: Buffer): Promise<ParseResult> {
 
 // Call Groq API (High performance fast inference)
 async function parseWithGroqAPI(menuText: string, apiKey: string): Promise<ParseResult> {
-  const prompt = `You are an expert Indian restaurant menu digitization AI for "Swaad Sevak".
-Extract all dishes from this restaurant menu into a structured JSON array.
+  const prompt = `You are an expert restaurant and cafe menu digitization AI for "Swaad Sevak".
+CRITICAL INSTRUCTION:
+You MUST extract EVERY SINGLE item from this restaurant or cafe menu without stopping or summarizing.
+Extract all coffees, teas, shakes, smoothies, coolers, mocktails, breakfast items, eggs, sandwiches, paninis, pizzas, pastas, burgers, snacks, starters, mains, breads, and desserts.
+Do NOT omit any item that has a name and price. If the menu has 40, 60, or 100+ items, extract ALL OF THEM.
+
 For each dish extract:
-- "category": Category name (e.g. "Starters & Chaat", "Tandoori Special", "Main Course", "Breads & Roti", "Rice & Biryani", "Beverages", "Desserts", etc.)
-- "name": Dish name
-- "description": Short appetizing 1-line description
-- "price": Numerical price in INR (e.g. 250)
-- "portion": Portion size (e.g. "Standard", "Half", "Full", "6 Pcs", "1 Plate")
-- "isVeg": boolean (true for Vegetarian/Paneer/Dal/Mushroom/Veg/Roti, false for Chicken/Mutton/Fish/Egg/Prawn)
-- "tags": array of tags like ["Bestseller", "Chef's Special", "Spicy", "Recommended"]
-- "confidence": "HIGH" | "MEDIUM" | "LOW"
+- "category": Category name (e.g. "Coffee & Espresso", "Teas & Infusions", "Thick Shakes", "Breakfast", "Sandwiches", "Pizzas & Pastas", "Desserts", etc.)
+- "name": Dish or beverage name
+- "description": Appetizing short 1-line description
+- "price": Numerical price in INR (e.g. 180)
+- "portion": Portion size (e.g. "Standard", "Single", "Double", "Tall Glass", "1 Plate")
+- "isVeg": boolean (true for veg/drinks/milk/cheese/desserts, false for non-veg/chicken/mutton/fish/eggs)
+- "tags": array of tags like ["Bestseller", "Popular", "Chef's Special"]
+- "confidence": "HIGH"
 
 Menu text:
-${menuText.slice(0, 15000)}
+${menuText.slice(0, 60000)}
 
 Return ONLY valid JSON in this exact structure:
 {
-  "categories": ["Starters", "Main Course", "Breads", "Desserts"],
+  "categories": ["Category 1", "Category 2"],
   "items": [
     {
-      "category": "Starters",
-      "name": "Paneer Tikka",
-      "description": "Cottage cheese marinated in spices and roasted in tandoor.",
-      "price": 249,
-      "portion": "Standard",
+      "category": "Coffee & Espresso",
+      "name": "Cappuccino",
+      "description": "Rich espresso topped with velvety steamed milk foam.",
+      "price": 180,
+      "portion": "Standard Cup",
       "isVeg": true,
       "tags": ["Bestseller"],
       "confidence": "HIGH"
@@ -93,10 +97,11 @@ Return ONLY valid JSON in this exact structure:
     body: JSON.stringify({
       model: 'openai/gpt-oss-120b',
       messages: [
-        { role: 'system', content: 'You are an Indian restaurant menu digitization AI. Return valid JSON only.' },
+        { role: 'system', content: 'You are an expert Indian restaurant and cafe menu digitization AI. Return complete JSON extracting all items without skipping any.' },
         { role: 'user', content: prompt }
       ],
       response_format: { type: 'json_object' },
+      max_tokens: 8192,
       temperature: 0.1
     })
   });
@@ -121,30 +126,30 @@ Return ONLY valid JSON in this exact structure:
 
 // Call Google Gemini API
 async function parseWithGeminiAPI(menuText: string, apiKey: string): Promise<ParseResult> {
-  const prompt = `You are an expert Indian restaurant menu digitization AI for "Swaad Sevak".
-Extract all dishes from this restaurant menu into a structured JSON array.
+  const prompt = `You are an expert restaurant and cafe menu digitization AI for "Swaad Sevak".
+Extract EVERY SINGLE dish and beverage from this menu without omitting any.
 For each dish extract:
-- "category": Category name (e.g. "Starters", "Tandoori Special", "Main Course", "Breads", "Rice & Biryani", "Beverages", "Desserts", etc.)
+- "category": Category name
 - "name": Dish name
-- "description": Short description or ingredients if mentioned, otherwise write a brief appetizing 1-line description
-- "price": Numerical price in INR (e.g. 250)
-- "portion": Portion size (e.g. "Standard", "Half", "Full", "2 Pcs", "1 Bowl")
-- "isVeg": boolean (true for Vegetarian/Paneer/Dal/Mushroom/Veg/Roti, false for Chicken/Mutton/Fish/Egg/Prawn)
-- "tags": array of tags like ["Bestseller", "Chef's Special", "Spicy", "Recommended"]
-- "confidence": "HIGH" | "MEDIUM" | "LOW"
+- "description": Short description
+- "price": Numerical price in INR
+- "portion": Portion size
+- "isVeg": boolean
+- "tags": array of tags
+- "confidence": "HIGH"
 
 Menu text:
-${menuText.slice(0, 15000)}
+${menuText.slice(0, 60000)}
 
 Return ONLY valid JSON in this exact structure without markdown:
 {
   "categories": ["Category 1", "Category 2"],
   "items": [
     {
-      "category": "Starters",
-      "name": "Paneer Tikka",
-      "description": "Cottage cheese marinated in spices and roasted in tandoor.",
-      "price": 249,
+      "category": "Coffee",
+      "name": "Cappuccino",
+      "description": "Rich espresso with steamed milk foam.",
+      "price": 180,
       "portion": "Standard",
       "isVeg": true,
       "tags": ["Bestseller"],
@@ -166,7 +171,8 @@ Return ONLY valid JSON in this exact structure without markdown:
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: 'application/json',
-            temperature: 0.2
+            temperature: 0.1,
+            maxOutputTokens: 8192
           }
         })
       });
@@ -203,11 +209,14 @@ export function parseWithSmartIndianHeuristics(rawText: string): ParseResult {
   let currentCategory = 'Starters & Quick Bites';
   categoriesSet.add(currentCategory);
 
-  const nonVegKeywords = ['chicken', 'mutton', 'fish', 'prawn', 'egg', 'lamb', 'keema', 'gosht', 'tandoori murgh', 'kebab'];
+  const nonVegKeywords = ['chicken', 'mutton', 'fish', 'prawn', 'egg', 'lamb', 'keema', 'gosht', 'tandoori murgh', 'kebab', 'bacon', 'pork'];
   const categoryHeaders = [
     'starter', 'soup', 'salad', 'main course', 'curry', 'gravy', 'bread', 'roti',
     'naan', 'rice', 'biryani', 'chinese', 'beverage', 'drink', 'shake', 'chai',
-    'coffee', 'dessert', 'mithai', 'sweet', 'combo', 'thali', 'pizza', 'burger', 'sandwich', 'chaat'
+    'coffee', 'espresso', 'tea', 'cooler', 'mocktail', 'smoothie', 'breakfast',
+    'sandwich', 'panini', 'toast', 'pizza', 'pasta', 'burger', 'waffle', 'pancake',
+    'dessert', 'mithai', 'sweet', 'combo', 'thali', 'chaat', 'snack', 'appetizer',
+    'maggi', 'momos', 'sundae', 'cake', 'pastry'
   ];
 
   for (let i = 0; i < lines.length; i++) {
@@ -215,7 +224,7 @@ export function parseWithSmartIndianHeuristics(rawText: string): ParseResult {
 
     // Check if line looks like a category header
     const lowerLine = line.toLowerCase();
-    const matchedCategory = categoryHeaders.find(h => lowerLine.includes(h) && line.length < 35 && !line.match(/\d{2,}/));
+    const matchedCategory = categoryHeaders.find(h => lowerLine.includes(h) && line.length < 40 && !line.match(/\d{2,}/));
     if (matchedCategory) {
       // Capitalize as category
       currentCategory = line.replace(/[:\-_\*]/g, '').trim();
@@ -225,7 +234,8 @@ export function parseWithSmartIndianHeuristics(rawText: string): ParseResult {
 
     // Match price pattern: e.g., "Paneer Butter Masala ... 280", "Dal Tadka ₹ 180", "Cold Coffee - 120/-"
     const priceMatch = line.match(/(?:₹|Rs\.?|INR)?\s*(\d{2,4})\s*(?:\/-)?$/i) ||
-                       line.match(/(?:₹|Rs\.?|INR)\s*(\d{2,4})/i);
+                       line.match(/(?:₹|Rs\.?|INR)\s*(\d{2,4})/i) ||
+                       line.match(/[\s\.\-_|:]+(\d{2,4})$/);
 
     if (priceMatch) {
       const price = parseInt(priceMatch[1], 10);
@@ -239,7 +249,7 @@ export function parseWithSmartIndianHeuristics(rawText: string): ParseResult {
         // Auto tag
         const tags: string[] = [];
         if (price > 300) tags.push("Chef's Special");
-        if (dishName.toLowerCase().includes('butter') || dishName.toLowerCase().includes('tikka') || dishName.toLowerCase().includes('biryani')) {
+        if (dishName.toLowerCase().includes('butter') || dishName.toLowerCase().includes('tikka') || dishName.toLowerCase().includes('special') || dishName.toLowerCase().includes('brew')) {
           tags.push('Bestseller');
         }
 
@@ -248,6 +258,8 @@ export function parseWithSmartIndianHeuristics(rawText: string): ParseResult {
         if (dishName.toLowerCase().includes('half')) portion = 'Half';
         else if (dishName.toLowerCase().includes('full')) portion = 'Full';
         else if (dishName.toLowerCase().includes('pcs') || dishName.toLowerCase().includes('pc')) portion = 'Per Plate';
+        else if (dishName.toLowerCase().includes('single')) portion = 'Single';
+        else if (dishName.toLowerCase().includes('double')) portion = 'Double';
 
         items.push({
           category: currentCategory,

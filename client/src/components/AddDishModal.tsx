@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, AlertCircle } from 'lucide-react';
 import { MenuCategory, MenuItem } from '../types';
 import { VegIcon } from './VegIcon';
@@ -18,17 +18,43 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [name, setName] = useState(dishToEdit?.name || '');
-  const [description, setDescription] = useState(dishToEdit?.description || '');
-  const [price, setPrice] = useState(dishToEdit ? String(dishToEdit.price) : '');
-  const [categoryId, setCategoryId] = useState(dishToEdit?.categoryId || (categories[0]?.id || ''));
-  const [isNewCategoryMode, setIsNewCategoryMode] = useState(categories.length === 0);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [isNewCategoryMode, setIsNewCategoryMode] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [portion, setPortion] = useState(dishToEdit?.portion || 'Standard');
-  const [isVeg, setIsVeg] = useState(dishToEdit ? dishToEdit.isVeg : true);
-  const [selectedTag, setSelectedTag] = useState(dishToEdit?.tags?.[0] || 'Bestseller');
+  const [portion, setPortion] = useState('Standard');
+  const [isVeg, setIsVeg] = useState(true);
+  const [selectedTag, setSelectedTag] = useState('Bestseller');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Synchronize and pre-fill form fields whenever dishToEdit or isOpen changes
+  useEffect(() => {
+    if (dishToEdit) {
+      setName(dishToEdit.name || '');
+      setDescription(dishToEdit.description || '');
+      setPrice(dishToEdit.price !== undefined ? String(dishToEdit.price) : '');
+      setCategoryId(dishToEdit.categoryId || (categories[0]?.id || ''));
+      setPortion(dishToEdit.portion || 'Standard');
+      setIsVeg(dishToEdit.isVeg !== undefined ? dishToEdit.isVeg : true);
+      setSelectedTag(dishToEdit.tags?.[0] || 'None');
+      setIsNewCategoryMode(false);
+      setNewCategoryName('');
+    } else {
+      setName('');
+      setDescription('');
+      setPrice('');
+      setCategoryId(categories[0]?.id || '');
+      setPortion('Standard');
+      setIsVeg(true);
+      setSelectedTag('Bestseller');
+      setIsNewCategoryMode(categories.length === 0);
+      setNewCategoryName('');
+    }
+    setErrorMsg('');
+  }, [dishToEdit, isOpen, categories]);
 
   if (!isOpen) return null;
 

@@ -1,45 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   TrendingUp,
   Clock,
   CheckCircle2,
   AlertCircle,
-  Printer,
-  ChevronRight,
-  Filter,
-  Check,
-  X,
   ExternalLink,
   Flame,
-  Store,
   Receipt,
-  BellRing
+  BellRing,
+  Sparkles,
+  ArrowRight,
+  LayoutGrid,
+  DollarSign,
+  Award,
+  UtensilsCrossed,
+  RefreshCw,
+  ChefHat,
+  ChevronRight,
+  QrCode,
+  ShieldCheck
 } from 'lucide-react';
-import { Order, Restaurant, Manager, PrinterConfig, Bill } from '../types';
+import { Order, Restaurant, Manager, TableItem, MenuItem } from '../types';
 import { api } from '../services/api';
 import { SoundBanner } from '../components/SoundBanner';
-import { KotModal } from '../components/KotModal';
-import { InvoiceModal } from '../components/InvoiceModal';
-import { SettleBillModal } from '../components/SettleBillModal';
 
 interface DashboardOverviewPageProps {
   restaurant: Restaurant | null;
   manager: Manager | null;
   orders: Order[];
-  onUpdateOrderStatus: (orderId: string, status: string) => Promise<void>;
-  onRefreshOrders: () => void;
-  printerConfig?: PrinterConfig;
-  onOpenLiveDinerDemo: () => void;
+  tables?: TableItem[];
+  menuItems?: MenuItem[];
+  onNavigateTab?: (tab: string) => void;
+  onOpenLiveDinerDemo?: (url?: string) => void;
+  onRefreshOrders?: () => void;
 }
 
 export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
   restaurant,
   manager,
   orders,
-  onUpdateOrderStatus,
-  onRefreshOrders,
-  printerConfig,
+  tables = [],
+  menuItems = [],
+  onNavigateTab,
   onOpenLiveDinerDemo,
+  onRefreshOrders,
 }) => {
   const [stats, setStats] = useState<any>({
     todaySales: 0,
@@ -48,44 +52,9 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
     completedCount: 0,
     onlineOrders: { swiggy: { count: 0, sales: 0 }, zomato: { count: 0, sales: 0 } }
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [selectedKotOrder, setSelectedKotOrder] = useState<Order | null>(null);
-  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
-  const [activeBill, setActiveBill] = useState<Bill | null>(null);
-  const [settleOrder, setSettleOrder] = useState<Order | null>(null);
-
-  const handleSettleBill = async (orderId: string, paymentStatus: 'PAID_UPI' | 'PAID_CASH' | 'PAID_CARD') => {
-    try {
-      // 1. Generate or fetch bill
-      let billId: string | null = null;
-      try {
-        const billRes = await api.generateBill(orderId);
-        if (billRes.success && billRes.bill) {
-          billId = billRes.bill.id;
-        }
-      } catch {
-        // May already exist
-      }
-
-      if (!billId) {
-        const allBills = await api.getBills();
-        const existing = allBills.bills?.find((b: any) => b.orderId === orderId);
-        billId = existing?.id;
-      }
-
-      if (billId) {
-        await api.settleBill(billId, paymentStatus);
-      }
-
-      await onUpdateOrderStatus(orderId, 'COMPLETED');
-      onRefreshOrders();
-    } catch (e) {
-      console.error('Failed to settle bill from dashboard:', e);
-    }
-  };
-
-  // Fetch dynamic stats
+  // Fetch dynamic stats from backend
   useEffect(() => {
     loadStats();
   }, [orders]);
@@ -101,440 +70,417 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
     }
   };
 
-  // Filter orders
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    if (onRefreshOrders) await onRefreshOrders();
+    await loadStats();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  // Order status classifications
   const pendingOrders = orders.filter(o => o.status === 'PENDING');
   const preparingOrders = orders.filter(o => o.status === 'ACCEPTED' || o.status === 'PREPARING');
   const readyOrders = orders.filter(o => o.status === 'READY');
   const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+  const billRequestedOrders = orders.filter(o => o.billRequested && o.status !== 'COMPLETED');
 
-  const filteredOrders = filterStatus === 'ALL'
-    ? orders
-    : orders.filter(o => o.status === filterStatus);
+  // Executive Financial Calculations
+  const calculatedSales = useMemo(() => {
+    const sum = completedOrders.reduce((acc, o) => acc + (o.total || 0), 0);
+    return Math.max(sum, stats.todaySales || 0);
+  }, [completedOrders, stats.todaySales]);
 
-  const handleOpenKot = (order: Order) => {
-    setSelectedKotOrder(order);
-  };
+  const totalOrdersCount = useMemo(() => {
+    return Math.max(orders.length, stats.totalOrders || 0);
+  }, [orders.length, stats.totalOrders]);
 
-  const handleOpenInvoice = async (order: Order) => {
-    setSelectedInvoiceOrder(order);
-    try {
-      const billsRes = await api.getBills();
-      if (billsRes.success) {
-        const found = billsRes.bills.find((b: Bill) => b.orderId === order.id);
-        setActiveBill(found || null);
+  const aov = useMemo(() => {
+    return totalOrdersCount > 0 ? Math.round(calculatedSales / (completedOrders.length || totalOrdersCount || 1)) : 0;
+  }, [calculatedSales, totalOrdersCount, completedOrders.length]);
+
+  // Table Occupancy Real-time Mapping
+  const occupancyMap = useMemo(() => {
+    const map = new Map<string, { status: 'AVAILABLE' | 'OCCUPIED' | 'BILL_REQUESTED'; order?: Order }>();
+
+    // Initial fill from tables prop
+    tables.forEach(t => {
+      map.set(t.tableNumber, { status: 'AVAILABLE' });
+    });
+
+    // Overlay active non-completed orders
+    orders.forEach(o => {
+      if (o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.tableNumber) {
+        const isBillReq = o.billRequested;
+        map.set(o.tableNumber, {
+          status: isBillReq ? 'BILL_REQUESTED' : 'OCCUPIED',
+          order: o
+        });
       }
-    } catch {}
-  };
+    });
 
-  const handleGenerateBill = async (order: Order) => {
-    try {
-      const res = await api.generateBill(order.id);
-      if (res.success) {
-        setActiveBill(res.bill);
-        setSelectedInvoiceOrder(order);
-        onRefreshOrders();
-      }
-    } catch (e) {
-      console.error('Bill generation error:', e);
+    return map;
+  }, [tables, orders]);
+
+  const occupiedCount = useMemo(() => {
+    let count = 0;
+    occupancyMap.forEach(v => {
+      if (v.status !== 'AVAILABLE') count++;
+    });
+    return count;
+  }, [occupancyMap]);
+
+  const occupancyRate = tables.length > 0 ? Math.round((occupiedCount / tables.length) * 100) : 0;
+
+  // Top 5 Bestselling Dishes calculation
+  const topDishes = useMemo(() => {
+    const counts: Record<string, { name: string; quantity: number; revenue: number; isVeg?: boolean }> = {};
+
+    orders.filter(o => o.status !== 'REJECTED').forEach(order => {
+      order.items?.forEach(item => {
+        if (!counts[item.name]) {
+          counts[item.name] = {
+            name: item.name,
+            quantity: 0,
+            revenue: 0,
+          };
+        }
+        counts[item.name].quantity += (item.quantity || 1);
+        counts[item.name].revenue += ((item.price || 0) * (item.quantity || 1));
+      });
+    });
+
+    const sorted = Object.values(counts).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+
+    // If no sales yet, fill with showcase dishes from menu
+    if (sorted.length === 0 && menuItems.length > 0) {
+      return menuItems.slice(0, 5).map(m => ({
+        name: m.name,
+        quantity: 0,
+        revenue: 0,
+        isVeg: m.isVeg,
+      }));
     }
-  };
+    return sorted;
+  }, [orders, menuItems]);
 
-  // Greeting based on time of day
+  // Direct QR Savings (22% standard Swiggy/Zomato commission saved)
+  const dineInRevenue = useMemo(() => {
+    return orders
+      .filter(o => o.source === 'DINE_IN' && o.status === 'COMPLETED')
+      .reduce((acc, o) => acc + (o.total || 0), 0);
+  }, [orders]);
+
+  const commissionSaved = Math.round(dineInRevenue * 0.22);
+
+  // Greeting
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div className="space-y-6">
-      {/* Top Banner: Greeting, Live Stats & Sound Control */}
+      {/* Executive Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-card">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            {greeting}, {manager?.username || 'Manager'} 👋
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {restaurant?.name} • Live Dine-in & Kitchen Operations
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <SoundBanner pendingCount={pendingOrders.length} />
-          <button
-            onClick={onOpenLiveDinerDemo}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition-all"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>View Menu</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Top Metrics Cards (Section 26 & 28) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Today's Sales */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Today's Sales</span>
-            <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-            ₹{stats.todaySales?.toLocaleString('en-IN') || '0'}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Calculated from completed dine-in orders
-          </p>
-        </div>
-
-        {/* Total Orders */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Orders</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-            {stats.totalOrders || orders.length}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            {orders.length} active sessions today
-          </p>
-        </div>
-
-        {/* Pending Orders */}
-        <div className={`p-5 rounded-2xl border shadow-card transition-all ${
-          pendingOrders.length > 0
-            ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-400/30'
-            : 'bg-white border-slate-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Pending Orders</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black">
-              {pendingOrders.length > 0 ? (
-                <BellRing className="w-4 h-4 animate-bounce" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4" />
-              )}
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-2">
-            {pendingOrders.length}
-          </div>
-          <p className="text-[11px] text-amber-700/80 mt-1 font-medium">
-            {pendingOrders.length > 0 ? 'Requires immediate action' : 'All orders accepted'}
-          </p>
-        </div>
-
-        {/* Completed Orders */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-            {completedOrders.length}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Served & settled bills
-          </p>
-        </div>
-      </div>
-
-      {/* Online Orders Integration Ready Section (Section 29) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-card">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-              Omnichannel Orders Overview
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-              Architecture Ready
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {greeting}, {manager?.username || 'Partner'} 👋
+            </h2>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 tracking-wide">
+              Live Operations
             </span>
           </div>
-          <p className="text-xs text-slate-500">
-            Unified view: Dine-In, Swiggy, Zomato
+          <p className="text-xs text-slate-500 mt-1">
+            {restaurant?.name || 'Swaad Sevak'} • {restaurant?.city || 'India'} • Executive Business Performance
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3 rounded-xl bg-orange-50/60 border border-orange-200/60 flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold text-orange-950">Dine-In (Swaad Sevak QR)</span>
-              <p className="text-[11px] text-orange-800">{orders.filter(o => o.source === 'DINE_IN').length} Orders</p>
-            </div>
-            <div className="text-right font-extrabold text-sm text-orange-900">
-              0% Commission
-            </div>
-          </div>
+        <div className="flex items-center flex-wrap gap-2.5">
+          <SoundBanner pendingCount={pendingOrders.length} />
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between opacity-80">
-            <div>
-              <span className="text-xs font-bold text-slate-800">Swiggy</span>
-              <p className="text-[11px] text-slate-500">Integration Gateway Ready</p>
-            </div>
-            <div className="text-right text-xs font-semibold text-slate-500">
-              Webhooks Configured
-            </div>
-          </div>
+          <button
+            onClick={handleManualRefresh}
+            className={`p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all ${
+              isRefreshing ? 'animate-spin text-orange-600' : ''
+            }`}
+            title="Refresh Live Data"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between opacity-80">
-            <div>
-              <span className="text-xs font-bold text-slate-800">Zomato</span>
-              <p className="text-[11px] text-slate-500">Integration Gateway Ready</p>
-            </div>
-            <div className="text-right text-xs font-semibold text-slate-500">
-              Webhooks Configured
-            </div>
-          </div>
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('orders')}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-sm shadow-orange-500/20 transition-all"
+            >
+              <ChefHat className="w-3.5 h-3.5" />
+              <span>Kitchen Display (KDS)</span>
+              {pendingOrders.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white text-orange-600 text-[10px] font-black">
+                  {pendingOrders.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {onOpenLiveDinerDemo && (
+            <button
+              onClick={() => onOpenLiveDinerDemo()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Diner Demo</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Bill Requested Notifications (Section 23) */}
-      {orders.filter(o => o.billRequested && o.status !== 'COMPLETED').map((order) => (
-        <div
-          key={`bill_req_${order.id}`}
-          className="p-4 rounded-2xl bg-purple-50 border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-pulse"
-        >
+      {/* Bill Requested Alert Banner (If Any) */}
+      {billRequestedOrders.length > 0 && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-purple-50/70 to-white border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold">
-              <Receipt className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-sm">
+              <Receipt className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h4 className="text-sm font-extrabold text-purple-950">
-                Bill Requested — {order.tableNumber}
+              <h4 className="text-sm font-extrabold text-purple-950 flex items-center gap-1.5">
+                <span>Payment & Bill Requested</span>
+                <span className="px-2 py-0.2 text-[10px] rounded-full bg-purple-200 text-purple-900 font-bold">
+                  {billRequestedOrders.length} {billRequestedOrders.length === 1 ? 'Table' : 'Tables'}
+                </span>
               </h4>
               <p className="text-xs text-purple-800">
-                Order {order.orderNumber} • Total: ₹{order.total.toFixed(2)} ({order.items.length} items)
+                {billRequestedOrders.map(o => o.tableNumber).join(', ')} • Guests are ready for instant checkout
               </p>
             </div>
           </div>
 
-          <button
-            onClick={() => handleGenerateBill(order)}
-            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
-          >
-            <Receipt className="w-3.5 h-3.5" />
-            <span>Generate & Settle Bill</span>
-          </button>
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('orders')}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <span>Settle in Live Orders</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-      ))}
+      )}
 
-      {/* Live Orders Section (Section 27) */}
+      {/* 4 Executive Metric KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Today's Sales */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Today's Net Sales</span>
+            <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+            ₹{calculatedSales.toLocaleString('en-IN')}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-emerald-600 font-semibold">
+            <Sparkles className="w-3 h-3" />
+            <span>100% Direct to Your Account</span>
+          </div>
+        </div>
+
+        {/* Total Orders */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Orders Today</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+            {totalOrdersCount}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1.5">
+            {completedOrders.length} completed • {pendingOrders.length + preparingOrders.length + readyOrders.length} live
+          </p>
+        </div>
+
+        {/* Average Order Value (AOV) */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Order Value</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+            ₹{aov > 0 ? aov.toLocaleString('en-IN') : '—'}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1.5">
+            Per dining table average ticket size
+          </p>
+        </div>
+
+        {/* Live Table Occupancy */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Table Occupancy</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <LayoutGrid className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+              {tables.length > 0 ? `${occupancyRate}%` : `${occupiedCount} Active`}
+            </span>
+            {tables.length > 0 && (
+              <span className="text-xs font-bold text-slate-500">
+                ({occupiedCount}/{tables.length})
+              </span>
+            )}
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+            <div
+              className="bg-orange-500 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(occupancyRate, 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Live Floor & Table Occupancy Map */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Flame className="w-5 h-5 text-orange-600" />
-              <span>Live Restaurant Orders</span>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5 text-orange-600" />
+              <span>Live Floor & Table Map</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Real-time synchronization across kitchen and dining tables
+              Real-time table status, running diner balances, and quick QR actions
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-medium">
-            {['ALL', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  filterStatus === status
-                    ? 'bg-white text-slate-900 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {status === 'ALL' ? 'All Orders' : status}
-                {status === 'PENDING' && pendingOrders.length > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-orange-600 text-white text-[10px] font-bold">
-                    {pendingOrders.length}
-                  </span>
-                )}
-              </button>
-            ))}
+          {/* Legend */}
+          <div className="flex items-center flex-wrap gap-3 text-xs font-medium">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <span className="text-slate-600">Available</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <span className="text-slate-600">Occupied</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse" />
+              <span className="text-slate-600">Bill Requested</span>
+            </div>
           </div>
         </div>
 
-        {/* Orders List */}
-        {filteredOrders.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-              <UtensilsIcon className="w-7 h-7" />
-            </div>
-            <h4 className="text-sm font-bold text-slate-800">No active orders yet</h4>
+        {tables.length === 0 ? (
+          <div className="py-10 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <QrCode className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+            <h4 className="text-sm font-bold text-slate-800">No tables configured yet</h4>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              New customer orders from table QR codes will appear here instantly with sound alert.
+              Configure dining tables with QR codes in the Tables & QR Codes tab.
             </p>
-            <button
-              onClick={onOpenLiveDinerDemo}
-              className="mt-4 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold shadow-sm hover:bg-orange-700"
-            >
-              Simulate First Order (Table 01)
-            </button>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab('tables')}
+                className="mt-3 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-sm transition-all"
+              >
+                Go to Tables & QR Setup
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredOrders.map((order) => {
-              const isPending = order.status === 'PENDING';
-              const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              });
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {tables.map(table => {
+              const liveData = occupancyMap.get(table.tableNumber);
+              const status = liveData?.status || 'AVAILABLE';
+              const activeOrder = liveData?.order;
+
+              const isAvailable = status === 'AVAILABLE';
+              const isOccupied = status === 'OCCUPIED';
+              const isBillReq = status === 'BILL_REQUESTED';
 
               return (
                 <div
-                  key={order.id}
-                  className={`rounded-2xl border transition-all flex flex-col justify-between overflow-hidden ${
-                    isPending
-                      ? 'bg-amber-50/40 border-amber-300 shadow-md ring-2 ring-amber-400/20'
-                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-card'
+                  key={table.id}
+                  className={`rounded-xl p-3.5 border transition-all flex flex-col justify-between ${
+                    isBillReq
+                      ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-400/30'
+                      : isOccupied
+                      ? 'bg-amber-50/70 border-amber-300'
+                      : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 hover:bg-white'
                   }`}
                 >
                   {/* Card Header */}
-                  <div className={`p-4 border-b flex items-center justify-between ${
-                    isPending ? 'bg-amber-100/50 border-amber-200' : 'bg-slate-50 border-slate-100'
-                  }`}>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-sm text-slate-900">{order.tableNumber}</span>
-                        <span className="text-xs text-slate-500 font-mono">{order.orderNumber}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500">{orderTime}</span>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-black text-sm text-slate-900">
+                        {table.tableNumber}
+                      </span>
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          isBillReq
+                            ? 'bg-purple-600 ring-4 ring-purple-200 animate-ping'
+                            : isOccupied
+                            ? 'bg-amber-500'
+                            : 'bg-emerald-500'
+                        }`}
+                      />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                        order.status === 'PENDING'
-                          ? 'bg-amber-500 text-white animate-pulse'
-                          : order.status === 'ACCEPTED' || order.status === 'PREPARING'
-                          ? 'bg-blue-600 text-white'
-                          : order.status === 'READY'
-                          ? 'bg-purple-600 text-white'
-                          : order.status === 'COMPLETED'
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-red-500 text-white'
-                      }`}>
-                        {order.status}
+                    {/* Status Pill */}
+                    <div className="mb-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide ${
+                          isBillReq
+                            ? 'bg-purple-600 text-white'
+                            : isOccupied
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {isBillReq ? 'Bill Req' : isOccupied ? 'Occupied' : 'Available'}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Items list */}
-                  <div className="p-4 flex-1 space-y-2 text-xs">
-                    <div className="divide-y divide-slate-100">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="py-1.5 flex justify-between items-start">
-                          <div>
-                            <span className="font-bold text-slate-900">{item.quantity}x</span>{' '}
-                            <span className="text-slate-800">{item.name}</span>
-                            {item.portion && (
-                              <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
-                            )}
-                            {item.notes && (
-                              <p className="text-[10px] text-amber-700 italic pl-4">* {item.notes}</p>
-                            )}
-                          </div>
-                          <span className="text-slate-600 font-semibold">₹{item.price * item.quantity}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {order.customerNotes && (
-                      <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
-                        <strong className="text-slate-800">Note:</strong> {order.customerNotes}
+                    {/* Active Order Details if any */}
+                    {activeOrder ? (
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="font-mono text-slate-500">{activeOrder.orderNumber}</div>
+                        <div className="font-bold text-slate-900">₹{activeOrder.total?.toFixed(2)}</div>
+                        <div className="text-slate-400 text-[10px]">{activeOrder.items?.length || 0} items</div>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-slate-400 py-1">
+                        Ready for guests
                       </div>
                     )}
                   </div>
 
-                  {/* Card Bottom / Total & Actions */}
-                  <div className="p-4 bg-slate-50/80 border-t border-slate-100 space-y-3">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">Order Total</span>
-                      <span className="text-base font-extrabold text-slate-900">₹{order.total.toFixed(2)}</span>
-                    </div>
+                  {/* Quick Action Buttons */}
+                  <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
+                    {onOpenLiveDinerDemo && (
+                      <button
+                        onClick={() => onOpenLiveDinerDemo(table.qrUrl)}
+                        className="text-[10px] font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                        title="Simulate Guest QR scan on this table"
+                      >
+                        <QrCode className="w-3 h-3" />
+                        <span>Scan</span>
+                      </button>
+                    )}
 
-                    {/* Action Buttons based on status */}
-                    <div className="flex gap-2">
-                      {isPending && (
-                        <>
-                          <button
-                            onClick={() => onUpdateOrderStatus(order.id, 'ACCEPTED')}
-                            className="flex-1 py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Accept</span>
-                          </button>
-                          <button
-                            onClick={() => onUpdateOrderStatus(order.id, 'REJECTED')}
-                            className="py-2 px-3 rounded-xl bg-slate-200 hover:bg-red-50 hover:text-red-600 text-slate-700 text-xs font-bold transition-all"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-
-                      {(order.status === 'ACCEPTED' || order.status === 'PREPARING') && (
-                        <>
-                          <button
-                            onClick={() => handleOpenKot(order)}
-                            className="py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all flex items-center gap-1"
-                            title="View / Print KOT"
-                          >
-                            <Printer className="w-3.5 h-3.5 text-orange-600" />
-                            <span>KOT</span>
-                          </button>
-                          <button
-                            onClick={() => onUpdateOrderStatus(order.id, 'READY')}
-                            className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-all"
-                          >
-                            Mark Ready to Serve
-                          </button>
-                        </>
-                      )}
-
-                      {order.status === 'READY' && (
-                        <>
-                          <button
-                            onClick={() => handleOpenKot(order)}
-                            className="py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
-                            title="Print KOT"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setSettleOrder(order)}
-                            className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Settle Bill</span>
-                          </button>
-                        </>
-                      )}
-
-                      {order.status === 'COMPLETED' && (
-                        <button
-                          onClick={() => handleOpenInvoice(order)}
-                          className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
-                        >
-                          <Receipt className="w-3.5 h-3.5" />
-                          <span>View Tax Invoice</span>
-                        </button>
-                      )}
-
-                      {order.billRequested && order.status !== 'COMPLETED' && order.status !== 'READY' && (
-                        <button
-                          onClick={() => setSettleOrder(order)}
-                          className="w-full mt-2 py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold hover:bg-amber-100 transition-all flex items-center justify-center gap-1"
-                        >
-                          <Receipt className="w-3 h-3 text-amber-600" />
-                          <span>Customer Requested Bill • Settle Now</span>
-                        </button>
-                      )}
-                    </div>
+                    {activeOrder && onNavigateTab && (
+                      <button
+                        onClick={() => onNavigateTab('orders')}
+                        className="text-[10px] font-bold text-slate-700 hover:text-slate-900 flex items-center gap-0.5 ml-auto"
+                        title="View order in KDS"
+                      >
+                        <span>View</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -543,39 +489,241 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
         )}
       </div>
 
-      {/* KOT Modal */}
-      <KotModal
-        order={selectedKotOrder}
-        restaurant={restaurant}
-        printerConfig={printerConfig}
-        isOpen={Boolean(selectedKotOrder)}
-        onClose={() => setSelectedKotOrder(null)}
-      />
+      {/* 2-Column Section: Top 5 Bestsellers & Omnichannel Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top 5 Bestselling Dishes */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  <span>Top Bestselling Dishes Today</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Most popular dishes ordered by dining guests
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Ranked by volume
+              </span>
+            </div>
 
-      {/* Invoice Modal */}
-      <InvoiceModal
-        order={selectedInvoiceOrder}
-        bill={activeBill}
-        restaurant={restaurant}
-        isOpen={Boolean(selectedInvoiceOrder)}
-        onClose={() => setSelectedInvoiceOrder(null)}
-      />
+            <div className="divide-y divide-slate-100">
+              {topDishes.map((dish, index) => {
+                const medals = ['🥇', '🥈', '🥉', '4', '5'];
+                return (
+                  <div key={dish.name + index} className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center font-bold text-xs text-slate-700">
+                        {medals[index]}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${dish.isVeg === false ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                          <span className="text-xs sm:text-sm font-bold text-slate-900">{dish.name}</span>
+                        </div>
+                        <span className="text-[11px] text-slate-400">
+                          {dish.quantity > 0 ? `${dish.quantity} orders placed today` : 'Showcase Item'}
+                        </span>
+                      </div>
+                    </div>
 
-      {/* Settle Bill Modal */}
-      <SettleBillModal
-        order={settleOrder}
-        isOpen={Boolean(settleOrder)}
-        onClose={() => setSettleOrder(null)}
-        onSettle={handleSettleBill}
-      />
+                    <div className="text-right">
+                      <div className="text-xs sm:text-sm font-black text-slate-900">
+                        {dish.revenue > 0 ? `₹${dish.revenue.toLocaleString('en-IN')}` : '—'}
+                      </div>
+                      <span className="text-[10px] text-slate-400">Gross Sales</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {onNavigateTab && (
+            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => onNavigateTab('menu')}
+                className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+              >
+                <span>Manage Menu & Dish Pricing</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Omnichannel & Direct Commission Savings */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <span>Omnichannel & Commission Savings</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Direct table QR orders vs third-party food delivery aggregators
+                </p>
+              </div>
+            </div>
+
+            {/* Savings Callout Banner */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                    Direct QR Commission Savings
+                  </span>
+                  <div className="text-2xl font-black text-emerald-950 mt-0.5">
+                    ₹{commissionSaved.toLocaleString('en-IN')}
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                  0%
+                </div>
+              </div>
+              <p className="text-[11px] text-emerald-800/90 mt-2 font-medium">
+                Saved based on a typical 22% aggregator commission by serving diners directly on Swaad Sevak.
+              </p>
+            </div>
+
+            {/* Channels breakdown */}
+            <div className="space-y-2.5">
+              <div className="p-3 rounded-xl bg-orange-50/60 border border-orange-200/60 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-orange-950">Dine-In (Swaad Sevak QR)</span>
+                  <p className="text-[11px] text-orange-800">
+                    {orders.filter(o => o.source === 'DINE_IN').length} Orders Today
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-extrabold text-orange-900">0% Commission</span>
+                  <p className="text-[10px] text-orange-700">Direct Settlement</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between opacity-85">
+                <div>
+                  <span className="text-xs font-bold text-slate-800">Swiggy</span>
+                  <p className="text-[11px] text-slate-500">POS Integration Gateway</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-semibold text-slate-500">Ready for Sync</span>
+                  <p className="text-[10px] text-slate-400">~22% Comm.</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between opacity-85">
+                <div>
+                  <span className="text-xs font-bold text-slate-800">Zomato</span>
+                  <p className="text-[11px] text-slate-500">POS Integration Gateway</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-semibold text-slate-500">Ready for Sync</span>
+                  <p className="text-[10px] text-slate-400">~22% Comm.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {onNavigateTab && (
+            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+              <span className="text-xs text-slate-500">Want to dispatch kitchen orders?</span>
+              <button
+                onClick={() => onNavigateTab('orders')}
+                className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+              >
+                <span>Open Live Orders Dispatch</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Orders Stream Preview */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Flame className="w-5 h-5 text-orange-600" />
+              <span>Recent Activity Pulse</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Latest dine-in orders placed across tables
+            </p>
+          </div>
+
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('orders')}
+              className="flex items-center gap-1 text-xs font-bold text-orange-600 hover:text-orange-700"
+            >
+              <span>View All Live Orders</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="py-8 text-center bg-slate-50 rounded-xl">
+            <UtensilsCrossed className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+            <p className="text-xs text-slate-500">No orders logged today yet.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {orders.slice(0, 5).map(order => {
+              const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              });
+
+              return (
+                <div key={order.id} className="py-3 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-700">
+                      {order.tableNumber?.replace(/Table\s*/i, 'T') || 'ORD'}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-slate-900">{order.tableNumber || 'Online'}</span>
+                        <span className="text-[11px] font-mono text-slate-400">{order.orderNumber}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        {order.items?.length || 0} items • {orderTime}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-xs font-extrabold text-slate-900">₹{order.total?.toFixed(2)}</span>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                        order.status === 'PENDING'
+                          ? 'bg-amber-100 text-amber-800'
+                          : order.status === 'ACCEPTED' || order.status === 'PREPARING'
+                          ? 'bg-blue-100 text-blue-800'
+                          : order.status === 'READY'
+                          ? 'bg-purple-100 text-purple-800'
+                          : order.status === 'COMPLETED'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
-
-function UtensilsIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-    </svg>
-  );
-}

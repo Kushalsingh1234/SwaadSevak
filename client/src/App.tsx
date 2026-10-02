@@ -4,6 +4,7 @@ import { RegisterOnboardingPage } from './pages/RegisterOnboardingPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardSetupPage } from './pages/DashboardSetupPage';
 import { DashboardOverviewPage } from './pages/DashboardOverviewPage';
+import { LiveOrdersPage } from './pages/LiveOrdersPage';
 import { MenuManagementPage } from './pages/MenuManagementPage';
 import { TablesManagementPage } from './pages/TablesManagementPage';
 import { BillsManagementPage } from './pages/BillsManagementPage';
@@ -403,15 +404,16 @@ export function App() {
             restaurant={restaurant}
             manager={manager}
             orders={orders}
-            onUpdateOrderStatus={handleUpdateOrderStatus}
+            tables={tables}
+            menuItems={menuItems}
+            onNavigateTab={(tab) => setCurrentTab(tab)}
+            onOpenLiveDinerDemo={(customUrl) => handleOpenLiveDinerDemo(customUrl)}
             onRefreshOrders={refreshAllData}
-            printerConfig={printerConfig}
-            onOpenLiveDinerDemo={() => handleOpenLiveDinerDemo()}
           />
         )}
 
         {currentTab === 'orders' && (
-          <DashboardOverviewPage
+          <LiveOrdersPage
             restaurant={restaurant}
             manager={manager}
             orders={orders}

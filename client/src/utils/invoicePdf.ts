@@ -3,9 +3,9 @@ import { jsPDF } from 'jspdf';
 import { Order, Restaurant, Bill } from '../types';
 
 /**
- * Generates an ultra-crisp, mobile-optimized portrait digital tax invoice / order receipt.
- * Uses strict zero-vertical-padding line-height centering and table-cell vertical alignment
- * to completely eliminate html2canvas baseline downward shifts.
+ * Generates an authentic, executive restaurant dining invoice / receipt.
+ * Redesigned with clean typographic hierarchy and classic receipt dividers,
+ * completely eliminating colored container boxes so text never sticks to bottom edges.
  */
 export async function downloadInvoicePdf(
   order: Order,
@@ -43,7 +43,7 @@ export async function downloadInvoicePdf(
   container.style.top = '0';
   container.style.zIndex = '-9999';
   container.style.pointerEvents = 'none';
-  container.style.width = '420px';
+  container.style.width = '400px';
   container.style.backgroundColor = '#ffffff';
   container.style.padding = '24px 22px 20px 22px';
   container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -52,86 +52,88 @@ export async function downloadInvoicePdf(
   container.style.lineHeight = '1.45';
 
   container.innerHTML = `
-    <!-- Top Heading Badge: Strict zero vertical padding + line-height centering prevents html2canvas downward baseline shift -->
-    <div style="text-align: center; margin-bottom: 12px;">
-      <span style="display: inline-block; height: 28px; line-height: 28px; padding: 0 16px; background-color: #ea580c; color: #ffffff; font-size: 11.5px; font-weight: 800; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.08em; box-sizing: border-box; vertical-align: middle;">
-        ${headingText}
+    <!-- Document Title -->
+    <div style="text-align: center; margin-bottom: 6px;">
+      <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #ea580c;">
+        • ${headingText} •
       </span>
     </div>
 
     <!-- Restaurant Header -->
-    <div style="text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 14px; margin-bottom: 14px;">
-      <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; line-height: 28px;">
+    <div style="text-align: center;">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; line-height: 28px; text-transform: uppercase;">
         ${restaurant?.name || 'Swaad Sevak Restaurant'}
       </h1>
-      <p style="margin: 5px 0 0 0; font-size: 11.5px; color: #475569; line-height: 16px;">
+      <p style="margin: 4px 0 0 0; font-size: 11.5px; color: #475569; line-height: 16px;">
         ${restaurant?.address ? `${restaurant.address}, ` : ''}${restaurant?.city || ''}${restaurant?.state ? `, ${restaurant.state}` : ''}
       </p>
       ${
         restaurant?.phone || restaurant?.email
-          ? `<p style="margin: 3px 0 0 0; font-size: 11px; color: #64748b; line-height: 15px;">Ph: ${restaurant?.phone || ''} ${restaurant?.email ? `• ${restaurant.email}` : ''}</p>`
+          ? `<p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; line-height: 15px;">Ph: ${restaurant?.phone || ''} ${restaurant?.email ? `• ${restaurant.email}` : ''}</p>`
           : ''
       }
       ${
         hasGst
-          ? `<p style="margin: 4px 0 0 0; font-size: 11px; font-weight: 700; color: #ea580c; line-height: 15px;">GSTIN: ${restaurant?.gstNumber}</p>`
+          ? `<p style="margin: 3px 0 0 0; font-size: 11px; font-weight: 700; color: #0f172a; line-height: 15px;">GSTIN: ${restaurant?.gstNumber}</p>`
           : ''
       }
     </div>
 
-    <!-- Table & Meta Details Card -->
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; box-sizing: border-box;">
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-        <tr>
-          <td style="vertical-align: middle; text-align: left;">
-            <span style="display: inline-block; height: 26px; line-height: 26px; padding: 0 12px; background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; border-radius: 6px; font-weight: 800; font-size: 12.5px; box-sizing: border-box; vertical-align: middle;">
-              ${order.tableNumber || 'Dine-In'}
-            </span>
-          </td>
-          <td style="vertical-align: middle; text-align: right;">
-            <span style="font-weight: 800; color: #1e293b; font-size: 12.5px;">
-              ${invoiceNumber}
-            </span>
-          </td>
-        </tr>
-      </table>
-      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; line-height: 15px; padding-top: 2px;">
+    <!-- Classic Double Rule Separator -->
+    <div style="border-top: 1.5px solid #0f172a; border-bottom: 0.5px solid #0f172a; height: 3px; margin: 12px 0 14px 0;"></div>
+
+    <!-- Table & Order Meta Info -->
+    <div style="font-size: 11.5px; line-height: 18px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <span style="font-size: 13px; font-weight: 800; color: #0f172a;">
+          Table: <span style="color: #ea580c;">${order.tableNumber || 'Dine-In'}</span>
+        </span>
+        <span style="font-weight: 800; color: #0f172a; font-size: 12px;">
+          ${invoiceNumber}
+        </span>
+      </div>
+      <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; padding-top: 2px;">
         <span>Order ID: <b style="color: #334155;">${order.orderNumber}</b></span>
         <span>${orderDate} • ${orderTime}</span>
       </div>
     </div>
 
-    <!-- Items List Table -->
-    <div style="border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 6px; border-bottom: 1.5px solid #e2e8f0;">
-        <span style="flex: 1;">Item Description</span>
-        <span style="width: 44px; text-align: center;">Qty</span>
-        <span style="width: 58px; text-align: right;">Rate</span>
-        <span style="width: 68px; text-align: right;">Total</span>
-      </div>
-
-      ${order.items
-        .map(
-          item => `
-        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; padding: 7px 0; border-bottom: 1px dotted #e2e8f0;">
-          <div style="flex: 1; padding-right: 8px;">
-            <span style="font-weight: 700; color: #0f172a; line-height: 16px;">${item.name}</span>
-            ${item.portion ? `<span style="font-size: 9.5px; color: #64748b; display: block; line-height: 13px;">${item.portion}</span>` : ''}
-          </div>
-          <span style="width: 44px; text-align: center; font-weight: 700; color: #334155;">x${item.quantity}</span>
-          <span style="width: 58px; text-align: right; color: #64748b;">₹${item.price}</span>
-          <span style="width: 68px; text-align: right; font-weight: 800; color: #0f172a;">₹${item.price * item.quantity}</span>
-        </div>
-      `
-        )
-        .join('')}
+    <!-- Itemized List Table -->
+    <div style="margin-bottom: 12px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 11.5px;">
+        <thead>
+          <tr style="border-bottom: 1.5px solid #0f172a; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">
+            <th style="text-align: left; padding-bottom: 6px;">Item Description</th>
+            <th style="text-align: center; width: 44px; padding-bottom: 6px;">Qty</th>
+            <th style="text-align: right; width: 55px; padding-bottom: 6px;">Rate</th>
+            <th style="text-align: right; width: 65px; padding-bottom: 6px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${order.items
+            .map(
+              item => `
+            <tr style="border-bottom: 1px dotted #e2e8f0;">
+              <td style="padding: 7px 0; text-align: left; vertical-align: top;">
+                <div style="font-weight: 700; color: #0f172a; line-height: 15px;">${item.name}</div>
+                ${item.portion ? `<div style="font-size: 9.5px; color: #64748b; line-height: 13px; margin-top: 1px;">${item.portion}</div>` : ''}
+              </td>
+              <td style="padding: 7px 0; text-align: center; color: #334155; font-weight: 600; vertical-align: top;">x${item.quantity}</td>
+              <td style="padding: 7px 0; text-align: right; color: #64748b; vertical-align: top;">₹${item.price}</td>
+              <td style="padding: 7px 0; text-align: right; font-weight: 800; color: #0f172a; vertical-align: top;">₹${item.price * item.quantity}</td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
     </div>
 
-    <!-- Calculation Breakdown -->
-    <div style="padding-bottom: 8px; margin-bottom: 12px; font-size: 11.5px;">
-      <div style="display: flex; justify-content: space-between; color: #334155; padding: 2px 0;">
+    <!-- Summary & Grand Total -->
+    <div style="font-size: 11.5px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; padding: 2px 0; color: #475569;">
         <span>Item Subtotal</span>
-        <span style="font-weight: 700;">₹${subtotal.toFixed(2)}</span>
+        <span style="font-weight: 700; color: #0f172a;">₹${subtotal.toFixed(2)}</span>
       </div>
       ${
         hasGst
@@ -148,41 +150,31 @@ export async function downloadInvoicePdf(
           : ''
       }
 
-      <!-- Grand Total Box: Table with vertical-align: middle guarantees true vertical centering in html2canvas -->
-      <table style="width: 100%; border-collapse: collapse; background-color: #0f172a; border-radius: 8px; margin-top: 10px; box-sizing: border-box;">
-        <tr>
-          <td style="padding: 12px 16px; vertical-align: middle; text-align: left;">
-            <span style="font-weight: 800; font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: #ffffff; line-height: 1;">
-              Grand Total
-            </span>
-          </td>
-          <td style="padding: 12px 16px; vertical-align: middle; text-align: right;">
-            <span style="font-size: 18px; font-weight: 900; color: #fb923c; line-height: 1;">
-              ₹${grandTotal.toFixed(2)}
-            </span>
-          </td>
-        </tr>
-      </table>
+      <!-- Classic Grand Total Section with Clean Top/Bottom Rules -->
+      <div style="border-top: 2px solid #0f172a; border-bottom: 2px solid #0f172a; padding: 8px 0; margin-top: 8px; display: flex; justify-content: space-between; align-items: baseline;">
+        <span style="font-size: 13px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; color: #0f172a;">
+          Grand Total
+        </span>
+        <span style="font-size: 21px; font-weight: 900; color: #0f172a;">
+          ₹${grandTotal.toFixed(2)}
+        </span>
+      </div>
     </div>
 
-    <!-- Payment Settled Badge: Table-cell vertical centering -->
-    <table style="width: 100%; border-collapse: collapse; background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; margin-bottom: 14px; box-sizing: border-box;">
-      <tr>
-        <td style="padding: 10px 14px; vertical-align: middle; text-align: center;">
-          <div style="font-size: 11.5px; font-weight: 800; color: #047857; letter-spacing: 0.02em; line-height: 16px;">
-            ✓ ${paymentMode} — SETTLED
-          </div>
-          <div style="font-size: 9.5px; color: #059669; line-height: 13px; margin-top: 2px;">
-            Payment verified & recorded electronically
-          </div>
-        </td>
-      </tr>
-    </table>
+    <!-- Payment Settled Notice -->
+    <div style="text-align: center; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; padding: 8px 0; margin-bottom: 14px;">
+      <p style="margin: 0; font-size: 12px; font-weight: 800; color: #047857; letter-spacing: 0.03em; line-height: 16px;">
+        ✓ ${paymentMode} — SETTLED
+      </p>
+      <p style="margin: 2px 0 0 0; font-size: 9.5px; color: #059669; line-height: 13px;">
+        Electronic Payment Recorded • Swaad Sevak POS
+      </p>
+    </div>
 
     <!-- Verification Footer -->
-    <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; line-height: 14px;">
-      <p style="margin: 0; font-weight: 600; color: #64748b;">Thank you for dining with us! Please visit again.</p>
-      <p style="margin: 3px 0 0 0; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: #cbd5e1;">
+    <div style="text-align: center; font-size: 10px; color: #64748b; line-height: 14px;">
+      <p style="margin: 0; font-weight: 700; color: #334155;">Thank you for dining with us! Please visit again.</p>
+      <p style="margin: 3px 0 0 0; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8;">
         Computer Generated ${hasGst ? 'Tax Invoice' : 'Order Receipt'} • Powered by Swaad Sevak
       </p>
     </div>
@@ -194,7 +186,7 @@ export async function downloadInvoicePdf(
     // Wait for DOM layout
     await new Promise(resolve => setTimeout(resolve, 60));
 
-    const exactWidth = container.offsetWidth || 420;
+    const exactWidth = container.offsetWidth || 400;
     const exactHeight = container.scrollHeight;
 
     // Render container to high-res canvas with STRICT width and height

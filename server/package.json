@@ -1,6 +1,7 @@
 {
   "name": "swaad-sevak-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "Swaad Sevak - Modern Restaurant & Café Operating System Backend",
   "main": "dist/index.js",
   "scripts": {

@@ -1,0 +1,5 @@
+# Server specific ignores
+.env
+dist
+node_modules
+*.tmp*

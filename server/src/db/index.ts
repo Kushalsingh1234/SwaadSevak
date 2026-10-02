@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { getPrismaClient } from './prismaClient.js';
 import {
   Restaurant,
   Manager,
@@ -14,10 +15,7 @@ import {
   OrderSource
 } from '../types/index.js';
 
-// In-Memory Database store with optional local file persistence fallback
-// When Neon PostgreSQL URL is plugged into .env, Prisma integration connects seamlessly.
-
-class MemoryDatabase {
+class DatabaseStore {
   restaurants: Map<string, Restaurant> = new Map();
   managers: Map<string, Manager> = new Map();
   categories: Map<string, MenuCategory> = new Map();
@@ -30,13 +28,190 @@ class MemoryDatabase {
   private kotCounter = 1000;
   private billCounter = 5000;
   private orderCounter = 100;
+  private isInitialized = false;
 
   constructor() {
+    this.init();
+  }
+
+  public async init() {
+    const prisma = getPrismaClient();
+    if (prisma) {
+      try {
+        await this.syncFromNeon(prisma);
+        this.isInitialized = true;
+        console.log('✓ Successfully connected & synchronized with Neon PostgreSQL!');
+        return;
+      } catch (err) {
+        console.warn('Could not sync from Neon PostgreSQL, falling back to local seed:', err);
+      }
+    }
     this.seedDemoData();
+    this.isInitialized = true;
+  }
+
+  public async syncFromNeon(prisma: any) {
+    const restaurants = await prisma.restaurant.findMany({
+      include: {
+        managers: true,
+        categories: true,
+        items: true,
+        tables: true,
+        orders: {
+          include: {
+            items: true
+          }
+        },
+        bills: true,
+        printerConfig: true
+      }
+    });
+
+    if (restaurants.length === 0) {
+      this.seedDemoData();
+      return;
+    }
+
+    for (const r of restaurants) {
+      this.restaurants.set(r.id, {
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        ownerName: r.ownerName,
+        phone: r.phone,
+        email: r.email,
+        address: r.address,
+        city: r.city,
+        state: r.state,
+        restaurantType: r.restaurantType,
+        gstNumber: r.gstNumber || undefined,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt
+      });
+
+      if (r.printerConfig) {
+        this.printerConfigs.set(r.id, {
+          id: r.printerConfig.id,
+          restaurantId: r.id,
+          printerName: r.printerConfig.printerName,
+          paperWidth: r.printerConfig.paperWidth as any,
+          autoPrintKot: r.printerConfig.autoPrintKot,
+          printerType: r.printerConfig.printerType as any,
+          printerIp: r.printerConfig.printerIp || undefined
+        });
+      }
+
+      for (const m of r.managers) {
+        this.managers.set(m.id, {
+          id: m.id,
+          restaurantId: r.id,
+          username: m.username,
+          pinHash: m.pinHash,
+          role: m.role as any,
+          createdAt: m.createdAt
+        });
+      }
+
+      for (const c of r.categories) {
+        this.categories.set(c.id, {
+          id: c.id,
+          restaurantId: r.id,
+          name: c.name,
+          displayOrder: c.displayOrder
+        });
+      }
+
+      for (const item of r.items) {
+        let tags: string[] = [];
+        try {
+          tags = JSON.parse(item.tags);
+        } catch {
+          tags = [];
+        }
+        this.menuItems.set(item.id, {
+          id: item.id,
+          restaurantId: r.id,
+          categoryId: item.categoryId,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          portion: item.portion,
+          isVeg: item.isVeg,
+          isAvailable: item.isAvailable,
+          tags,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        });
+      }
+
+      for (const t of r.tables) {
+        this.tables.set(t.id, {
+          id: t.id,
+          restaurantId: r.id,
+          tableNumber: t.tableNumber,
+          qrToken: t.qrToken,
+          status: t.status as any,
+          createdAt: t.createdAt
+        });
+      }
+
+      for (const ord of r.orders) {
+        const orderItems: OrderItem[] = ord.items.map((i: any) => ({
+          id: i.id,
+          orderId: ord.id,
+          menuItemId: i.menuItemId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          portion: i.portion || undefined,
+          notes: i.notes || undefined
+        }));
+
+        const table = this.tables.get(ord.tableId);
+
+        this.orders.set(ord.id, {
+          id: ord.id,
+          restaurantId: r.id,
+          tableId: ord.tableId,
+          tableNumber: table?.tableNumber || 'Table 01',
+          orderNumber: ord.orderNumber,
+          source: ord.source as any,
+          status: ord.status as any,
+          customerNotes: ord.customerNotes || undefined,
+          subtotal: ord.subtotal,
+          tax: ord.tax,
+          total: ord.total,
+          kotGenerated: ord.kotGenerated,
+          kotNumber: ord.kotNumber || undefined,
+          billRequested: ord.billRequested,
+          createdAt: ord.createdAt,
+          updatedAt: ord.updatedAt,
+          items: orderItems
+        });
+      }
+
+      for (const b of r.bills) {
+        const matchingOrder = this.orders.get(b.orderId);
+        this.bills.set(b.id, {
+          id: b.id,
+          restaurantId: r.id,
+          orderId: b.orderId,
+          orderNumber: matchingOrder?.orderNumber || '#101',
+          tableNumber: matchingOrder?.tableNumber || 'Table 01',
+          billNumber: b.billNumber,
+          subtotal: b.subtotal,
+          tax: b.tax,
+          discount: b.discount,
+          grandTotal: b.grandTotal,
+          paymentStatus: b.paymentStatus as any,
+          createdAt: b.createdAt,
+          items: matchingOrder?.items || []
+        });
+      }
+    }
   }
 
   private seedDemoData() {
-    // Seed initial demo restaurant "The Chai & Chaat Co."
     const restaurantId = 'rest_demo_01';
     const slug = 'chai-and-chaat';
 
@@ -57,7 +232,6 @@ class MemoryDatabase {
     };
     this.restaurants.set(restaurantId, restaurant);
 
-    // Seed Manager (Username: "demo_manager", PIN: "1234")
     const pinHash = bcrypt.hashSync('1234', 10);
     const managerId = 'mgr_demo_01';
     this.managers.set(managerId, {
@@ -69,7 +243,6 @@ class MemoryDatabase {
       createdAt: new Date()
     });
 
-    // Seed Printer Config
     this.printerConfigs.set(restaurantId, {
       id: `print_${restaurantId}`,
       restaurantId,
@@ -79,7 +252,6 @@ class MemoryDatabase {
       printerType: 'BROWSER'
     });
 
-    // Seed Categories
     const catStartersId = 'cat_01';
     const catMainsId = 'cat_02';
     const catBreadsId = 'cat_03';
@@ -98,7 +270,6 @@ class MemoryDatabase {
       this.categories.set(c.id, c);
     }
 
-    // Seed Dishes
     const dishes: MenuItem[] = [
       {
         id: 'item_01',
@@ -201,20 +372,6 @@ class MemoryDatabase {
       {
         id: 'item_08',
         restaurantId,
-        categoryId: catBreadsId,
-        name: 'Amritsari Kulcha',
-        description: 'Flaky layered bread stuffed with spiced potato and onion, topped with pomegranate seeds.',
-        price: 95,
-        portion: '1 Pc',
-        isVeg: true,
-        isAvailable: true,
-        tags: ['Recommended'],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'item_09',
-        restaurantId,
         categoryId: catBeveragesId,
         name: 'Kulhad Masala Chai',
         description: 'Hand-brewed strong Assam tea infused with fresh ginger, green cardamom, and lemongrass served in clay cup.',
@@ -227,21 +384,7 @@ class MemoryDatabase {
         updatedAt: new Date()
       },
       {
-        id: 'item_10',
-        restaurantId,
-        categoryId: catBeveragesId,
-        name: 'Mango Shikanji Fizz',
-        description: 'Traditional spiced lemon cooler infused with sweet alphonso pulp, mint, and black salt.',
-        price: 129,
-        portion: 'Glass (350ml)',
-        isVeg: true,
-        isAvailable: true,
-        tags: ['New'],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'item_11',
+        id: 'item_09',
         restaurantId,
         categoryId: catDessertsId,
         name: 'Warm Gulab Jamun with Rabri',
@@ -260,7 +403,6 @@ class MemoryDatabase {
       this.menuItems.set(d.id, d);
     }
 
-    // Seed 8 Tables with QR tokens
     for (let i = 1; i <= 8; i++) {
       const padNum = i < 10 ? `0${i}` : `${i}`;
       const tableId = `tbl_demo_${padNum}`;
@@ -270,126 +412,10 @@ class MemoryDatabase {
         restaurantId,
         tableNumber: `Table ${padNum}`,
         qrToken,
-        status: i === 2 ? 'OCCUPIED' : 'AVAILABLE',
+        status: 'AVAILABLE',
         createdAt: new Date()
       });
     }
-
-    // Seed a couple of recent orders for realistic stats
-    const orderId1 = 'ord_demo_101';
-    const sampleOrder1: Order = {
-      id: orderId1,
-      restaurantId,
-      tableId: 'tbl_demo_02',
-      tableNumber: 'Table 02',
-      orderNumber: '#101',
-      source: 'DINE_IN',
-      status: 'PREPARING',
-      customerNotes: 'Please keep the butter chicken mild spicy.',
-      subtotal: 757,
-      tax: 37.85,
-      total: 794.85,
-      kotGenerated: true,
-      kotNumber: 'KOT-1001',
-      billRequested: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 18),
-      updatedAt: new Date(),
-      items: [
-        {
-          id: 'item_ord_1',
-          orderId: orderId1,
-          menuItemId: 'item_06',
-          name: 'Old Delhi Butter Chicken',
-          price: 389,
-          quantity: 1,
-          portion: 'Standard Bowl'
-        },
-        {
-          id: 'item_ord_2',
-          orderId: orderId1,
-          menuItemId: 'item_07',
-          name: 'Butter Garlic Naan',
-          price: 75,
-          quantity: 2,
-          portion: '1 Pc'
-        },
-        {
-          id: 'item_ord_3',
-          orderId: orderId1,
-          menuItemId: 'item_01',
-          name: 'Dahi Ke Kebab',
-          price: 249,
-          quantity: 1,
-          portion: 'Standard (6 pcs)'
-        }
-      ]
-    };
-    this.orders.set(orderId1, sampleOrder1);
-
-    // Completed sample order
-    const orderId2 = 'ord_demo_102';
-    const sampleOrder2: Order = {
-      id: orderId2,
-      restaurantId,
-      tableId: 'tbl_demo_04',
-      tableNumber: 'Table 04',
-      orderNumber: '#102',
-      source: 'DINE_IN',
-      status: 'COMPLETED',
-      subtotal: 443,
-      tax: 22.15,
-      total: 465.15,
-      kotGenerated: true,
-      kotNumber: 'KOT-1002',
-      billRequested: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 85),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 30),
-      items: [
-        {
-          id: 'item_ord_4',
-          orderId: orderId2,
-          menuItemId: 'item_04',
-          name: 'Dal Makhani Slow Cooked',
-          price: 299,
-          quantity: 1
-        },
-        {
-          id: 'item_ord_5',
-          orderId: orderId2,
-          menuItemId: 'item_08',
-          name: 'Amritsari Kulcha',
-          price: 95,
-          quantity: 1
-        },
-        {
-          id: 'item_ord_6',
-          orderId: orderId2,
-          menuItemId: 'item_09',
-          name: 'Kulhad Masala Chai',
-          price: 69,
-          quantity: 1
-        }
-      ]
-    };
-    this.orders.set(orderId2, sampleOrder2);
-
-    // Bill for completed order
-    const billId2 = 'bill_demo_5001';
-    this.bills.set(billId2, {
-      id: billId2,
-      restaurantId,
-      orderId: orderId2,
-      orderNumber: '#102',
-      tableNumber: 'Table 04',
-      billNumber: 'INV-5001',
-      subtotal: 443,
-      tax: 22.15,
-      discount: 0,
-      grandTotal: 465.15,
-      paymentStatus: 'PAID_UPI',
-      createdAt: new Date(Date.now() - 1000 * 60 * 30),
-      items: sampleOrder2.items
-    });
   }
 
   // Next identifiers
@@ -429,6 +455,26 @@ class MemoryDatabase {
       updatedAt: new Date()
     };
     this.restaurants.set(id, restaurant);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.restaurant.create({
+        data: {
+          id: restaurant.id,
+          slug: restaurant.slug,
+          name: restaurant.name,
+          ownerName: restaurant.ownerName,
+          phone: restaurant.phone,
+          email: restaurant.email,
+          address: restaurant.address,
+          city: restaurant.city,
+          state: restaurant.state,
+          restaurantType: restaurant.restaurantType,
+          gstNumber: restaurant.gstNumber
+        }
+      }).catch(err => console.error('Prisma createRestaurant error:', err));
+    }
+
     return restaurant;
   }
 
@@ -449,6 +495,20 @@ class MemoryDatabase {
       createdAt: new Date()
     };
     this.managers.set(id, manager);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.manager.create({
+        data: {
+          id: manager.id,
+          restaurantId: manager.restaurantId,
+          username: manager.username,
+          pinHash: manager.pinHash,
+          role: manager.role
+        }
+      }).catch(err => console.error('Prisma createManager error:', err));
+    }
+
     return manager;
   }
 
@@ -473,6 +533,19 @@ class MemoryDatabase {
       displayOrder: categories.length + 1
     };
     this.categories.set(id, category);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuCategory.create({
+        data: {
+          id: category.id,
+          restaurantId,
+          name: category.name,
+          displayOrder: category.displayOrder
+        }
+      }).catch(err => console.error('Prisma createCategory error:', err));
+    }
+
     return category;
   }
 
@@ -480,6 +553,15 @@ class MemoryDatabase {
     const cat = this.categories.get(categoryId);
     if (!cat || cat.restaurantId !== restaurantId) return null;
     cat.name = name;
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuCategory.update({
+        where: { id: categoryId },
+        data: { name }
+      }).catch(err => console.error('Prisma updateCategory error:', err));
+    }
+
     return cat;
   }
 
@@ -487,12 +569,20 @@ class MemoryDatabase {
     const cat = this.categories.get(categoryId);
     if (!cat || cat.restaurantId !== restaurantId) return false;
     this.categories.delete(categoryId);
-    // Delete items in category
+
     for (const [itemId, item] of this.menuItems.entries()) {
       if (item.categoryId === categoryId) {
         this.menuItems.delete(itemId);
       }
     }
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuCategory.delete({
+        where: { id: categoryId }
+      }).catch(err => console.error('Prisma deleteCategory error:', err));
+    }
+
     return true;
   }
 
@@ -523,6 +613,25 @@ class MemoryDatabase {
       updatedAt: new Date()
     };
     this.menuItems.set(id, item);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuItem.create({
+        data: {
+          id: item.id,
+          restaurantId,
+          categoryId: item.categoryId,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          portion: item.portion,
+          isVeg: item.isVeg,
+          isAvailable: item.isAvailable,
+          tags: JSON.stringify(item.tags)
+        }
+      }).catch(err => console.error('Prisma createItem error:', err));
+    }
+
     return item;
   }
 
@@ -535,6 +644,23 @@ class MemoryDatabase {
       updatedAt: new Date()
     };
     this.menuItems.set(itemId, updated);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuItem.update({
+        where: { id: itemId },
+        data: {
+          ...(data.name && { name: data.name }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.price !== undefined && { price: data.price }),
+          ...(data.portion && { portion: data.portion }),
+          ...(data.isVeg !== undefined && { isVeg: data.isVeg }),
+          ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
+          ...(data.tags && { tags: JSON.stringify(data.tags) })
+        }
+      }).catch(err => console.error('Prisma updateItem error:', err));
+    }
+
     return updated;
   }
 
@@ -543,13 +669,31 @@ class MemoryDatabase {
     if (!item || item.restaurantId !== restaurantId) return null;
     item.isAvailable = isAvailable;
     item.updatedAt = new Date();
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuItem.update({
+        where: { id: itemId },
+        data: { isAvailable }
+      }).catch(err => console.error('Prisma setItemStock error:', err));
+    }
+
     return item;
   }
 
   deleteItem(restaurantId: string, itemId: string): boolean {
     const item = this.menuItems.get(itemId);
     if (!item || item.restaurantId !== restaurantId) return false;
-    return this.menuItems.delete(itemId);
+    this.menuItems.delete(itemId);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.menuItem.delete({
+        where: { id: itemId }
+      }).catch(err => console.error('Prisma deleteItem error:', err));
+    }
+
+    return true;
   }
 
   // Tables
@@ -582,6 +726,20 @@ class MemoryDatabase {
       createdAt: new Date()
     };
     this.tables.set(id, table);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.table.create({
+        data: {
+          id: table.id,
+          restaurantId,
+          tableNumber: table.tableNumber,
+          qrToken: table.qrToken,
+          status: table.status
+        }
+      }).catch(err => console.error('Prisma createTable error:', err));
+    }
+
     return table;
   }
 
@@ -590,6 +748,18 @@ class MemoryDatabase {
     if (!table || table.restaurantId !== restaurantId) return null;
     const updated = { ...table, ...data };
     this.tables.set(tableId, updated);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.table.update({
+        where: { id: tableId },
+        data: {
+          ...(data.tableNumber && { tableNumber: data.tableNumber }),
+          ...(data.status && { status: data.status })
+        }
+      }).catch(err => console.error('Prisma updateTable error:', err));
+    }
+
     return updated;
   }
 
@@ -597,13 +767,31 @@ class MemoryDatabase {
     const table = this.tables.get(tableId);
     if (!table || table.restaurantId !== restaurantId) return null;
     table.qrToken = `qr_${crypto.randomBytes(6).toString('hex')}`;
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.table.update({
+        where: { id: tableId },
+        data: { qrToken: table.qrToken }
+      }).catch(err => console.error('Prisma regenerateTableQr error:', err));
+    }
+
     return table;
   }
 
   deleteTable(restaurantId: string, tableId: string): boolean {
     const table = this.tables.get(tableId);
     if (!table || table.restaurantId !== restaurantId) return false;
-    return this.tables.delete(tableId);
+    this.tables.delete(tableId);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.table.delete({
+        where: { id: tableId }
+      }).catch(err => console.error('Prisma deleteTable error:', err));
+    }
+
+    return true;
   }
 
   // Orders
@@ -637,10 +825,40 @@ class MemoryDatabase {
     };
     this.orders.set(id, order);
 
-    // Update table status to OCCUPIED
     const table = this.tables.get(data.tableId);
     if (table) {
       table.status = 'OCCUPIED';
+    }
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.create({
+        data: {
+          id: order.id,
+          restaurantId: order.restaurantId,
+          tableId: order.tableId,
+          orderNumber: order.orderNumber,
+          source: order.source,
+          status: order.status,
+          customerNotes: order.customerNotes,
+          subtotal: order.subtotal,
+          tax: order.tax,
+          total: order.total,
+          kotGenerated: false,
+          billRequested: false,
+          items: {
+            create: order.items.map(i => ({
+              id: i.id || `item_${crypto.randomUUID()}`,
+              menuItemId: i.menuItemId,
+              name: i.name,
+              price: i.price,
+              quantity: i.quantity,
+              portion: i.portion || 'Standard',
+              notes: i.notes
+            }))
+          }
+        }
+      }).catch(err => console.error('Prisma createOrder error:', err));
     }
 
     return order;
@@ -664,6 +882,18 @@ class MemoryDatabase {
       }
     }
 
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: order.status,
+          kotGenerated: order.kotGenerated,
+          kotNumber: order.kotNumber
+        }
+      }).catch(err => console.error('Prisma updateOrderStatus error:', err));
+    }
+
     return order;
   }
 
@@ -676,6 +906,14 @@ class MemoryDatabase {
     const table = this.tables.get(order.tableId);
     if (table) {
       table.status = 'BILL_REQUESTED';
+    }
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.update({
+        where: { id: orderId },
+        data: { billRequested: true }
+      }).catch(err => console.error('Prisma requestBill error:', err));
     }
 
     return order;
@@ -703,7 +941,6 @@ class MemoryDatabase {
     const order = this.orders.get(orderId);
     if (!order || order.restaurantId !== restaurantId) return null;
 
-    // Check if already billed
     const existing = this.getBillByOrder(orderId);
     if (existing) return existing;
 
@@ -725,6 +962,24 @@ class MemoryDatabase {
       items: order.items
     };
     this.bills.set(id, bill);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.bill.create({
+        data: {
+          id: bill.id,
+          restaurantId,
+          orderId,
+          billNumber: bill.billNumber,
+          subtotal: bill.subtotal,
+          tax: bill.tax,
+          discount: 0,
+          grandTotal: bill.grandTotal,
+          paymentStatus: 'UNPAID'
+        }
+      }).catch(err => console.error('Prisma createBill error:', err));
+    }
+
     return bill;
   }
 
@@ -733,12 +988,26 @@ class MemoryDatabase {
     if (!bill || bill.restaurantId !== restaurantId) return null;
     bill.paymentStatus = paymentStatus;
 
-    // Also mark order completed if not already
     const order = this.orders.get(bill.orderId);
     if (order) {
       order.status = 'COMPLETED';
       const table = this.tables.get(order.tableId);
       if (table) table.status = 'AVAILABLE';
+    }
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.bill.update({
+        where: { id: billId },
+        data: { paymentStatus }
+      }).catch(err => console.error('Prisma settleBill error:', err));
+
+      if (order) {
+        prisma.order.update({
+          where: { id: order.id },
+          data: { status: 'COMPLETED' }
+        }).catch(err => console.error('Prisma order complete error:', err));
+      }
     }
 
     return bill;
@@ -765,10 +1034,33 @@ class MemoryDatabase {
     const current = this.getPrinterConfig(restaurantId);
     const updated = { ...current, ...data };
     this.printerConfigs.set(restaurantId, updated);
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.printerConfig.upsert({
+        where: { restaurantId },
+        update: {
+          ...(data.printerName && { printerName: data.printerName }),
+          ...(data.paperWidth && { paperWidth: data.paperWidth }),
+          ...(data.autoPrintKot !== undefined && { autoPrintKot: data.autoPrintKot }),
+          ...(data.printerType && { printerType: data.printerType }),
+          ...(data.printerIp !== undefined && { printerIp: data.printerIp })
+        },
+        create: {
+          restaurantId,
+          printerName: updated.printerName,
+          paperWidth: updated.paperWidth,
+          autoPrintKot: updated.autoPrintKot,
+          printerType: updated.printerType,
+          printerIp: updated.printerIp
+        }
+      }).catch(err => console.error('Prisma updatePrinterConfig error:', err));
+    }
+
     return updated;
   }
 
-  // Real-time Today's Stats (dynamically computed, not hardcoded)
+  // Dynamic Today's Stats
   getTodayStats(restaurantId: string) {
     const orders = this.getOrders(restaurantId);
     const today = new Date();
@@ -817,4 +1109,4 @@ class MemoryDatabase {
   }
 }
 
-export const db = new MemoryDatabase();
+export const db = new DatabaseStore();

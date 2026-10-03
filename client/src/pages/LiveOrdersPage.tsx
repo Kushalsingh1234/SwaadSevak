@@ -145,8 +145,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       label: 'Incoming Orders',
       count: pendingOrders.length,
       items: pendingOrders,
-      dotColor: 'bg-amber-500',
-      badgeBg: 'bg-amber-50 border-amber-200 text-amber-800',
+      dotColor: 'bg-turmeric',
+      badgeBg: 'bg-amber-50 border-amber-200 text-amber-900',
       emptyIcon: Clock,
       emptyTitle: 'No incoming orders',
       emptySubtitle: 'New customer QR scans and tickets will appear here with a sound alert.'
@@ -156,8 +156,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       label: 'Kitchen Cooking',
       count: preparingOrders.length,
       items: preparingOrders,
-      dotColor: 'bg-blue-500',
-      badgeBg: 'bg-blue-50 border-blue-200 text-blue-800',
+      dotColor: 'bg-indigo-500',
+      badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-900',
       emptyIcon: Flame,
       emptyTitle: 'Kitchen is all clear',
       emptySubtitle: 'Accepted orders move here so chefs can track prep time.'
@@ -167,8 +167,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       label: 'Ready to Serve',
       count: readyOrders.length,
       items: readyOrders,
-      dotColor: 'bg-emerald-500',
-      badgeBg: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+      dotColor: 'bg-cardamom',
+      badgeBg: 'bg-cardamom-50 border-cardamom-100 text-cardamom-700',
       emptyIcon: CheckCircle2,
       emptyTitle: 'No orders waiting',
       emptySubtitle: 'Food marked ready will appear here for waitstaff to serve.'
@@ -180,30 +180,30 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   return (
     <div className="flex flex-col h-full space-y-3 flex-1 min-h-0 relative">
       {/* Top Bar: Stats Strip & Sound Alerts */}
-      <div className="shrink-0 bg-white p-3 sm:p-4 rounded-xl border border-stone-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="shrink-0 bg-white p-3 sm:p-4 rounded-xl border border-[var(--line)] shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-lg font-bold text-[var(--ink)] tracking-tight flex items-center gap-2">
               <span>Live Kitchen Dispatch</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Socket Connected" />
+              <span className="w-2 h-2 rounded-full bg-cardamom animate-pulse" title="Socket Connected" />
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--muted)]">
               {restaurant?.name || 'Restaurant'} • Real-Time Order Flow
             </p>
           </div>
 
           {/* Quick Metrics Pills */}
           <div className="hidden sm:flex items-center gap-2 text-xs">
-            <div className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-800 font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <div className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-900 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-turmeric" />
               <span>{pendingOrders.length} Incoming</span>
             </div>
-            <div className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/60 text-blue-800 font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <div className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/60 text-indigo-900 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
               <span>{preparingOrders.length} Cooking</span>
             </div>
-            <div className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-800 font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <div className="px-2.5 py-1 rounded-lg bg-cardamom-50 border border-cardamom-100 text-cardamom font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cardamom" />
               <span>{readyOrders.length} Ready</span>
             </div>
           </div>
@@ -230,7 +230,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
+      <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-2.5 rounded-xl border border-[var(--line)] shadow-subtle">
         {/* Source Channels: All, Dine-In, Swiggy, Zomato */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {[
@@ -244,14 +244,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               onClick={() => setFilterSource(tab.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                 filterSource === tab.id
-                  ? 'bg-slate-900 text-white font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-stone-100'
+                  ? 'bg-brand-500 text-white font-semibold shadow-xs'
+                  : 'text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[#FDEBD6]/50'
               }`}
             >
               <span>{tab.label}</span>
               {tab.count > 0 && (
                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                  filterSource === tab.id ? 'bg-brand-500 text-white' : 'bg-stone-100 text-slate-700'
+                  filterSource === tab.id ? 'bg-white text-brand-600' : 'bg-[#FDEBD6] text-[var(--ink)]'
                 }`}>
                   {tab.count}
                 </span>
@@ -268,7 +268,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             placeholder="Search table, order #, or dish..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:bg-white focus:border-brand-500 transition-colors"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#FFF6EA]/60 border border-[var(--line)] rounded-lg text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-hidden focus:bg-white focus:border-brand-500 transition-colors"
           />
         </div>
       </div>
@@ -281,14 +281,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             onClick={() => setMobileTab(col.id as any)}
             className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1.5 border transition-all ${
               mobileTab === col.id
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white border-stone-200 text-slate-700'
+                ? 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-xs'
+                : 'bg-white border-[var(--line)] text-[var(--muted)]'
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
             <span>{col.label}</span>
             <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-              mobileTab === col.id ? 'bg-brand-500 text-white' : 'bg-stone-100 text-slate-700'
+              mobileTab === col.id ? 'bg-brand-500 text-white' : 'bg-[#FDEBD6] text-[var(--ink)]'
             }`}>
               {col.count}
             </span>
@@ -303,13 +303,13 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           return (
             <div
               key={col.id}
-              className={`${isMobileVisible ? 'flex' : 'hidden md:flex'} bg-stone-100/60 rounded-xl p-3 border border-stone-200/80 flex-col h-full min-h-0 overflow-hidden`}
+              className={`${isMobileVisible ? 'flex' : 'hidden md:flex'} bg-[#FDEBD6]/40 rounded-xl p-3 border border-[var(--line)] flex-col h-full min-h-0 overflow-hidden`}
             >
               {/* Column Header (Pinned) */}
-              <div className="shrink-0 flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200">
+              <div className="shrink-0 flex items-center justify-between pb-2.5 mb-2.5 border-b border-[var(--line)]">
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  <span className="text-xs font-bold text-[var(--ink)] uppercase tracking-wide">
                     {col.label}
                   </span>
                 </div>

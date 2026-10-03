@@ -82,7 +82,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <>
       {/* Desktop Fixed Sidebar - Permanently Open */}
-      <aside className="hidden lg:flex flex-col fixed top-0 bottom-0 left-0 w-60 bg-[#0B1020] text-slate-100 border-r border-white/[0.08] select-none justify-between z-30">
+      <aside className="hidden lg:flex flex-col fixed top-0 bottom-0 left-0 w-60 bg-[#1B1226] text-slate-100 border-r border-white/[0.08] select-none justify-between z-30">
         {/* Top: Brand & Outlet Info */}
         <div className="p-4 border-b border-white/[0.08] shrink-0">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -194,7 +194,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Manager Footer: Pinned to bottom, static */}
-        <div className="p-3 border-t border-white/[0.08] bg-[#070B16] shrink-0">
+        <div className="p-3 border-t border-white/[0.08] bg-[#140C1D] shrink-0">
           <div className="flex items-center justify-between gap-2">
             <div className="overflow-hidden">
               <p className="text-xs font-semibold text-slate-200 truncate">{manager?.username || 'Shift Manager'}</p>
@@ -213,7 +213,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="lg:hidden flex items-center justify-between px-3.5 py-2.5 bg-[#0B1020] text-white border-b border-white/[0.08] sticky top-0 z-40 w-full">
+      <header className="lg:hidden flex items-center justify-between px-3.5 py-2.5 bg-[#1B1226] text-white border-b border-white/[0.08] sticky top-0 z-40 w-full">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-xs text-white shrink-0">
             S
@@ -250,7 +250,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       {/* Mobile Drawer (When hamburger clicked) */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end">
-          <div className="bg-[#0B1020] border-t border-white/[0.1] rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto space-y-4">
+          <div className="bg-[#1B1226] border-t border-white/[0.1] rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-xs text-white">S</div>
@@ -338,7 +338,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       )}
 
       {/* Mobile Fixed Bottom Navigation Bar (1-Thumb Touch) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0B1020]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around py-1 px-1">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1B1226]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around py-1 px-1">
         {mobileBottomItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentTab === item.id;

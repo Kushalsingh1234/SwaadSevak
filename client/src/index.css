@@ -4,32 +4,79 @@
 
 @layer base {
   :root {
-    --brand-50: #FFF7ED;
-    --brand-100: #FFEDD5;
-    --brand-500: #F25C05;
-    --brand-600: #EA580C;
-    --brand-700: #C2410C;
+    /* Core Saffron Cream Palette (Default) */
+    --bg: #FFF6EA;          /* Warm cream, not white */
+    --bg-alt: #FDEBD6;      /* Alternating sections: soft peach/sand */
+    --surface: #FFFFFF;     /* Cards, inputs - pops against cream */
+    --ink: #1E1410;         /* Headlines & body: warm near-black */
+    --muted: #6B5B52;       /* Secondary text: passes WCAG AA on --bg */
+    --brand: #F25C05;       /* Primary buttons, key highlights */
+    --brand-deep: #C2410C;  /* Hover/pressed, text-on-cream accents */
+    --turmeric: #F5B83D;    /* Small highlights, stars, badges */
+    --cardamom: #1F7A5C;    /* Success/Ready states, checkmarks, savings */
+    --masala: #1B1226;      /* Dark sections, sidebar: deep aubergine-black */
+    --line: rgba(30, 20, 16, 0.08); /* Hairline borders */
 
-    --bg-app: #FAFAF9;
-    --surface-white: #FFFFFF;
-    --border-subtle: rgba(15, 23, 42, 0.08);
-    --border-card: #E7E5E4;
-    --text-ink: #0F172A;
-    --text-muted: #64748B;
-    --text-subtle: #94A3B8;
+    /* Legacy compatibility aliases */
+    --bg-app: var(--bg);
+    --surface-white: var(--surface);
+    --border-subtle: var(--line);
+    --text-ink: var(--ink);
+    --text-muted: var(--muted);
+  }
 
-    --dark-surface: #0B1020;
-    --dark-surface-elevated: #131A2E;
-    --dark-border: rgba(255, 255, 255, 0.08);
+  /* Alternative Drop-in Palette: Cardamom Calm */
+  [data-theme="cardamom-calm"] {
+    --bg: #EEF4EE;
+    --bg-alt: #DEEADE;
+    --surface: #FFFFFF;
+    --ink: #0F2A21;
+    --muted: #4A635A;
+    --brand: #F25C05;
+    --brand-deep: #C2410C;
+    --turmeric: #E5A835;
+    --cardamom: #1F7A5C;
+    --masala: #0F3D2E;
+    --line: rgba(15, 42, 33, 0.08);
+  }
+
+  /* Alternative Drop-in Palette: Beetroot & Blush */
+  [data-theme="beetroot-blush"] {
+    --bg: #FFF0F1;
+    --bg-alt: #FCE1E4;
+    --surface: #FFFFFF;
+    --ink: #2A1020;
+    --muted: #6B4D60;
+    --brand: #E8590C;
+    --brand-deep: #B0245A;
+    --turmeric: #E8A838;
+    --cardamom: #1F7A5C;
+    --masala: #2B0F24;
+    --line: rgba(42, 16, 32, 0.08);
+  }
+
+  /* Alternative Drop-in Palette: Midnight Spice */
+  [data-theme="midnight-spice"] {
+    --bg: #14101C;
+    --bg-alt: #1E1829;
+    --surface: #241D32;
+    --ink: #F7F5F9;
+    --muted: #A39BB0;
+    --brand: #FF7A1A;
+    --brand-deep: #E06509;
+    --turmeric: #F5B83D;
+    --cardamom: #28A77B;
+    --masala: #0D0914;
+    --line: rgba(255, 255, 255, 0.08);
   }
 
   * {
-    border-color: rgba(15, 23, 42, 0.08);
+    border-color: var(--line);
   }
 
   body {
-    background-color: #FAFAF9;
-    color: #0F172A;
+    background-color: var(--bg);
+    color: var(--ink);
     font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
@@ -37,7 +84,14 @@
 
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.025em;
+    color: var(--ink);
   }
+}
+
+/* Subtle dot-grid pattern (<= 4% opacity) for hero */
+.hero-dot-grid {
+  background-image: radial-gradient(rgba(30, 20, 16, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Tabular Numerals for Indian Currency & Counts */

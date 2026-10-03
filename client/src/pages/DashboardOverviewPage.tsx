@@ -1,8 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, ArrowRight } from 'lucide-react';
+import {
+  RefreshCw,
+  ArrowRight,
+  TrendingUp,
+  ShoppingBag,
+  Clock,
+  CheckCircle2,
+  TableProperties,
+  UtensilsCrossed,
+  Flame,
+  Store,
+  Layers
+} from 'lucide-react';
 import { Order, Restaurant, Manager, TableItem, MenuItem } from '../types';
 import { api } from '../services/api';
 import { SoundBanner } from '../components/SoundBanner';
+import { VegIcon } from '../components/VegIcon';
 
 interface DashboardOverviewPageProps {
   restaurant: Restaurant | null;
@@ -68,6 +81,14 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
     return Math.max(orders.length, stats.totalOrders || 0);
   }, [orders.length, stats.totalOrders]);
 
+  // Channel breakdown
+  const channelBreakdown = useMemo(() => {
+    const dineIn = orders.filter(o => o.source === 'DINE_IN' || !o.source).length;
+    const swiggy = orders.filter(o => o.source === 'SWIGGY').length;
+    const zomato = orders.filter(o => o.source === 'ZOMATO').length;
+    return { dineIn, swiggy, zomato };
+  }, [orders]);
+
   // Real-time table occupancy
   const occupancyMap = useMemo(() => {
     const map = new Map<string, { status: 'AVAILABLE' | 'OCCUPIED' | 'BILL_REQUESTED'; order?: Order }>();
@@ -124,26 +145,31 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
 
   return (
     <div className="space-y-5">
-      {/* Simple, Professional Operational Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-xl border border-stone-200/80 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-            {greeting}, {manager?.username || 'Manager'}
-          </h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {restaurant?.name || 'The Chai & Chaat Co.'} • {todayFormatted}
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+              {greeting}, {manager?.username || 'Shift Manager'}
+            </h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Shift Active
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {restaurant?.name || 'Swaad Sevak Outlet'} • {todayFormatted}
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
           <SoundBanner pendingCount={pendingOrders.length} />
 
           <button
             onClick={handleManualRefresh}
-            className={`p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors ${
-              isRefreshing ? 'animate-spin text-orange-600' : ''
+            className={`p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors ${
+              isRefreshing ? 'animate-spin text-brand-600' : ''
             }`}
-            title="Refresh Orders"
+            title="Refresh Data"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -151,63 +177,103 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('orders')}
-              className="px-4 py-2 rounded-lg bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 transition-colors shadow-xs"
+              className="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-1.5"
             >
-              View Live Orders {activeOrdersCount > 0 ? `(${activeOrdersCount})` : ''}
+              <span>Live Kitchen</span>
+              {activeOrdersCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-white text-[10px] font-bold">
+                  {activeOrdersCount}
+                </span>
+              )}
             </button>
           )}
         </div>
       </div>
 
-      {/* Top Metrics Row */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 gap-y-3 sm:gap-y-0">
-        <div className="sm:pr-5">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Today's Sales</span>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
+      {/* KPI Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Today's Revenue */}
+        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Today's Sales</span>
+            <div className="w-7 h-7 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             ₹{calculatedSales.toLocaleString('en-IN')}
           </div>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Net completed revenue</span>
+          <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+            <span>● Settled revenue</span>
+          </div>
         </div>
 
-        <div className="sm:px-5 pt-3 sm:pt-0">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</span>
-          <div className="text-2xl font-semibold text-gray-900 mt-1">
+        {/* Total Orders */}
+        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Total Tickets</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {totalOrdersCount}
           </div>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Total logged today</span>
+          <div className="mt-1 text-[11px] text-slate-400">
+            {channelBreakdown.dineIn} Dine-in • {channelBreakdown.swiggy + channelBreakdown.zomato} Aggregators
+          </div>
         </div>
 
-        <div className="sm:px-5 pt-3 sm:pt-0">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Orders</span>
-          <div className={`text-2xl font-semibold mt-1 ${activeOrdersCount > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
+        {/* Active In-Service */}
+        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">In Service</span>
+            <div className={`w-7 h-7 rounded-lg ${activeOrdersCount > 0 ? 'bg-amber-50 text-amber-600 animate-pulse' : 'bg-stone-50 text-slate-400'} flex items-center justify-center`}>
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className={`text-2xl font-bold tabular-nums ${activeOrdersCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
             {activeOrdersCount}
           </div>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Currently in service</span>
+          <div className="mt-1 text-[11px] text-slate-400">
+            {pendingOrders.length} incoming • {preparingOrders.length} cooking • {readyOrders.length} ready
+          </div>
         </div>
 
-        <div className="sm:pl-5 pt-3 sm:pt-0">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Completed</span>
-          <div className="text-2xl font-semibold text-gray-700 mt-1">
+        {/* Completed & Settled */}
+        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Settled</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {completedOrders.length}
           </div>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Billed & settled</span>
+          <div className="mt-1 text-[11px] text-slate-400">
+            Billed & paid out
+          </div>
         </div>
       </div>
 
-      {/* Table Floor Map */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+      {/* Table Floor Occupancy Map */}
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-stone-100">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Table Occupancy</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Real-time dining floor status</p>
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <TableProperties className="w-4 h-4 text-brand-500" />
+              <span>Table Floor Occupancy</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">Real-time dining room seating and bill status</p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+          <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Occupied
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> Seated
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-purple-600" /> Bill Requested
@@ -216,8 +282,8 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
         </div>
 
         {tables.length === 0 ? (
-          <div className="py-8 text-center text-xs text-gray-500">
-            No tables added yet. Go to <button onClick={() => onNavigateTab?.('tables')} className="text-orange-600 font-semibold underline">Tables & QR</button> to add your dining tables.
+          <div className="py-8 text-center text-xs text-slate-500">
+            No tables added yet. Go to <button onClick={() => onNavigateTab?.('tables')} className="text-brand-600 font-semibold underline">Tables & QR</button> to add your dining tables.
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -230,20 +296,20 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                 <div
                   key={table.id}
                   onClick={() => onNavigateTab?.('orders')}
-                  className={`p-3 rounded-lg border text-left cursor-pointer transition-colors ${
+                  className={`p-3 rounded-xl border text-left cursor-pointer transition-all card-hover-lift ${
                     status === 'BILL_REQUESTED'
-                      ? 'bg-purple-50/60 border-purple-300'
+                      ? 'bg-purple-50/70 border-purple-300 ring-1 ring-purple-300'
                       : status === 'OCCUPIED'
-                      ? 'bg-amber-50/50 border-amber-300'
-                      : 'bg-white border-gray-200 hover:border-gray-300'
+                      ? 'bg-amber-50/60 border-amber-300'
+                      : 'bg-white border-stone-200/90 hover:border-stone-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-gray-900">{table.tableNumber}</span>
+                    <span className="text-xs font-bold text-slate-900">{table.tableNumber}</span>
                     <span
                       className={`w-2 h-2 rounded-full ${
                         status === 'BILL_REQUESTED'
-                          ? 'bg-purple-600'
+                          ? 'bg-purple-600 animate-pulse'
                           : status === 'OCCUPIED'
                           ? 'bg-amber-500'
                           : 'bg-emerald-500'
@@ -253,11 +319,11 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
 
                   {activeOrder ? (
                     <div>
-                      <div className="text-xs font-semibold text-gray-900">₹{activeOrder.total?.toFixed(0)}</div>
-                      <div className="text-[10px] text-gray-500">{activeOrder.items?.length || 0} items</div>
+                      <div className="text-xs font-bold text-slate-900 tabular-nums">₹{activeOrder.total?.toFixed(0)}</div>
+                      <div className="text-[10px] text-slate-500">{activeOrder.items?.length || 0} items</div>
                     </div>
                   ) : (
-                    <span className="text-[11px] text-gray-400">Available</span>
+                    <span className="text-[11px] text-slate-400">Available</span>
                   )}
                 </div>
               );
@@ -269,33 +335,38 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
       {/* Two Columns: Top Dishes & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top Dishes */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+        <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs p-5">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
             <div>
-              <h2 className="text-sm font-bold text-gray-900">Top Dishes Today</h2>
-              <p className="text-xs text-gray-500">Ordered by quantity</p>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <UtensilsCrossed className="w-4 h-4 text-brand-500" />
+                <span>Top Selling Dishes Today</span>
+              </h2>
+              <p className="text-xs text-slate-500">Ordered by quantity</p>
             </div>
             {onNavigateTab && (
               <button
                 onClick={() => onNavigateTab('menu')}
-                className="text-xs font-medium text-orange-600 hover:text-orange-700"
+                className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1"
               >
-                View Menu
+                <span>View Menu</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-stone-100">
             {topDishes.map((dish, idx) => (
               <div key={dish.name + idx} className="py-2.5 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 text-gray-400 font-semibold">{idx + 1}.</span>
-                  <span className="font-medium text-gray-900">{dish.name}</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 text-slate-400 font-bold">{idx + 1}.</span>
+                  <VegIcon isVeg={dish.isVeg !== false} size="sm" />
+                  <span className="font-semibold text-slate-900">{dish.name}</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-semibold text-gray-900">{dish.quantity} sold</span>
+                  <span className="font-bold text-slate-900 tabular-nums">{dish.quantity} sold</span>
                   {dish.revenue > 0 && (
-                    <span className="text-gray-400 ml-2">₹{dish.revenue}</span>
+                    <span className="text-slate-400 ml-2.5 tabular-nums">₹{dish.revenue}</span>
                   )}
                 </div>
               </div>
@@ -304,16 +375,19 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+        <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs p-5">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
             <div>
-              <h2 className="text-sm font-bold text-gray-900">Recent Orders</h2>
-              <p className="text-xs text-gray-500">Latest tickets logged</p>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-brand-500" />
+                <span>Recent Order Tickets</span>
+              </h2>
+              <p className="text-xs text-slate-500">Latest tickets logged today</p>
             </div>
             {onNavigateTab && (
               <button
                 onClick={() => onNavigateTab('orders')}
-                className="text-xs font-medium text-orange-600 hover:text-orange-700 flex items-center gap-0.5"
+                className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-0.5"
               >
                 <span>All Orders</span>
                 <ArrowRight className="w-3 h-3" />
@@ -322,11 +396,11 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           </div>
 
           {orders.length === 0 ? (
-            <div className="py-8 text-center text-xs text-gray-400">
+            <div className="py-8 text-center text-xs text-slate-400">
               No orders recorded yet today.
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-stone-100">
               {orders.slice(0, 5).map(order => {
                 const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
                   hour: '2-digit',
@@ -337,25 +411,26 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                 return (
                   <div key={order.id} className="py-2.5 flex items-center justify-between text-xs">
                     <div>
-                      <div className="font-semibold text-gray-900">
-                        {order.tableNumber || 'Dine-In'} <span className="font-normal text-gray-500 font-mono">({order.orderNumber})</span>
+                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>{order.tableNumber || 'Counter'}</span>
+                        <span className="font-normal text-slate-500 font-mono text-[11px]">(#{order.orderNumber})</span>
                       </div>
-                      <span className="text-[11px] text-gray-400">{order.items?.length || 0} items • {orderTime}</span>
+                      <span className="text-[11px] text-slate-400">{order.items?.length || 0} items • {orderTime}</span>
                     </div>
 
-                    <div className="text-right flex items-center gap-2.5">
-                      <span className="font-bold text-gray-900">₹{order.total?.toFixed(0)}</span>
-                      <span className={`text-[11px] font-medium ${
+                    <div className="text-right flex items-center gap-3">
+                      <span className="font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
+                      <span className={`text-[11px] font-semibold ${
                         order.status === 'PENDING'
-                          ? 'text-amber-600 font-semibold'
+                          ? 'text-amber-600'
                           : order.status === 'COMPLETED'
-                          ? 'text-gray-500'
-                          : 'text-blue-600 font-medium'
+                          ? 'text-slate-500'
+                          : 'text-blue-600'
                       }`}>
                         {order.status === 'PENDING' && '● Incoming'}
-                        {order.status === 'ACCEPTED' && '● Kitchen Cooking'}
-                        {order.status === 'PREPARING' && '● Kitchen Cooking'}
-                        {order.status === 'READY' && '● Ready to Serve'}
+                        {order.status === 'ACCEPTED' && '● Cooking'}
+                        {order.status === 'PREPARING' && '● Cooking'}
+                        {order.status === 'READY' && '● Ready'}
                         {order.status === 'COMPLETED' && '✓ Settled'}
                         {order.status === 'REJECTED' && '✕ Cancelled'}
                       </span>

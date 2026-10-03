@@ -412,8 +412,8 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans">
-      {/* Navigation (Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
+    <div className="min-h-screen lg:h-screen bg-[#F7F8FA] flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden">
+      {/* Navigation (Fixed Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
       <Navigation
         currentTab={currentTab}
         setCurrentTab={handleTabChange}
@@ -424,7 +424,11 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 lg:pb-8 overflow-y-auto">
+      <main className={`flex-1 min-w-0 ${
+        currentTab === 'orders'
+          ? 'p-2.5 sm:p-3.5 lg:p-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
+          : 'p-3 sm:p-5 lg:p-7 max-w-7xl mx-auto w-full pb-20 lg:pb-8 lg:h-full lg:overflow-y-auto'
+      }`}>
         {currentTab === 'dashboard' && (
           <DashboardOverviewPage
             restaurant={restaurant}

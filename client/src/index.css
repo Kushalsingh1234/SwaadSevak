@@ -5,17 +5,25 @@
 @layer base {
   :root {
     /* Core Saffron Cream Palette (Default) */
-    --bg: #FFF6EA;          /* Warm cream, not white */
+    --bg: #FFF6EA;          /* Warm cream */
     --bg-alt: #FDEBD6;      /* Alternating sections: soft peach/sand */
     --surface: #FFFFFF;     /* Cards, inputs - pops against cream */
     --ink: #1E1410;         /* Headlines & body: warm near-black */
-    --muted: #6B5B52;       /* Secondary text: passes WCAG AA on --bg */
+    --muted: #6B5B52;       /* Secondary text */
     --brand: #F25C05;       /* Primary buttons, key highlights */
-    --brand-deep: #C2410C;  /* Hover/pressed, text-on-cream accents */
+    --brand-deep: #C2410C;  /* Hover/pressed, text accents */
     --turmeric: #F5B83D;    /* Small highlights, stars, badges */
     --cardamom: #1F7A5C;    /* Success/Ready states, checkmarks, savings */
-    --masala: #1B1226;      /* Dark sections, sidebar: deep aubergine-black */
+    --masala: #1B1226;      /* Dark sections, sidebar */
     --line: rgba(30, 20, 16, 0.08); /* Hairline borders */
+
+    /* Rich Roasted Brown Landing Page Palette */
+    --landing-brown: #1B120C;       /* Deep roasted coffee/spice brown */
+    --landing-brown-alt: #251A12;   /* Warm roasted cacao / mocha */
+    --landing-brown-dark: #130D08;  /* Deep dark espresso roast */
+    --landing-cream: #FFF7ED;       /* Warm ivory cream */
+    --landing-latte: #E5D7CA;       /* Frothy latte text */
+    --landing-sand: #B8A796;        /* Warm sand microcopy */
 
     /* Legacy compatibility aliases */
     --bg-app: var(--bg);

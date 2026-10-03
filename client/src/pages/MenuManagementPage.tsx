@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   Search,
@@ -12,12 +12,53 @@ import {
   List,
   Sparkles,
   Tag,
-  CheckCircle2
+  CheckCircle2,
+  Flame,
+  Star
 } from 'lucide-react';
 import { MenuCategory, MenuItem } from '../types';
 import { VegIcon } from '../components/VegIcon';
 import { AddDishModal } from '../components/AddDishModal';
 import { AiMenuModal } from '../components/AiMenuModal';
+
+// Helper to style menu item tags with distinct, harmonious badge colors and icons
+export const getTagBadgeStyle = (tag: string) => {
+  const lower = tag.toLowerCase();
+  if (lower.includes('bestseller') || lower.includes('popular')) {
+    return {
+      classes: 'bg-amber-50 text-amber-900 border-amber-200/90',
+      icon: Flame,
+    };
+  }
+  if (lower.includes('chef')) {
+    return {
+      classes: 'bg-purple-50 text-purple-900 border-purple-200/90',
+      icon: Sparkles,
+    };
+  }
+  if (lower.includes('recommend')) {
+    return {
+      classes: 'bg-blue-50 text-blue-900 border-blue-200/90',
+      icon: Star,
+    };
+  }
+  if (lower.includes('spicy') || lower.includes('hot')) {
+    return {
+      classes: 'bg-rose-50 text-rose-900 border-rose-200/90',
+      icon: Flame,
+    };
+  }
+  if (lower.includes('new')) {
+    return {
+      classes: 'bg-emerald-50 text-emerald-900 border-emerald-200/90',
+      icon: Sparkles,
+    };
+  }
+  return {
+    classes: 'bg-amber-50 text-amber-900 border-amber-200/90',
+    icon: Tag,
+  };
+};
 
 interface MenuManagementPageProps {
   categories: MenuCategory[];
@@ -44,6 +85,7 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string>('ALL');
   const [filterVegOnly, setFilterVegOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'LIST' | 'GRID'>('LIST');
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
@@ -56,13 +98,30 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
     onRefreshMenu();
   }, []);
 
+  // Compute all unique tags present across menu items
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((i) => {
+      i.tags?.forEach((t) => {
+        if (t && t.trim() && t.toLowerCase() !== 'none') {
+          set.add(t.trim());
+        }
+      });
+    });
+    return Array.from(set);
+  }, [items]);
+
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.tags?.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = selectedCategory === 'ALL' || item.categoryId === selectedCategory;
     const matchesVeg = !filterVegOnly || item.isVeg;
-    return matchesSearch && matchesCategory && matchesVeg;
+    const matchesTag =
+      selectedTagFilter === 'ALL' ||
+      item.tags?.some((t) => t.toLowerCase() === selectedTagFilter.toLowerCase());
+    return matchesSearch && matchesCategory && matchesVeg && matchesTag;
   });
 
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -205,10 +264,24 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {availableTags.length > 0 && (
+              <select
+                value={selectedTagFilter}
+                onChange={(e) => setSelectedTagFilter(e.target.value)}
+                className="px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-xs font-semibold text-slate-700 hover:bg-stone-50 focus:outline-hidden focus:border-brand-500 transition-colors"
+                title="Filter by badge/tag"
+              >
+                <option value="ALL">All Badges ({availableTags.length})</option>
+                {availableTags.map((tag) => (
+                  <option key={tag} value={tag}>Tag: {tag}</option>
+                ))}
+              </select>
+            )}
+
             <button
               onClick={() => setFilterVegOnly(!filterVegOnly)}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 ${
                 filterVegOnly
                   ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                   : 'bg-white border-stone-200 text-slate-600 hover:bg-stone-50'
@@ -266,11 +339,27 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
                           <div className="mt-0.5 shrink-0">
                             <VegIcon isVeg={item.isVeg} size="sm" />
                           </div>
-                          <div>
-                            <span className="font-bold text-slate-900 text-sm">{item.name}</span>
-                            {item.portion && (
-                              <span className="text-[11px] text-slate-400 ml-1.5 font-normal">({item.portion})</span>
-                            )}
+                          <div className="min-w-0">
+                            <div className="flex items-center flex-wrap gap-1.5">
+                              <span className="font-bold text-slate-900 text-sm">{item.name}</span>
+                              {item.portion && (
+                                <span className="text-[11px] text-slate-400 font-normal">({item.portion})</span>
+                              )}
+                              {item.tags?.filter(t => t && t.toLowerCase() !== 'none').map((tag: string) => {
+                                const style = getTagBadgeStyle(tag);
+                                const TagIcon = style.icon;
+                                return (
+                                  <span
+                                    key={tag}
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${style.classes}`}
+                                    title={`Special Badge: ${tag}`}
+                                  >
+                                    <TagIcon className="w-2.5 h-2.5 shrink-0 opacity-80" />
+                                    <span>{tag}</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
                             {item.description && (
                               <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{item.description}</p>
                             )}
@@ -346,22 +435,43 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
                   </div>
                   <button
                     onClick={() => onToggleStock(item.id, item.isAvailable)}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
                       item.isAvailable
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        : 'bg-stone-100 text-slate-500 border-stone-200'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-stone-100 text-slate-500 border-stone-200 hover:bg-stone-200'
                     }`}
                   >
                     {item.isAvailable ? 'In Stock' : 'Out'}
                   </button>
                 </div>
 
-                <h3 className="font-bold text-slate-900 text-sm">{item.name}</h3>
+                <h3 className="font-bold text-slate-900 text-sm leading-snug">{item.name}</h3>
                 {item.portion && (
-                  <p className="text-[11px] text-slate-400">{item.portion}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{item.portion}</p>
                 )}
+
+                {/* Dish Tags / Badges */}
+                {item.tags && item.tags.filter(t => t && t.toLowerCase() !== 'none').length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    {item.tags.filter(t => t && t.toLowerCase() !== 'none').map((tag: string) => {
+                      const style = getTagBadgeStyle(tag);
+                      const TagIcon = style.icon;
+                      return (
+                        <span
+                          key={tag}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${style.classes}`}
+                          title={`Special Badge: ${tag}`}
+                        >
+                          <TagIcon className="w-2.5 h-2.5 shrink-0 opacity-80" />
+                          <span>{tag}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {item.description && (
-                  <p className="text-xs text-slate-500 line-clamp-2 mt-1">{item.description}</p>
+                  <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">{item.description}</p>
                 )}
               </div>
 

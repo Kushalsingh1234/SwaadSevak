@@ -111,12 +111,19 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
 
   // Top 5 selling dishes
   const topDishes = useMemo(() => {
-    const counts: Record<string, { name: string; quantity: number; revenue: number; isVeg?: boolean }> = {};
+    const counts: Record<string, { name: string; quantity: number; revenue: number; isVeg?: boolean; tags?: string[] }> = {};
 
     orders.filter(o => o.status !== 'REJECTED').forEach(order => {
       order.items?.forEach(item => {
         if (!counts[item.name]) {
-          counts[item.name] = { name: item.name, quantity: 0, revenue: 0, isVeg: true };
+          const matchedMenu = menuItems.find(m => m.name.toLowerCase() === item.name.toLowerCase());
+          counts[item.name] = {
+            name: item.name,
+            quantity: 0,
+            revenue: 0,
+            isVeg: matchedMenu ? matchedMenu.isVeg : true,
+            tags: matchedMenu?.tags || [],
+          };
         }
         counts[item.name].quantity += (item.quantity || 1);
         counts[item.name].revenue += ((item.price || 0) * (item.quantity || 1));
@@ -130,6 +137,7 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
         quantity: 0,
         revenue: 0,
         isVeg: m.isVeg,
+        tags: m.tags || [],
       }));
     }
     return sorted;
@@ -358,10 +366,20 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           <div className="divide-y divide-stone-100">
             {topDishes.map((dish, idx) => (
               <div key={dish.name + idx} className="py-2.5 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-4 text-slate-400 font-bold">{idx + 1}.</span>
-                  <VegIcon isVeg={dish.isVeg !== false} size="sm" />
-                  <span className="font-semibold text-slate-900">{dish.name}</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-4 text-slate-400 font-bold shrink-0">{idx + 1}.</span>
+                  <div className="shrink-0">
+                    <VegIcon isVeg={dish.isVeg !== false} size="sm" />
+                  </div>
+                  <span className="font-semibold text-slate-900 truncate">{dish.name}</span>
+                  {dish.tags?.filter(t => t && t.toLowerCase() !== 'none').slice(0, 1).map((t: string) => (
+                    <span
+                      key={t}
+                      className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-800 shrink-0"
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-slate-900 tabular-nums">{dish.quantity} sold</span>

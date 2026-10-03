@@ -412,7 +412,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen lg:h-screen bg-[#F7F8FA] flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden">
       {/* Navigation (Fixed Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
       <Navigation
         currentTab={currentTab}

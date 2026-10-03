@@ -38,19 +38,31 @@ export interface FaqItem {
 export const LANDING_CONTENT = {
   // 3.1 & 3.2 Hero
   hero: {
-    eyebrow: "Built for Indian cafés & restaurants",
-    headlineMain: "Run your café without the chaos.",
-    headlineAlt: "From QR scan to settled bill. One calm system.",
-    subhead: "Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy & Zomato orders and reports, all in one simple system that runs on any phone or tablet.",
+    eyebrow: "Built for cafes and restaurants",
+    headlineMain: "Run your Restaurant without the chaos.",
+    headlineAlt: "Every order. Every table. Every rupee.",
+    headlineSubline: "One calm system for your whole food business.",
+    subhead: "Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy & Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.",
     primaryCta: "Start Free Trial",
     secondaryCta: "Watch 60-sec demo",
     guestMenuDemoLink: "Try the guest menu demo",
     trustMicrocopy: "No credit card required • Setup in under 30 minutes • Works on any tablet or phone • Thermal KOT compatible"
   },
 
+  // "Built for every food business" Strip
+  foodBusinessStrip: [
+    { label: "Cafés", icon: "Coffee" },
+    { label: "Restaurants", icon: "UtensilsCrossed" },
+    { label: "Cloud kitchens", icon: "ChefHat" },
+    { label: "Dhabas", icon: "Flame" },
+    { label: "Bakeries & sweet shops", icon: "Cake" },
+    { label: "Food courts", icon: "Store" },
+    { label: "Food trucks", icon: "Truck" },
+  ],
+
   // 3.3 Social proof strip
   socialProof: {
-    heading: "Built with feedback from real café and restaurant owners across India",
+    heading: "Built with feedback from real food business and restaurant owners across India",
     pilotCount: "Active in 20+ partner outlets during preview",
     isPlaceholder: true
   },
@@ -58,7 +70,7 @@ export const LANDING_CONTENT = {
   // 3.4 Problem Section ("Sound familiar?")
   problem: {
     tagline: "Sound familiar?",
-    heading: "Most cafés run on memory, WhatsApp and paper. It works, until it's a busy Saturday night.",
+    heading: "Most food businesses run on memory, WhatsApp and paper. It works, until it's a busy Saturday night.",
     cards: [
       {
         icon: "Volume2",
@@ -187,13 +199,13 @@ export const LANDING_CONTENT = {
     tagline: "Interactive ROI Calculator",
     heading: "See what disorganised ordering is costing you.",
     subhead: "Calculate your estimated monthly savings from faster table turnover, eliminated order errors, and direct QR ordering.",
-    disclaimer: "Estimated based on average Indian café metrics: reduced bill leakage, ~15% faster table turnover, and fewer miscommunicated dish slips."
+    disclaimer: "Estimated based on average Indian restaurant & food business metrics: reduced bill leakage, ~15% faster table turnover, and fewer miscommunicated dish slips."
   },
 
   // 3.9 Comparison Table
   comparison: {
     tagline: "Honest Comparison",
-    heading: "Why restaurants choose Swaad Sevak",
+    heading: "Why restaurants & food businesses choose Swaad Sevak",
     columns: ["Feature", "Notebook & Paper Slips", "Legacy POS Hardware", "Swaad Sevak"],
     rows: [
       {
@@ -237,7 +249,7 @@ export const LANDING_CONTENT = {
 
   // 3.10 Food Business Types
   businessTypes: [
-    { title: "Cafés & Chai Outlets", desc: "Fast QR ordering for coffees, snacks and quick casual dining.", icon: "Coffee" },
+    { title: "Cafés & Coffee Shops", desc: "Fast QR ordering for specialty coffees, snacks and quick casual dining.", icon: "Coffee" },
     { title: "Dine-In Restaurants", desc: "Complete table management, kitchen tickets, and clean GST checkout.", icon: "Utensils" },
     { title: "Cloud Kitchens", desc: "Centralised live kitchen display for fast prep and dispatch.", icon: "ChefHat" },
     { title: "Bakeries & Sweet Shops", desc: "Instant billing, stock availability toggles, and token receipts.", icon: "Cake" },
@@ -250,8 +262,8 @@ export const LANDING_CONTENT = {
       id: "test-1",
       quote: "On Friday evenings, we used to lose at least 3 orders due to kitchen miscommunication. With Swaad Sevak, the continuous sound alert and kitchen display eliminated lost slips entirely.",
       author: "Rahul Sharma",
-      role: "Founder & Head Chef",
-      outlet: "Chai & Conversations Café",
+      role: "Head Chef & Co-founder",
+      outlet: "The Urban Spoon Bistro",
       city: "Bengaluru",
       isPlaceholder: true // [PLACEHOLDER - Replace with real quote when available]
     },
@@ -260,7 +272,7 @@ export const LANDING_CONTENT = {
       quote: "Our guests love scanning the QR and ordering right away without waving for a waiter. Our table turnaround time dropped by 15 minutes during the lunch rush.",
       author: "Pooja Patel",
       role: "Operations Manager",
-      outlet: "Urban Tandoor Resto-Café",
+      outlet: "Tandoori Nights Family Restaurant",
       city: "Ahmedabad",
       isPlaceholder: true // [PLACEHOLDER - Replace with real quote when available]
     },
@@ -269,7 +281,7 @@ export const LANDING_CONTENT = {
       quote: "Setup took us less than 20 minutes before our evening shift. The thermal printer integration worked directly from Chrome without installing any drivers.",
       author: "Vikram Sengupta",
       role: "Partner",
-      outlet: "Bhoj Kitchens",
+      outlet: "Bhoj Express Cloud Kitchen",
       city: "Kolkata",
       isPlaceholder: true // [PLACEHOLDER - Replace with real quote when available]
     }
@@ -289,7 +301,7 @@ export const LANDING_CONTENT = {
         priceMonthly: 799,
         priceAnnual: 649,
         period: "per month",
-        description: "Ideal for small cafés, food trucks, and chai kiosks with up to 10 tables.",
+        description: "Ideal for small food businesses, dhabas, food trucks, and quick-service counters with up to 10 tables.",
         features: [
           "Up to 10 Dining Tables & QR Codes",
           "Live Kitchen Display (KDS)",
@@ -310,7 +322,7 @@ export const LANDING_CONTENT = {
         period: "per month",
         popular: true,
         badge: "Most Popular",
-        description: "Everything a busy café or dine-in restaurant needs to run high-volume service.",
+        description: "Everything a busy restaurant, café, or dine-in outlet needs to run high-volume service.",
         features: [
           "Unlimited Dining Tables & Standee QRs",
           "Real-Time Live Kitchen Order Board",
@@ -331,7 +343,7 @@ export const LANDING_CONTENT = {
         priceAnnual: 2499,
         period: "per month",
         popular: false,
-        description: "For restaurant groups, franchised brands, and multi-location cloud kitchens.",
+        description: "For restaurant groups, food brands, and multi-location cloud kitchens.",
         features: [
           "Everything in Full Restaurant",
           "Multi-Outlet Management Switcher",
@@ -371,7 +383,7 @@ export const LANDING_CONTENT = {
     {
       id: "faq-5",
       question: "How long does setup take?",
-      answer: "Most cafés are up and running in under 30 minutes. You can enter your menu items manually, or upload a photo/PDF of your printed menu to let our AI parser automatically build categories and pricing."
+      answer: "Most food businesses are up and running in under 30 minutes. You can enter your menu items manually, or upload a photo/PDF of your printed menu to let our AI parser automatically build categories and pricing."
     },
     {
       id: "faq-6",
@@ -393,7 +405,7 @@ export const LANDING_CONTENT = {
   // 3.14 Final CTA Band
   finalCta: {
     headline: "Your next rush hour deserves a calmer kitchen.",
-    subhead: "Join modern cafés and restaurants across India running smoother, faster service with Swaad Sevak.",
+    subhead: "Join modern restaurants, cafés and food businesses across India running smoother, faster service with Swaad Sevak.",
     primaryCta: "Start Free 14-Day Trial",
     whatsappCta: "Chat with us on WhatsApp"
   }

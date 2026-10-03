@@ -130,8 +130,8 @@ export const AiMenuModal: React.FC<AiMenuModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className={`bg-white rounded-2xl shadow-elevated border border-slate-200 w-full overflow-hidden transition-all duration-300 ${
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#140D08]/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className={`bg-white rounded-2xl shadow-elevated border border-stone-200 w-full overflow-hidden transition-all duration-300 ${
         step === 'REVIEW' ? 'max-w-4xl max-h-[90vh] flex flex-col' : 'max-w-lg'
       }`}>
         {/* Header */}

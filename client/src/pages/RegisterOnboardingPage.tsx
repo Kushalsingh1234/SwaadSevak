@@ -13,6 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { api } from '../services/api';
+import { Logo } from '../components/Logo';
 
 interface RegisterOnboardingPageProps {
   onSuccess: (data: { token: string; restaurant: any; manager: any }) => void;
@@ -170,13 +171,8 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
     <div className="min-h-screen bg-[#1B120C] text-[#FFF7ED] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-3xl shadow-glow mx-auto mb-3">
-          🍛
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Swaad Sevak
-        </h2>
-        <p className="text-xs text-[#FF9E58] font-bold uppercase tracking-widest mt-0.5">
+        <Logo variant="stacked" theme="dark" size={64} showTagline={false} />
+        <p className="text-xs text-[#FF9E58] font-bold uppercase tracking-widest mt-3">
           Restaurant Registration & Setup
         </p>
       </div>

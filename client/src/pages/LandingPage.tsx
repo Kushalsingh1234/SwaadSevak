@@ -34,6 +34,7 @@ import {
   Truck
 } from 'lucide-react';
 import { LANDING_CONTENT, PricingPlan, FaqItem } from '../config/landingContent';
+import { Logo } from '../components/Logo';
 
 interface LandingPageProps {
   onStartRegistration: () => void;
@@ -83,19 +84,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <header className="sticky top-0 z-50 bg-[#1B120C]/90 backdrop-blur-md border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Identity */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-black text-sm tracking-tight shadow-xs shadow-brand-500/30">
-              S
-            </div>
-            <div>
-              <span className="text-base font-extrabold text-white tracking-tight leading-none">
-                Swaad Sevak
-              </span>
-              <span className="text-[10px] text-[#B8A796] block font-medium">
-                Restaurant OS
-              </span>
-            </div>
-          </div>
+          <Logo variant="horizontal" theme="dark" size={36} />
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-[#D6C7B8]">
@@ -311,9 +300,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Floating Chip 1: New Order Notification (Clean white card popping off brown) */}
-            <div className="hidden sm:flex absolute -top-5 -left-6 bg-white p-3 rounded-xl border border-stone-200 shadow-2xl items-center gap-3 animate-bounce duration-1000">
-              <div className="w-9 h-9 rounded-lg bg-turmeric text-slate-900 flex items-center justify-center font-bold">
+            {/* Floating Chip 1: New Order Notification (White Background Container) */}
+            <div className="hidden sm:flex absolute -top-5 -left-6 bg-white p-3.5 rounded-xl border border-stone-200/90 shadow-2xl items-center gap-3 animate-bounce duration-1000">
+              <div className="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
                 <Volume2 className="w-4 h-4" />
               </div>
               <div className="text-left">
@@ -322,14 +311,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Floating Chip 2: Daily Sales */}
-            <div className="hidden sm:flex absolute -bottom-5 -right-6 bg-white p-3 rounded-xl border border-stone-200 shadow-2xl items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-cardamom text-white flex items-center justify-center font-bold">
+            {/* Floating Chip 2: Daily Sales (White Background Container) */}
+            <div className="hidden sm:flex absolute -bottom-5 -right-6 bg-white p-3.5 rounded-xl border border-stone-200/90 shadow-2xl items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
                 <TrendingUp className="w-4 h-4" />
               </div>
               <div className="text-left">
                 <p className="text-xs font-bold text-slate-900">Today's Sales</p>
-                <p className="text-sm font-extrabold text-cardamom tabular-nums">₹24,850</p>
+                <p className="text-sm font-extrabold text-emerald-600 tabular-nums">₹24,850</p>
               </div>
             </div>
           </div>
@@ -1188,13 +1177,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 3.15 Footer in Deep Obsidian Brown */}
       <footer className="py-12 bg-[#0C0805] text-slate-400 border-t border-white/[0.08] text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-white font-black text-xs">
-              S
-            </div>
-            <span className="font-bold text-sm text-white">Swaad Sevak</span>
-            <span className="text-slate-400 ml-2">Restaurant OS</span>
-          </div>
+          <Logo variant="horizontal" theme="dark" size={28} />
 
           <div className="flex items-center gap-6 text-[#D4C3B3]">
             <a href="#features" className="hover:text-white transition-colors">Features</a>

@@ -52,6 +52,17 @@ export async function downloadInvoicePdf(
   container.style.lineHeight = '1.45';
 
   container.innerHTML = `
+    <!-- Brand Mark (Mono Black) -->
+    <div style="text-align: center; margin-bottom: 6px;">
+      <svg width="34" height="34" viewBox="0 0 100 100" fill="none" style="display: inline-block;">
+        <path d="M 37 40 C 31 29 46 21 39 8" stroke="#000000" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 63 40 C 57 29 72 21 65 8" stroke="#000000" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="14" y="47" width="72" height="8" rx="4" fill="#000000" />
+        <path d="M 18 55 C 20 76 34 88 50 88 C 66 88 80 76 82 55 Z" fill="#000000" />
+        <rect x="36" y="88" width="28" height="4.5" rx="2.25" fill="#000000" />
+      </svg>
+    </div>
+
     <!-- Document Title -->
     <div style="text-align: center; margin-bottom: 6px;">
       <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #ea580c;">

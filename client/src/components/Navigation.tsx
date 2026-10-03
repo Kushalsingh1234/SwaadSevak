@@ -11,6 +11,7 @@ import {
   Store
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
+import { Logo } from './Logo';
 
 interface NavigationProps {
   currentTab: string;
@@ -85,23 +86,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       <aside className="hidden lg:flex flex-col fixed top-0 bottom-0 left-0 w-60 bg-[#1B1226] text-slate-100 border-r border-white/[0.08] select-none justify-between z-30">
         {/* Top: Brand & Outlet Info */}
         <div className="p-4 border-b border-white/[0.08] shrink-0">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-black text-sm tracking-tight shrink-0 shadow-sm shadow-brand-500/30">
-              S
-            </div>
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-sm tracking-tight text-white leading-tight">
-                  Swaad Sevak
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Live
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 truncate">
-                Restaurant OS
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-2 overflow-hidden">
+            <Logo variant="horizontal" theme="dark" size={30} showTagline={false} />
+            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              Live
+            </span>
           </div>
 
           <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between">
@@ -215,9 +204,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       {/* Mobile Top Header */}
       <header className="lg:hidden flex items-center justify-between px-3.5 py-2.5 bg-[#1B1226] text-white border-b border-white/[0.08] sticky top-0 z-40 w-full">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-xs text-white shrink-0">
-            S
-          </div>
+          <Logo variant="mark" theme="dark" size={26} />
           <div className="overflow-hidden">
             <h1 className="font-bold text-xs text-white leading-tight truncate">
               {restaurant?.name || 'Swaad Sevak'}
@@ -253,7 +240,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <div className="bg-[#1B1226] border-t border-white/[0.1] rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-xs text-white">S</div>
+                <Logo variant="mark" theme="dark" size={24} />
                 <span className="font-bold text-sm text-white">{restaurant?.name || 'Swaad Sevak'}</span>
               </div>
               <button

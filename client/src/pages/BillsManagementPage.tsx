@@ -59,8 +59,8 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs border-collapse min-w-[650px]">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-gray-600 uppercase tracking-wider text-[11px] font-semibold">
                 <th className="py-3 px-4">Invoice #</th>

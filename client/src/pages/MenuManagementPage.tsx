@@ -85,7 +85,7 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsAiModalOpen(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors shadow-xs"
@@ -207,89 +207,91 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
             No dishes found. Click <b className="text-gray-700">+ Add Dish</b> or import a menu to get started.
           </div>
         ) : (
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/70 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4">Dish</th>
-                <th className="py-3 px-4 hidden sm:table-cell">Category</th>
-                <th className="py-3 px-4">Price</th>
-                <th className="py-3 px-4">Availability</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/60 transition-colors">
-                  {/* Dish Info */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-start gap-2.5">
-                      <div className="mt-0.5 shrink-0">
-                        <VegIcon isVeg={item.isVeg} size="sm" />
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-900 text-sm">{item.name}</span>
-                        {item.portion && (
-                          <span className="text-[11px] text-gray-400 ml-1.5 font-normal">({item.portion})</span>
-                        )}
-                        {item.description && (
-                          <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{item.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Category */}
-                  <td className="py-3 px-4 hidden sm:table-cell text-gray-600">
-                    {getCategoryName(item.categoryId)}
-                  </td>
-
-                  {/* Price */}
-                  <td className="py-3 px-4 font-bold text-gray-900">
-                    ₹{item.price}
-                  </td>
-
-                  {/* Stock Toggle */}
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={() => onToggleStock(item.id, item.isAvailable)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
-                        item.isAvailable
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
-                      }`}
-                      title={item.isAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${item.isAvailable ? 'bg-emerald-600' : 'bg-gray-400'}`} />
-                      <span>{item.isAvailable ? 'In Stock' : 'Out of Stock'}</span>
-                    </button>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => {
-                          setDishToEdit(item);
-                          setIsAddDishModalOpen(true);
-                        }}
-                        className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                        title="Edit dish"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => onDeleteDish(item.id)}
-                        className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                        title="Delete dish"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-xs min-w-[500px]">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/70 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4">Dish</th>
+                  <th className="py-3 px-4 hidden sm:table-cell">Category</th>
+                  <th className="py-3 px-4">Price</th>
+                  <th className="py-3 px-4">Availability</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredItems.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/60 transition-colors">
+                    {/* Dish Info */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-start gap-2.5">
+                        <div className="mt-0.5 shrink-0">
+                          <VegIcon isVeg={item.isVeg} size="sm" />
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-900 text-sm">{item.name}</span>
+                          {item.portion && (
+                            <span className="text-[11px] text-gray-400 ml-1.5 font-normal">({item.portion})</span>
+                          )}
+                          {item.description && (
+                            <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Category */}
+                    <td className="py-3 px-4 hidden sm:table-cell text-gray-600">
+                      {getCategoryName(item.categoryId)}
+                    </td>
+
+                    {/* Price */}
+                    <td className="py-3 px-4 font-bold text-gray-900">
+                      ₹{item.price}
+                    </td>
+
+                    {/* Stock Toggle */}
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onToggleStock(item.id, item.isAvailable)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                          item.isAvailable
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+                        }`}
+                        title={item.isAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${item.isAvailable ? 'bg-emerald-600' : 'bg-gray-400'}`} />
+                        <span>{item.isAvailable ? 'In Stock' : 'Out of Stock'}</span>
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setDishToEdit(item);
+                            setIsAddDishModalOpen(true);
+                          }}
+                          className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                          title="Edit dish"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onDeleteDish(item.id)}
+                          className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete dish"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

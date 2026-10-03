@@ -135,7 +135,7 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
           <SoundBanner pendingCount={pendingOrders.length} />
 
           <button
@@ -196,13 +196,13 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
 
       {/* Table Floor Map */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
           <div>
             <h2 className="text-sm font-bold text-gray-900">Table Occupancy</h2>
             <p className="text-xs text-gray-500 mt-0.5">Real-time dining floor status</p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+          <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available
             </span>

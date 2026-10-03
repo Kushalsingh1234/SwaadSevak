@@ -116,10 +116,16 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
     { id: 'COMPLETED', label: 'At Table & Settled', count: completedOrders.length, items: completedOrders, dotColor: 'bg-gray-400' },
   ];
 
+  const [mobileColumnView, setMobileColumnView] = useState<string>('ALL');
+
+  const visibleColumnsOnMobile = (colId: string) => {
+    return mobileColumnView === 'ALL' || mobileColumnView === colId;
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-3 flex-1 min-h-0">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-xs">
+      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
         <div>
           <h1 className="text-lg font-bold text-gray-900 tracking-tight">
             Orders
@@ -129,15 +135,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <SoundBanner pendingCount={pendingOrders.length} />
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-xs">
+      <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
         {/* Source Filter Tabs */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           {[
             { id: 'ALL', label: 'All Orders' },
             { id: 'DINE_IN', label: 'Dine-In' },
@@ -147,7 +153,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             <button
               key={tab.id}
               onClick={() => setFilterSource(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                 filterSource === tab.id
                   ? 'bg-gray-900 text-white font-semibold'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -171,12 +177,50 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         </div>
       </div>
 
-      {/* 4-Column Restaurant Order Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+      {/* Mobile Column Stage Selector (Shown on mobile devices for fast switching) */}
+      <div className="shrink-0 flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+        <button
+          onClick={() => setMobileColumnView('ALL')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+            mobileColumnView === 'ALL'
+              ? 'bg-gray-900 text-white font-semibold shadow-xs'
+              : 'bg-white border border-gray-200 text-gray-700'
+          }`}
+        >
+          All Stages
+        </button>
         {columns.map(col => (
-          <div key={col.id} className="bg-gray-100/70 rounded-xl p-3 border border-gray-200/80 min-h-[500px] flex flex-col">
-            {/* Column Header */}
-            <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-200">
+          <button
+            key={col.id}
+            onClick={() => setMobileColumnView(col.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-colors ${
+              mobileColumnView === col.id
+                ? 'bg-gray-900 text-white font-semibold shadow-xs'
+                : 'bg-white border border-gray-200 text-gray-700'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
+            <span>{col.label}</span>
+            {col.count > 0 && (
+              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                mobileColumnView === col.id ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-800'
+              }`}>
+                {col.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* 4-Column Restaurant Order Board */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-stretch pb-1">
+        {columns.map(col => (
+          <div
+            key={col.id}
+            className={`${visibleColumnsOnMobile(col.id) ? 'flex' : 'hidden md:flex'} bg-gray-100/70 rounded-xl p-3 border border-gray-200/80 flex-col h-full min-h-0 overflow-hidden`}
+          >
+            {/* Column Header (Pinned) */}
+            <div className="shrink-0 flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
                 <span className="text-xs font-bold text-gray-900 uppercase tracking-wide">
@@ -188,8 +232,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               </span>
             </div>
 
-            {/* Orders Stack */}
-            <div className="space-y-3 flex-1 overflow-y-auto">
+            {/* Orders Stack (Scrolls internally) */}
+            <div className="space-y-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
               {col.items.length === 0 ? (
                 <div className="py-12 text-center text-xs text-gray-400">
                   No orders
@@ -290,13 +334,13 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                       )}
 
                       {/* Ticket Footer & Actions */}
-                      <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                      <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap">
                         <div>
                           <span className="text-[11px] text-gray-400 block">Total</span>
                           <span className="text-sm font-bold text-gray-900">₹{order.total?.toFixed(0)}</span>
                         </div>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {/* Pending Actions */}
                           {order.status === 'PENDING' && (
                             <>

@@ -78,7 +78,7 @@ export const PrinterSettingsPage: React.FC<PrinterSettingsPageProps> = ({
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Thermal Paper Roll Width
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setPaperWidth('80mm')}
@@ -163,7 +163,7 @@ export const PrinterSettingsPage: React.FC<PrinterSettingsPageProps> = ({
         )}
 
         {/* Auto Print KOT Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-200">
+        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-200 gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-900 block">
               Auto-Trigger Print Dialog on Order Acceptance
@@ -176,12 +176,12 @@ export const PrinterSettingsPage: React.FC<PrinterSettingsPageProps> = ({
             type="checkbox"
             checked={autoPrintKot}
             onChange={(e) => setAutoPrintKot(e.target.checked)}
-            className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500 cursor-pointer"
+            className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500 cursor-pointer shrink-0"
           />
         </div>
 
         {/* Actions */}
-        <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
+        <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={handleTestPrint}

@@ -170,7 +170,7 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {tables.length > 0 && (
             <button
               onClick={handleDownloadAllZip}
@@ -202,25 +202,25 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
 
       {/* Single Add Table Inline Form */}
       {isAddingSingle && (
-        <form onSubmit={handleAddTable} className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
+        <form onSubmit={handleAddTable} className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center gap-2 sm:gap-3">
           <input
             type="text"
             autoFocus
             placeholder="e.g. Table 05 or Balcony 01"
             value={singleTableNumber}
             onChange={(e) => setSingleTableNumber(e.target.value)}
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-hidden focus:border-orange-500"
+            className="flex-1 min-w-[160px] px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-hidden focus:border-orange-500"
           />
           <button
             type="submit"
-            className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold"
+            className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold shrink-0"
           >
             Create Table
           </button>
           <button
             type="button"
             onClick={() => setIsAddingSingle(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -229,7 +229,7 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
 
       {/* Bulk Add Inline Form */}
       {isBulkAdding && (
-        <form onSubmit={handleBulkAdd} className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
+        <form onSubmit={handleBulkAdd} className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center gap-2 sm:gap-3">
           <label className="text-xs text-gray-600 font-medium">How many tables to add?</label>
           <input
             type="number"
@@ -241,14 +241,14 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
           />
           <button
             type="submit"
-            className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold"
+            className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold shrink-0"
           >
             Generate {bulkCount} Tables
           </button>
           <button
             type="button"
             onClick={() => setIsBulkAdding(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -261,7 +261,7 @@ export const TablesManagementPage: React.FC<TablesManagementPageProps> = ({
           No tables created yet. Click <b className="text-gray-700">+ Add Table</b> or Bulk Add to generate QR codes.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {tables.map((table) => (
             <TableQrCard
               key={table.id}

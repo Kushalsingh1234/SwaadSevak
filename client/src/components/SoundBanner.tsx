@@ -24,9 +24,9 @@ export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {pendingCount > 0 && (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold shrink-0">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           {pendingCount} Pending {pendingCount === 1 ? 'Order' : 'Orders'}
         </span>
@@ -35,7 +35,7 @@ export const SoundBanner: React.FC<SoundBannerProps> = ({ pendingCount }) => {
       <button
         onClick={handleToggleAudio}
         type="button"
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors shrink-0 ${
           audioEnabled
             ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Printer, Check, Copy } from 'lucide-react';
 import { Order, Restaurant, PrinterConfig } from '../types';
+import { Logo } from './Logo';
 
 interface KotModalProps {
   order: Order | null;
@@ -106,8 +107,11 @@ export const KotModal: React.FC<KotModalProps> = ({
           <div
             id="thermal-print-area"
             style={{ width: paperWidth === '58mm' ? '240px' : '320px' }}
-            className="bg-white p-5 rounded-lg shadow-xs border border-gray-300 font-mono text-xs text-gray-800 transition-all select-all"
+            className="bg-white p-5 rounded-lg shadow-xs border border-gray-300 font-mono text-xs text-gray-800 transition-all select-all flex flex-col items-center"
           >
+            <div className="mb-2">
+              <Logo variant="mark" theme="mono-black" size={28} />
+            </div>
             <div className="text-center font-bold text-sm tracking-wider uppercase mb-1">
               {restaurant?.name || 'Swaad Sevak'}
             </div>

@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swaad Sevak — Logo & Brand Mark Identity System (4 Concepts)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0E0A07;
+      --surface: #1B130D;
+      --surface-card: #251B13;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --orange: #FF5E0E;
+      --orange-hover: #E64E00;
+      --orange-soft: #FFF3EB;
+      --ink: #0B1020;
+      --ink-soft: #1E293B;
+      --cream: #FFF7ED;
+      --latte: #E8D8C8;
+      --muted: #A39082;
+      --success: #10B981;
+      --card-radius: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      padding: 40px 24px 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 94, 14, 0.12);
+      border: 1px solid rgba(255, 94, 14, 0.3);
+      color: var(--orange);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #FFFFFF;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--latte);
+      margin-top: 8px;
+      max-width: 700px;
+    }
+
+    .palette-pill-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--latte);
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Recommendation Banner */
+    .recommendation-banner {
+      background: linear-gradient(135deg, rgba(255, 94, 14, 0.15) 0%, rgba(37, 27, 19, 0.9) 100%);
+      border: 1px solid rgba(255, 94, 14, 0.35);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .rec-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .rec-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--orange);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .rec-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .rec-desc {
+      font-size: 13px;
+      color: var(--latte);
+      margin-top: 2px;
+    }
+
+    .rec-badge {
+      background: #10B981;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Grid of Concepts */
+    .concepts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(620px, 1fr));
+      gap: 40px;
+    }
+
+    @media (max-width: 700px) {
+      .concepts-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Concept Card */
+    .concept-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 32px;
+      display: flex;
+      flex-col: column;
+      flex-direction: column;
+      gap: 28px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .concept-card.recommended {
+      border: 2px solid var(--orange);
+      box-shadow: 0 12px 40px -10px rgba(255, 94, 14, 0.25);
+    }
+
+    .concept-card.recommended::before {
+      content: "RECOMMENDED CONCEPT";
+      position: absolute;
+      top: -12px;
+      right: 28px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      padding: 3px 12px;
+      border-radius: 999px;
+    }
+
+    .concept-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+    }
+
+    .concept-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .concept-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 2px;
+      letter-spacing: -0.02em;
+    }
+
+    .concept-tagline {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .concept-rationale {
+      font-size: 13px;
+      color: var(--latte);
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--orange);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Visual Showcase Sections */
+    .showcase-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .showcase-row { grid-template-columns: 1fr; }
+    }
+
+    .preview-box {
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      position: relative;
+      border: 1px solid var(--border);
+    }
+
+    .preview-box.light {
+      background: #FFFFFF;
+      color: #0B1020;
+    }
+
+    .preview-box.dark-ink {
+      background: #0B1020;
+      color: #FFFFFF;
+    }
+
+    .preview-box.dark-brown {
+      background: #1B120C;
+      color: #FFFFFF;
+    }
+
+    .preview-box.thermal {
+      background: #F4F1EA;
+      color: #111111;
+      border-style: dashed;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .preview-label {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.55;
+    }
+
+    /* Scales Row */
+    .scale-row {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .scale-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scale-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .icon-holder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Mockups Grid */
+    .mockups-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .mockup-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .mockup-header {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Mockup: Navbar */
+    .nav-mock {
+      background: #140D08;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      font-size: 10px;
+      color: var(--latte);
+    }
+
+    .nav-cta {
+      background: var(--orange);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* Mockup: Browser Tab */
+    .tab-mock {
+      background: #202124;
+      border-radius: 8px 8px 0 0;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #E8EAED;
+      border-top: 1px solid #3c4043;
+    }
+
+    /* Mockup: Phone Home Screen */
+    .phone-mock {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-icon-squircle {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #160E08;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .app-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .app-sub {
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    /* Mockup: Thermal Receipt */
+    .bill-mock {
+      background: #FAFAFA;
+      color: #000;
+      border: 1px dashed #CCC;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      line-height: 1.3;
+    }
+
+    /* Evaluation Pros & Cons */
+    .eval-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .eval-col h5 {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .eval-col.strengths h5 { color: #10B981; }
+    .eval-col.weaknesses h5 { color: #F59E0B; }
+
+    .eval-list {
+      list-style: none;
+      font-size: 11px;
+      color: var(--latte);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .eval-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    /* Footer Action */
+    .selection-footer {
+      margin-top: 60px;
+      text-align: center;
+      padding: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+    }
+
+    .selection-footer h3 {
+      font-size: 24px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .selection-footer p {
+      font-size: 14px;
+      color: var(--latte);
+      margin-top: 8px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* SVG Utilities */
+    .mark-svg {
+      display: block;
+      overflow: visible;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div>
+        <div class="header-badge">Creative Direction • Brand Identity</div>
+        <h1>Swaad Sevak Brand Mark Concepts</h1>
+        <p class="subtitle">
+          Four distinct logo systems crafted for India's modern restaurant operating system.
+          Engineered for 16px favicon clarity, single-color thermal receipt printing, and high-impact SaaS presence.
+        </p>
+      </div>
+
+      <div class="palette-pill-group">
+        <div class="color-chip">
+          <div class="color-dot" style="background: #FF5E0E;"></div>
+          <span>Swaad Saffron: #FF5E0E</span>
+        </div>
+        <div class="color-chip">
+          <div class="color-dot" style="background: #0B1020;"></div>
+          <span>Deep Slate: #0B1020</span>
+        </div>
+        <div class="color-chip">
+          <div class="color-dot" style="background: #1B120C;"></div>
+          <span>Roasted Teak: #1B120C</span>
+        </div>
+        <div class="color-chip">
+          <div class="color-dot" style="background: #FFF7ED;"></div>
+          <span>Warm Ivory: #FFF7ED</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Selected System Banner -->
+    <div class="recommendation-banner" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(37, 27, 19, 0.9) 100%); border-color: rgba(16, 185, 129, 0.4);">
+      <div class="rec-content">
+        <div class="rec-icon" style="background: #10B981;">✓</div>
+        <div>
+          <div class="rec-title">Selected Production System: The Modern Soup Bowl & Dual Steam Ribbon</div>
+          <div class="rec-desc">
+            Universal culinary hospitality symbol for Indian cafés, restaurants, cloud kitchens & bakeries. Fully crafted in production SVG and integrated across navbar, sidebar, login, invoices, and favicon.
+          </div>
+        </div>
+      </div>
+      <div class="rec-badge" style="background: #10B981;">SELECTED & ACTIVE</div>
+    </div>
+
+    <!-- 4 Concepts Showcase Grid -->
+    <div class="concepts-grid">
+
+      <!-- ========================================================
+           CONCEPT 1: The "Taste & Service" Monogram S (Recommended)
+           ======================================================== -->
+      <div class="concept-card recommended" id="concept-1">
+        <div class="concept-header">
+          <div>
+            <div class="concept-num">Concept 01 • Monogram With Meaning</div>
+            <div class="concept-name">The "Taste & Service" Monogram S</div>
+            <div class="concept-tagline">Dual fluid ribbons forming an iconic S — rising aroma (Swaad) meeting a serving katori bowl (Sevak).</div>
+          </div>
+        </div>
+
+        <div class="concept-rationale">
+          <strong>Design Rationale:</strong> Built from two interlocking, mathematically harmonized continuous ribbons. The top curl evokes rising culinary steam and rich flavor (<em>Swaad</em>), while the bottom sweep forms the cradling curve of a hospitality bowl or waiter's serving hand (<em>Sevak</em>). An angled 45° ticket notch in negative space signals live order flow. Reads instantly as a confident "S" at tiny favicon sizes.
+        </div>
+
+        <!-- Hero Marks: Full Color, Mono Black, Mono White -->
+        <div class="showcase-row">
+          <!-- Light Hero Lockup -->
+          <div class="preview-box light">
+            <span class="preview-label">Full Color • Light Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <!-- Concept 1 SVG Symbol -->
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <!-- Outer glow-ring / background circle for container -->
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.1" />
+                <!-- Top Ribbon: Swaad Aroma Swirl -->
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- Bottom Ribbon: Sevak Serving Bowl Arc -->
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#0B1020" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- Digital Pulse Node (Tech Sync) -->
+                <circle cx="58" cy="12" r="5" fill="#FF5E0E" />
+              </svg>
+              <!-- Vector Typography Wordmark -->
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #0B1020; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dark Brown Hero Lockup -->
+          <div class="preview-box dark-brown">
+            <span class="preview-label">Full Color • Dark App Sidebar / Navbar</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.18" />
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF7ED" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="58" cy="12" r="5" fill="#FF5E0E" />
+              </svg>
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #FFFFFF; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #A39082; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale Stress Test -->
+        <div class="scale-row">
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 16px; height: 16px;">
+              <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="18" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="18" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">16px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 24px; height: 24px;">
+              <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="16" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="16" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">24px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 32px; height: 32px;">
+              <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="14" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="14" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">32px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 48px; height: 48px;">
+              <svg width="48" height="48" viewBox="0 0 100 100" fill="none">
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="14" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="14" stroke-linecap="round" />
+                <circle cx="58" cy="12" r="5" fill="#FF5E0E" />
+              </svg>
+            </div>
+            <span class="scale-label">48px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 64px; height: 64px;">
+              <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" rx="20" fill="#FF5E0E" fill-opacity="0.15" />
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="14" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="14" stroke-linecap="round" />
+                <circle cx="58" cy="12" r="5" fill="#FF5E0E" />
+              </svg>
+            </div>
+            <span class="scale-label">64px</span>
+          </div>
+        </div>
+
+        <!-- Real-world Context Mockups -->
+        <div class="mockups-grid">
+          <!-- Navbar Mock -->
+          <div class="mockup-card">
+            <div class="mockup-header">App Sidebar / Header</div>
+            <div class="nav-mock">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+                  <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65" stroke="#FF5E0E" stroke-width="16" stroke-linecap="round" />
+                  <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35" stroke="#FFF" stroke-width="16" stroke-linecap="round" />
+                </svg>
+                <span style="font-size: 11px; font-weight: 800; color: #fff;">SwaadSevak</span>
+              </div>
+              <div class="nav-links">
+                <span>Orders</span>
+                <span>Menu</span>
+                <span>Billing</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Favicon Tab Mock -->
+          <div class="mockup-card">
+            <div class="mockup-header">Browser Tab (16px favicon)</div>
+            <div class="tab-mock">
+              <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
+                <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65" stroke="#FF5E0E" stroke-width="20" stroke-linecap="round" />
+                <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35" stroke="#FFF" stroke-width="20" stroke-linecap="round" />
+              </svg>
+              <span>Live Orders | Swaad Sevak</span>
+            </div>
+          </div>
+
+          <!-- Mobile App Squircle Mock -->
+          <div class="mockup-card">
+            <div class="mockup-header">Phone Home Screen</div>
+            <div class="phone-mock">
+              <div class="app-icon-squircle">
+                <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+                  <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#FF5E0E" stroke-width="16" stroke-linecap="round" />
+                  <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#FFF" stroke-width="16" stroke-linecap="round" />
+                  <circle cx="58" cy="12" r="5" fill="#FF5E0E" />
+                </svg>
+              </div>
+              <div>
+                <div class="app-label">Swaad Sevak</div>
+                <div class="app-sub">Manager POS</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thermal Receipt 80mm Print -->
+          <div class="mockup-card">
+            <div class="mockup-header">80mm Thermal Receipt (Mono Black)</div>
+            <div class="bill-mock">
+              <div style="display: flex; justify-content: center; margin-bottom: 4px;">
+                <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                  <path d="M 32 36 C 32 21.6 43.6 12 58 12 C 72.4 12 84 22.8 84 36 C 84 46.5 76 54.5 64 57 C 56 58.5 48 61 42 65 C 38 67.5 35 71 35 76" stroke="#000" stroke-width="16" stroke-linecap="round" />
+                  <path d="M 68 64 C 68 78.4 56.4 88 42 88 C 27.6 88 16 77.2 16 64 C 16 53.5 24 45.5 36 43 C 44 41.5 52 39 58 35 C 62 32.5 65 29 65 24" stroke="#000" stroke-width="16" stroke-linecap="round" />
+                </svg>
+              </div>
+              <strong>*** SWAAD SEVAK POS ***</strong><br>
+              TABLE 04 • KOT #108<br>
+              2x Masala Chai  ₹90
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation Pros & Cons -->
+        <div class="eval-box">
+          <div class="eval-col strengths">
+            <h5>Key Strengths</h5>
+            <ul class="eval-list">
+              <li>✓ Exceptional optical balance at 16px favicon and app icon.</li>
+              <li>✓ Fluid S silhouette carries distinct personality; no generic letter look.</li>
+              <li>✓ 1-color black thermal print is crisp with zero loss of detail.</li>
+            </ul>
+          </div>
+          <div class="eval-col weaknesses">
+            <h5>Honest Tradeoff</h5>
+            <ul class="eval-list">
+              <li>⚠ As an abstract monogram, the dual meaning (steam + bowl) is conceptual rather than a literal illustration.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================================
+           CONCEPT 2: The Kulhad & Dual Steam Ribbon (Steam / Chai)
+           ======================================================== -->
+      <div class="concept-card" id="concept-2">
+        <div class="concept-header">
+          <div>
+            <div class="concept-num">Concept 02 • Steam / Chai-Cup Mark</div>
+            <div class="concept-name">The Geometric Kulhad & Steam</div>
+            <div class="concept-tagline">Tapered terracotta kulhad silhouette with rising dual S-curve steam trails.</div>
+          </div>
+        </div>
+
+        <div class="concept-rationale">
+          <strong>Design Rationale:</strong> Anchored in India's quintessential chai and hospitality vessel: the terracotta <em>kulhad</em>. Rebuilt with minimal geometric lines, the cup has a tapered body, while two rising aromatic steam ribbons echo the soft curvature of the letter "S". Instantly communicates café, street food, and warm culinary service.
+        </div>
+
+        <!-- Hero Marks -->
+        <div class="showcase-row">
+          <div class="preview-box light">
+            <span class="preview-label">Full Color • Light Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.1" />
+                <!-- Kulhad Cup Body -->
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#0B1020" />
+                <!-- Cup Rim -->
+                <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                <!-- Left Steam Ribbon -->
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+                <!-- Right Steam Ribbon -->
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+              </svg>
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #0B1020; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-box dark-brown">
+            <span class="preview-label">Full Color • Dark Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.18" />
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FFF7ED" />
+                <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+              </svg>
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #FFFFFF; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #A39082; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale Stress Test -->
+        <div class="scale-row">
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 16px; height: 16px;">
+              <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FF5E0E" />
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="12" stroke-linecap="round" />
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="12" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">16px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 24px; height: 24px;">
+              <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FF5E0E" />
+                <rect x="25" y="44" width="50" height="8" rx="4" fill="#FFF" />
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="8" stroke-linecap="round" />
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="8" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">24px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 32px; height: 32px;">
+              <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FFF" />
+                <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="7" stroke-linecap="round" />
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="7" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">32px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 64px; height: 64px;">
+              <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" rx="20" fill="#FF5E0E" fill-opacity="0.15" />
+                <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FFF7ED" />
+                <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+                <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">64px</span>
+          </div>
+        </div>
+
+        <!-- Real-world Context Mockups -->
+        <div class="mockups-grid">
+          <div class="mockup-card">
+            <div class="mockup-header">App Sidebar / Header</div>
+            <div class="nav-mock">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+                  <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FFF" />
+                  <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                </svg>
+                <span style="font-size: 11px; font-weight: 800; color: #fff;">SwaadSevak</span>
+              </div>
+              <div class="nav-links">
+                <span>Orders</span>
+                <span>Menu</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Browser Tab (16px favicon)</div>
+            <div class="tab-mock">
+              <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
+                <path d="M 28 50 L 72 50 L 64 88 Z" fill="#FF5E0E" />
+              </svg>
+              <span>Live Orders | Swaad Sevak</span>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Phone Home Screen</div>
+            <div class="phone-mock">
+              <div class="app-icon-squircle">
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+                  <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#FFF" />
+                  <rect x="25" y="44" width="50" height="8" rx="4" fill="#FF5E0E" />
+                  <path d="M 40 38 C 36 30 46 22 42 12" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+                  <path d="M 58 38 C 54 28 64 20 60 10" stroke="#FF5E0E" stroke-width="6" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div>
+                <div class="app-label">Swaad Sevak</div>
+                <div class="app-sub">Manager POS</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">80mm Thermal Receipt (Mono Black)</div>
+            <div class="bill-mock">
+              <div style="display: flex; justify-content: center; margin-bottom: 4px;">
+                <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+                  <path d="M 28 50 L 72 50 L 64 88 C 64 91 58 92 50 92 C 42 92 36 91 36 88 Z" fill="#000" />
+                  <rect x="25" y="44" width="50" height="6" rx="3" fill="#000" />
+                </svg>
+              </div>
+              <strong>*** SWAAD SEVAK POS ***</strong><br>
+              CHAI & CHATTER • TBL 02
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation Pros & Cons -->
+        <div class="eval-box">
+          <div class="eval-col strengths">
+            <h5>Key Strengths</h5>
+            <ul class="eval-list">
+              <li>✓ Instantly conveys warm hospitality, chai, and food culture.</li>
+              <li>✓ Deeply intuitive for café and tea house owners.</li>
+            </ul>
+          </div>
+          <div class="eval-col weaknesses">
+            <h5>Honest Tradeoff</h5>
+            <ul class="eval-list">
+              <li>⚠ Lean towards cafés and beverage formats; may feel slightly less fitting for dark kitchens or fine-dining.</li>
+              <li>⚠ Steam lines become very thin when scaled down to 16px favicon.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================================
+           CONCEPT 3: The Cloche & Diya Service Bell (Service + Tech)
+           ======================================================== -->
+      <div class="concept-card" id="concept-3">
+        <div class="concept-header">
+          <div>
+            <div class="concept-num">Concept 03 • Service + Tech Mark</div>
+            <div class="concept-name">The Diya Flame & Service Bell</div>
+            <div class="concept-tagline">Serving cloche dome crowned by an auspicious diya flame and digital sync dot.</div>
+          </div>
+        </div>
+
+        <div class="concept-rationale">
+          <strong>Design Rationale:</strong> Merges the universal symbol of restaurant hospitality (the service cloche / banquet bell) with the traditional Indian diya flame. A subtle circular beacon on the upper rim denotes live cloud connectivity (real-time KDS orders, table QR alerts). Clean geometric arcs make it bold and architectural.
+        </div>
+
+        <!-- Hero Marks -->
+        <div class="showcase-row">
+          <div class="preview-box light">
+            <span class="preview-label">Full Color • Light Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.1" />
+                <!-- Serving Platter Base -->
+                <rect x="18" y="74" width="64" height="8" rx="4" fill="#0B1020" />
+                <!-- Cloche Dome -->
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#0B1020" />
+                <!-- Diya Flame Crest -->
+                <path d="M 50 14 C 55 22 58 26 58 30 C 58 34.4 54.4 38 50 38 C 45.6 38 42 34.4 42 30 C 42 26 45 22 50 14 Z" fill="#FF5E0E" />
+                <!-- Active Sync Dot -->
+                <circle cx="72" cy="42" r="5" fill="#FF5E0E" />
+              </svg>
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #0B1020; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-box dark-brown">
+            <span class="preview-label">Full Color • Dark Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" fill-opacity="0.18" />
+                <rect x="18" y="74" width="64" height="8" rx="4" fill="#FFF7ED" />
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF7ED" />
+                <path d="M 50 14 C 55 22 58 26 58 30 C 58 34.4 54.4 38 50 38 C 45.6 38 42 34.4 42 30 C 42 26 45 22 50 14 Z" fill="#FF5E0E" />
+                <circle cx="72" cy="42" r="5" fill="#FF5E0E" />
+              </svg>
+              <div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #FFFFFF; line-height: 1;">
+                  Swaad<span style="color: #FF5E0E;">Sevak</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #A39082; margin-top: 3px;">
+                  Restaurant OS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale Stress Test -->
+        <div class="scale-row">
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 16px; height: 16px;">
+              <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FF5E0E" />
+                <rect x="18" y="74" width="64" height="12" rx="6" fill="#FFF" />
+              </svg>
+            </div>
+            <span class="scale-label">16px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 24px; height: 24px;">
+              <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF" />
+                <rect x="18" y="74" width="64" height="10" rx="5" fill="#FF5E0E" />
+                <path d="M 50 14 C 55 22 58 26 58 30 Z" fill="#FF5E0E" />
+              </svg>
+            </div>
+            <span class="scale-label">24px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 32px; height: 32px;">
+              <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                <rect x="18" y="74" width="64" height="8" rx="4" fill="#FFF" />
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF" />
+                <path d="M 50 14 C 55 22 58 26 58 30 C 58 34.4 54.4 38 50 38 C 45.6 38 42 34.4 42 30 C 42 26 45 22 50 14 Z" fill="#FF5E0E" />
+              </svg>
+            </div>
+            <span class="scale-label">32px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 64px; height: 64px;">
+              <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" rx="20" fill="#FF5E0E" fill-opacity="0.15" />
+                <rect x="18" y="74" width="64" height="8" rx="4" fill="#FFF7ED" />
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF7ED" />
+                <path d="M 50 14 C 55 22 58 26 58 30 C 58 34.4 54.4 38 50 38 C 45.6 38 42 34.4 42 30 C 42 26 45 22 50 14 Z" fill="#FF5E0E" />
+                <circle cx="72" cy="42" r="5" fill="#FF5E0E" />
+              </svg>
+            </div>
+            <span class="scale-label">64px</span>
+          </div>
+        </div>
+
+        <!-- Real-world Context Mockups -->
+        <div class="mockups-grid">
+          <div class="mockup-card">
+            <div class="mockup-header">App Sidebar / Header</div>
+            <div class="nav-mock">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+                  <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF" />
+                  <rect x="18" y="74" width="64" height="8" rx="4" fill="#FF5E0E" />
+                </svg>
+                <span style="font-size: 11px; font-weight: 800; color: #fff;">SwaadSevak</span>
+              </div>
+              <div class="nav-links">
+                <span>Orders</span>
+                <span>Billing</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Browser Tab (16px favicon)</div>
+            <div class="tab-mock">
+              <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
+                <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FF5E0E" />
+              </svg>
+              <span>Live Orders | Swaad Sevak</span>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Phone Home Screen</div>
+            <div class="phone-mock">
+              <div class="app-icon-squircle">
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+                  <rect x="18" y="74" width="64" height="8" rx="4" fill="#FFF" />
+                  <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#FFF" />
+                  <path d="M 50 14 C 55 22 58 26 58 30 C 58 34.4 54.4 38 50 38 C 45.6 38 42 34.4 42 30 C 42 26 45 22 50 14 Z" fill="#FF5E0E" />
+                </svg>
+              </div>
+              <div>
+                <div class="app-label">Swaad Sevak</div>
+                <div class="app-sub">Manager POS</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">80mm Thermal Receipt (Mono Black)</div>
+            <div class="bill-mock">
+              <div style="display: flex; justify-content: center; margin-bottom: 4px;">
+                <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+                  <rect x="18" y="74" width="64" height="8" rx="4" fill="#000" />
+                  <path d="M 24 70 C 24 46 36 36 50 36 C 64 36 76 46 76 70 Z" fill="#000" />
+                </svg>
+              </div>
+              <strong>*** SWAAD SEVAK POS ***</strong><br>
+              ROYAL DINE • BILL #302
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation Pros & Cons -->
+        <div class="eval-box">
+          <div class="eval-col strengths">
+            <h5>Key Strengths</h5>
+            <ul class="eval-list">
+              <li>✓ Strong "Service / Sevak" symbolism; feels dignified and professional.</li>
+              <li>✓ The diya flame adds an authentic Indian hospitality touch.</li>
+            </ul>
+          </div>
+          <div class="eval-col weaknesses">
+            <h5>Honest Tradeoff</h5>
+            <ul class="eval-list">
+              <li>⚠ Cloche imagery can lean traditional/fine dining; slightly less synonymous with modern cloud kitchens or QSR counters.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================================
+           CONCEPT 4: The Signature "Kadai & Flow" Typography (Wordmark)
+           ======================================================== -->
+      <div class="concept-card" id="concept-4">
+        <div class="concept-header">
+          <div>
+            <div class="concept-num">Concept 04 • Wordmark-Led Identity</div>
+            <div class="concept-name">The Signature "Kadai" Wordmark & Seal</div>
+            <div class="concept-tagline">Custom sculpted wordmark paired with an interlocking geometric seal stamp.</div>
+          </div>
+        </div>
+
+        <div class="concept-rationale">
+          <strong>Design Rationale:</strong> Puts the strong phonetic identity of <em>Swaad Sevak</em> at center stage. The initial "S" is sculpted with a continuous ladle/serving arc, while the twin "aa" characters are joined by an unbroken hospitality ligature. Paired with a geometric rotated diamond stamp with interlocking curves for compact icon applications.
+        </div>
+
+        <!-- Hero Marks -->
+        <div class="showcase-row">
+          <div class="preview-box light">
+            <span class="preview-label">Full Color • Light Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <!-- Concept 4 Seal Stamp -->
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <!-- Rotated Square Seal -->
+                <rect x="15" y="15" width="70" height="70" rx="18" fill="#FF5E0E" />
+                <!-- Inner Interlocking Monogram (SS) -->
+                <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60 C 34 62 32 66 32 70" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+                <path d="M 62 68 C 52 68 46 62 46 54 C 46 46 56 44 62 40 C 66 38 68 34 68 30" stroke="#0B1020" stroke-width="8" stroke-linecap="round" />
+              </svg>
+              <div>
+                <div style="font-size: 21px; font-weight: 900; letter-spacing: -0.04em; color: #0B1020; line-height: 1;">
+                  SWAAD<span style="color: #FF5E0E;">SEVAK</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B; margin-top: 3px;">
+                  Food Business OS
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-box dark-brown">
+            <span class="preview-label">Full Color • Dark Canvas</span>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="mark-svg">
+                <rect x="15" y="15" width="70" height="70" rx="18" fill="#FF5E0E" />
+                <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60 C 34 62 32 66 32 70" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+                <path d="M 62 68 C 52 68 46 62 46 54 C 46 46 56 44 62 40 C 66 38 68 34 68 30" stroke="#1B120C" stroke-width="8" stroke-linecap="round" />
+              </svg>
+              <div>
+                <div style="font-size: 21px; font-weight: 900; letter-spacing: -0.04em; color: #FFFFFF; line-height: 1;">
+                  SWAAD<span style="color: #FF5E0E;">SEVAK</span>
+                </div>
+                <div style="font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #A39082; margin-top: 3px;">
+                  Food Business OS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale Stress Test -->
+        <div class="scale-row">
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 16px; height: 16px;">
+              <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                <rect x="10" y="10" width="80" height="80" rx="20" fill="#FF5E0E" />
+                <path d="M 35 34 C 45 34 50 40 50 48 C 50 56 40 60 35 68" stroke="#FFF" stroke-width="14" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">16px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 24px; height: 24px;">
+              <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                <rect x="12" y="12" width="76" height="76" rx="20" fill="#FF5E0E" />
+                <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60 C 34 62 32 66 32 70" stroke="#FFF" stroke-width="10" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">24px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 32px; height: 32px;">
+              <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                <rect x="15" y="15" width="70" height="70" rx="18" fill="#FF5E0E" />
+                <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60 C 34 62 32 66 32 70" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">32px</span>
+          </div>
+
+          <div class="scale-item">
+            <div class="icon-holder" style="width: 64px; height: 64px;">
+              <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+                <rect x="10" y="10" width="80" height="80" rx="24" fill="#FF5E0E" />
+                <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60 C 34 62 32 66 32 70" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+                <path d="M 62 68 C 52 68 46 62 46 54 C 46 46 56 44 62 40 C 66 38 68 34 68 30" stroke="#1B120C" stroke-width="8" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="scale-label">64px</span>
+          </div>
+        </div>
+
+        <!-- Real-world Context Mockups -->
+        <div class="mockups-grid">
+          <div class="mockup-card">
+            <div class="mockup-header">App Sidebar / Header</div>
+            <div class="nav-mock">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+                  <rect x="15" y="15" width="70" height="70" rx="16" fill="#FF5E0E" />
+                </svg>
+                <span style="font-size: 11px; font-weight: 800; color: #fff;">SWAAD SEVAK</span>
+              </div>
+              <div class="nav-links">
+                <span>Orders</span>
+                <span>Billing</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Browser Tab (16px favicon)</div>
+            <div class="tab-mock">
+              <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" rx="24" fill="#FF5E0E" />
+              </svg>
+              <span>Live Orders | Swaad Sevak</span>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">Phone Home Screen</div>
+            <div class="phone-mock">
+              <div class="app-icon-squircle">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                  <rect x="15" y="15" width="70" height="70" rx="18" fill="#FF5E0E" />
+                  <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div>
+                <div class="app-label">Swaad Sevak</div>
+                <div class="app-sub">Manager POS</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-header">80mm Thermal Receipt (Mono Black)</div>
+            <div class="bill-mock">
+              <div style="display: flex; justify-content: center; margin-bottom: 4px;">
+                <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+                  <rect x="15" y="15" width="70" height="70" rx="12" fill="#000" />
+                  <path d="M 38 32 C 48 32 54 38 54 46 C 54 54 44 56 38 60" stroke="#FFF" stroke-width="8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <strong>*** SWAAD SEVAK POS ***</strong><br>
+              DIRECT DISPATCH • #104
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation Pros & Cons -->
+        <div class="eval-box">
+          <div class="eval-col strengths">
+            <h5>Key Strengths</h5>
+            <ul class="eval-list">
+              <li>✓ Immediate name recall from day one across Indian markets.</li>
+              <li>✓ The stamp seal gives an authoritative, certified SaaS seal feel.</li>
+            </ul>
+          </div>
+          <div class="eval-col weaknesses">
+            <h5>Honest Tradeoff</h5>
+            <ul class="eval-list">
+              <li>⚠ Less visual culinary metaphor than Concepts 1 & 2; symbol is more typographic than symbolic.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Selection Footer & Next Steps -->
+    <div class="selection-footer">
+      <h3>Ready for Your Feedback & Pick</h3>
+      <p>
+        Review all four live vector concepts above or inspect them at <code>http://localhost:5173/brand-sheet.html</code>.
+        Once you pick your preferred concept (or suggest adjustments), we will generate all final production SVGs, PNG asset sizes, favicon icons, social cards, BRAND.md guidelines, and integrate it into the app shell.
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>

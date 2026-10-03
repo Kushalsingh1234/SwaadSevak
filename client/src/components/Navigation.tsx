@@ -8,10 +8,7 @@ import {
   LogOut,
   Menu as MenuIcon,
   X,
-  Store,
-  ChevronLeft,
-  ChevronRight,
-  Radio
+  Store
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 
@@ -33,7 +30,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   pendingOrdersCount = 0,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
 
   // Grouped Navigation per brief: Operations vs Business
   const operationItems = [
@@ -85,65 +81,45 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <>
-      {/* Desktop Fixed Sidebar */}
-      <aside
-        className={`hidden lg:flex flex-col fixed top-0 bottom-0 left-0 bg-[#0B1020] text-slate-100 border-r border-white/[0.08] select-none justify-between z-30 transition-all duration-200 ${
-          collapsed ? 'w-20' : 'w-60'
-        }`}
-      >
+      {/* Desktop Fixed Sidebar - Permanently Open */}
+      <aside className="hidden lg:flex flex-col fixed top-0 bottom-0 left-0 w-60 bg-[#0B1020] text-slate-100 border-r border-white/[0.08] select-none justify-between z-30">
         {/* Top: Brand & Outlet Info */}
         <div className="p-4 border-b border-white/[0.08] shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-black text-sm tracking-tight shrink-0 shadow-sm shadow-brand-500/30">
-                S
-              </div>
-              {!collapsed && (
-                <div className="overflow-hidden">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-sm tracking-tight text-white leading-tight">
-                      Swaad Sevak
-                    </span>
-                    <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Live
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 truncate">
-                    Restaurant OS
-                  </p>
-                </div>
-              )}
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-black text-sm tracking-tight shrink-0 shadow-sm shadow-brand-500/30">
+              S
             </div>
-
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
-            >
-              {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-            </button>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-sm tracking-tight text-white leading-tight">
+                  Swaad Sevak
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Live
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 truncate">
+                Restaurant OS
+              </p>
+            </div>
           </div>
 
-          {!collapsed && (
-            <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between">
-              <div className="overflow-hidden pr-1">
-                <p className="text-xs font-semibold text-slate-200 truncate">{restaurant?.name || 'My Restaurant'}</p>
-                <p className="text-[10px] text-slate-400 truncate">{restaurant?.city || 'Dining Room'}</p>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="System Online" />
+          <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between">
+            <div className="overflow-hidden pr-1">
+              <p className="text-xs font-semibold text-slate-200 truncate">{restaurant?.name || 'My Restaurant'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{restaurant?.city || 'Dining Room'}</p>
             </div>
-          )}
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="System Online" />
+          </div>
         </div>
 
         {/* Grouped Navigation Links */}
         <div className="flex-1 p-3 space-y-5 overflow-y-auto no-scrollbar">
           {/* Operations Section */}
           <div>
-            {!collapsed && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Operations
-              </p>
-            )}
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Operations
+            </p>
             <nav className="space-y-1">
               {operationItems.map((item) => {
                 const Icon = item.icon;
@@ -152,8 +128,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <button
                     key={item.id}
                     onClick={() => setCurrentTab(item.id)}
-                    title={collapsed ? item.label : undefined}
-                    className={`w-full flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-lg text-xs font-medium transition-all group relative ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative ${
                       isActive
                         ? 'bg-brand-500/12 text-white font-semibold'
                         : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
@@ -168,17 +143,13 @@ export const Navigation: React.FC<NavigationProps> = ({
                       <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                         isActive ? 'text-brand-400' : 'text-slate-400 group-hover:text-slate-200'
                       }`} />
-                      {!collapsed && <span>{item.label}</span>}
+                      <span>{item.label}</span>
                     </div>
 
-                    {!collapsed && item.badge !== null && item.badge !== undefined && (
+                    {item.badge !== null && item.badge !== undefined && (
                       <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 animate-pulse">
                         {item.badge}
                       </span>
-                    )}
-
-                    {collapsed && item.badge !== null && item.badge !== undefined && (
-                      <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                     )}
                   </button>
                 );
@@ -188,11 +159,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           {/* Business Section */}
           <div>
-            {!collapsed && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Business
-              </p>
-            )}
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Business
+            </p>
             <nav className="space-y-1">
               {businessItems.map((item) => {
                 const Icon = item.icon;
@@ -201,8 +170,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <button
                     key={item.id}
                     onClick={() => setCurrentTab(item.id)}
-                    title={collapsed ? item.label : undefined}
-                    className={`w-full flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-lg text-xs font-medium transition-all group relative ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative ${
                       isActive
                         ? 'bg-brand-500/12 text-white font-semibold'
                         : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
@@ -216,7 +184,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                       <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                         isActive ? 'text-brand-400' : 'text-slate-400 group-hover:text-slate-200'
                       }`} />
-                      {!collapsed && <span>{item.label}</span>}
+                      <span>{item.label}</span>
                     </div>
                   </button>
                 );
@@ -227,20 +195,18 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Manager Footer: Pinned to bottom, static */}
         <div className="p-3 border-t border-white/[0.08] bg-[#070B16] shrink-0">
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-2`}>
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-xs font-semibold text-slate-200 truncate">{manager?.username || 'Shift Manager'}</p>
-                <p className="text-[10px] text-slate-400">Shift Active</p>
-              </div>
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="overflow-hidden">
+              <p className="text-xs font-semibold text-slate-200 truncate">{manager?.username || 'Shift Manager'}</p>
+              <p className="text-[10px] text-slate-400">Shift Active</p>
+            </div>
             <button
               onClick={onLogout}
               title="Sign Out"
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-red-400 hover:bg-white/[0.06] transition-colors shrink-0"
             >
               <LogOut className="w-3.5 h-3.5" />
-              {!collapsed && <span>Sign Out</span>}
+              <span>Sign Out</span>
             </button>
           </div>
         </div>

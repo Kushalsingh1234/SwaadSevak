@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Search,
-  Filter,
-  Sparkles,
   Edit2,
   Trash2,
-  CheckCircle,
-  XCircle,
-  Tag,
+  Upload,
   FolderPlus,
   Check,
-  AlertCircle
+  X
 } from 'lucide-react';
 import { MenuCategory, MenuItem } from '../types';
 import { VegIcon } from '../components/VegIcon';
@@ -50,15 +46,14 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
   const [newCatName, setNewCatName] = useState('');
   const [showAddCatInput, setShowAddCatInput] = useState(false);
 
-  // Always sync latest menu items on page load
   useEffect(() => {
     onRefreshMenu();
   }, []);
 
-  // Filter items
   const filteredItems = items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'ALL' || item.categoryId === selectedCategory;
     const matchesVeg = !filterVegOnly || item.isVeg;
     return matchesSearch && matchesCategory && matchesVeg;
@@ -72,264 +67,230 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
     setShowAddCatInput(false);
   };
 
+  const getCategoryName = (catId: string) => {
+    const found = categories.find(c => c.id === catId);
+    return found ? found.name : 'General';
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-card">
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-xs">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Menu & Live Inventory
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage your dishes, prices, and fast 1-click In-Stock ↔ Out-of-Stock toggles.
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+            Menu
+          </h1>
+          <p className="text-xs text-gray-500">
+            Manage your dishes and real-time inventory availability.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsAiModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 text-xs font-bold transition-all shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors shadow-xs"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Menu Importer</span>
+            <Upload className="w-3.5 h-3.5 text-gray-500" />
+            <span>Import PDF</span>
           </button>
           <button
             onClick={() => {
               setDishToEdit(null);
               setIsAddDishModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Dish</span>
+            <span>+ Add Dish</span>
           </button>
         </div>
       </div>
 
-      {/* Categories Bar & Quick Add Category */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-card space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-            Menu Categories ({categories.length})
-          </span>
+      {/* Categories & Search Filter Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-3 space-y-3">
+        {/* Categories Bar */}
+        <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setSelectedCategory('ALL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                selectedCategory === 'ALL'
+                  ? 'bg-gray-900 text-white font-semibold'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All Dishes ({items.length})
+            </button>
+
+            {categories.map((cat) => {
+              const count = items.filter(i => i.categoryId === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                    selectedCategory === cat.id
+                      ? 'bg-gray-900 text-white font-semibold'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {cat.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+
           {!showAddCatInput ? (
             <button
               onClick={() => setShowAddCatInput(true)}
-              className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+              className="text-xs font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1 shrink-0 ml-2"
             >
               <FolderPlus className="w-3.5 h-3.5" />
-              <span>+ Add Category</span>
+              <span>+ Category</span>
             </button>
           ) : (
-            <form onSubmit={handleCreateCategory} className="flex items-center gap-2">
+            <form onSubmit={handleCreateCategory} className="flex items-center gap-1.5 shrink-0">
               <input
                 type="text"
                 autoFocus
                 placeholder="Category name..."
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
-                className="px-3 py-1 rounded-lg border border-slate-300 text-xs outline-none focus:border-orange-500"
+                className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs focus:outline-hidden focus:border-orange-500"
               />
               <button
                 type="submit"
-                className="p-1 rounded-lg bg-orange-600 text-white text-xs hover:bg-orange-700"
+                className="p-1 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
               >
                 <Check className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddCatInput(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600"
               >
-                <XCircle className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </form>
           )}
         </div>
 
-        {/* Horizontal Category Chips */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          <button
-            onClick={() => setSelectedCategory('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
-              selectedCategory === 'ALL'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            All Items ({items.length})
-          </button>
-          {categories.map((cat) => {
-            const count = items.filter((i) => i.categoryId === cat.id).length;
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <div key={cat.id} className="relative group shrink-0">
-                <button
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    isSelected
-                      ? 'bg-orange-600 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat.name} ({count})
-                </button>
-              </div>
-            );
-          })}
+        {/* Search & Veg Filter */}
+        <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search dishes by name or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:bg-white focus:border-orange-500 transition-colors"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={filterVegOnly}
+              onChange={(e) => setFilterVegOnly(e.target.checked)}
+              className="rounded border-gray-300 text-emerald-600 focus:ring-0 w-3.5 h-3.5 cursor-pointer"
+            />
+            <span>Vegetarian only</span>
+          </label>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search dishes by name or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-white border border-slate-200 focus:border-orange-500 outline-none shadow-xs"
-          />
-        </div>
-
-        <button
-          onClick={() => setFilterVegOnly(!filterVegOnly)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-            filterVegOnly
-              ? 'bg-green-50 border-green-300 text-green-800'
-              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-          }`}
-        >
-          <VegIcon isVeg={true} size="sm" />
-          <span>Veg Only</span>
-        </button>
-      </div>
-
-      {/* Dishes Table / Fast Stock Toggle List (Section 31) */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+      {/* Dishes Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+        {filteredItems.length === 0 ? (
+          <div className="py-16 text-center text-xs text-gray-400">
+            No dishes found. Click <b className="text-gray-700">+ Add Dish</b> or import a menu to get started.
+          </div>
+        ) : (
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 uppercase tracking-wider text-[10px] font-semibold">
-                <th className="py-3 px-4">Diet</th>
-                <th className="py-3 px-4">Dish Name</th>
-                <th className="py-3 px-4">Category</th>
+              <tr className="border-b border-gray-200 bg-gray-50/70 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4">Dish</th>
+                <th className="py-3 px-4 hidden sm:table-cell">Category</th>
                 <th className="py-3 px-4">Price</th>
-                <th className="py-3 px-4">Portion</th>
-                <th className="py-3 px-4">Live Availability</th>
+                <th className="py-3 px-4">Availability</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No dishes found matching your search.
+            <tbody className="divide-y divide-gray-100">
+              {filteredItems.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50/60 transition-colors">
+                  {/* Dish Info */}
+                  <td className="py-3 px-4">
+                    <div className="flex items-start gap-2.5">
+                      <div className="mt-0.5 shrink-0">
+                        <VegIcon isVeg={item.isVeg} size="sm" />
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-900 text-sm">{item.name}</span>
+                        {item.portion && (
+                          <span className="text-[11px] text-gray-400 ml-1.5 font-normal">({item.portion})</span>
+                        )}
+                        {item.description && (
+                          <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{item.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Category */}
+                  <td className="py-3 px-4 hidden sm:table-cell text-gray-600">
+                    {getCategoryName(item.categoryId)}
+                  </td>
+
+                  {/* Price */}
+                  <td className="py-3 px-4 font-bold text-gray-900">
+                    ₹{item.price}
+                  </td>
+
+                  {/* Stock Toggle */}
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={() => onToggleStock(item.id, item.isAvailable)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        item.isAvailable
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+                      }`}
+                      title={item.isAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${item.isAvailable ? 'bg-emerald-600' : 'bg-gray-400'}`} />
+                      <span>{item.isAvailable ? 'In Stock' : 'Out of Stock'}</span>
+                    </button>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => {
+                          setDishToEdit(item);
+                          setIsAddDishModalOpen(true);
+                        }}
+                        className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                        title="Edit dish"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteDish(item.id)}
+                        className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Delete dish"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                filteredItems.map((item) => {
-                  const cat = categories.find((c) => c.id === item.categoryId);
-                  return (
-                    <tr
-                      key={item.id}
-                      className={`hover:bg-slate-50/70 transition-colors ${
-                        !item.isAvailable ? 'bg-slate-50/40 text-slate-400' : ''
-                      }`}
-                    >
-                      {/* Veg indicator */}
-                      <td className="py-3 px-4">
-                        <VegIcon isVeg={item.isVeg} size="md" />
-                      </td>
-
-                      {/* Name & Tags */}
-                      <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 flex items-center gap-2">
-                          <span className={!item.isAvailable ? 'line-through text-slate-400' : ''}>
-                            {item.name}
-                          </span>
-                          {item.tags?.map((t) => (
-                            <span
-                              key={t}
-                              className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                        {item.description && (
-                          <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                            {item.description}
-                          </p>
-                        )}
-                      </td>
-
-                      {/* Category */}
-                      <td className="py-3 px-4 text-slate-600 font-medium">
-                        {cat?.name || 'General'}
-                      </td>
-
-                      {/* Price */}
-                      <td className="py-3 px-4 font-bold text-slate-900 text-sm">
-                        ₹{item.price}
-                      </td>
-
-                      {/* Portion */}
-                      <td className="py-3 px-4 text-slate-500">
-                        {item.portion || 'Standard'}
-                      </td>
-
-                      {/* Section 31 Fast Quick Toggle: In Stock <-> Out of Stock */}
-                      <td className="py-3 px-4">
-                        <button
-                          type="button"
-                          onClick={() => onToggleStock(item.id, item.isAvailable)}
-                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs ${
-                            item.isAvailable
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                          }`}
-                          title="Click to toggle In Stock / Out of Stock instantly"
-                        >
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              item.isAvailable ? 'bg-emerald-500' : 'bg-rose-500'
-                            }`}
-                          />
-                          <span>{item.isAvailable ? 'In Stock' : 'Out of Stock'}</span>
-                        </button>
-                      </td>
-
-                      {/* Edit & Delete Actions */}
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => {
-                              setDishToEdit(item);
-                              setIsAddDishModalOpen(true);
-                            }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                            title="Edit dish"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => onDeleteDish(item.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Delete dish"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+              ))}
             </tbody>
           </table>
-        </div>
+        )}
       </div>
 
       {/* Add / Edit Dish Modal */}
@@ -337,21 +298,22 @@ export const MenuManagementPage: React.FC<MenuManagementPageProps> = ({
         isOpen={isAddDishModalOpen}
         categories={categories}
         dishToEdit={dishToEdit}
-        onClose={() => setIsAddDishModalOpen(false)}
-        onSave={async (data) => {
-          if (dishToEdit) {
-            await onUpdateDish(dishToEdit.id, data);
-          } else {
-            await onSaveDish(data);
-          }
+        onClose={() => {
+          setIsAddDishModalOpen(false);
+          setDishToEdit(null);
         }}
+        onSave={dishToEdit ? (data) => onUpdateDish(dishToEdit.id, data) : onSaveDish}
+        onCreateCategory={onCreateCategory}
       />
 
       {/* AI Menu Importer Modal */}
       <AiMenuModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
-        onMenuImported={onRefreshMenu}
+        onMenuImported={() => {
+          setIsAiModalOpen(false);
+          onRefreshMenu();
+        }}
       />
     </div>
   );

@@ -287,43 +287,48 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         </div>
       )}
 
-      {/* Restaurant & Table Header (Section 16) */}
-      <header className="bg-white border-b border-slate-200 p-4 sticky top-0 z-30 shadow-xs">
+      {/* Restaurant & Table Header */}
+      <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-30 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-black text-slate-900 tracking-tight leading-tight">
-              {restaurant?.name}
+            <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight">
+              {restaurant?.name || 'The Chai & Chaat Co.'}
             </h1>
-            <p className="text-xs text-slate-500">{restaurant?.restaurantType || 'Café'} • {restaurant?.city}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {restaurant?.restaurantType || 'Café'} • {restaurant?.city || 'Dining Room'}
+            </p>
           </div>
 
-          {/* Table Pill */}
-          <div className="px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-black shadow-sm text-center">
-            {table?.tableNumber}
+          {/* Table Badge */}
+          <div className="px-3 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold text-center">
+            {table?.tableNumber || 'Table 01'}
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="mt-3 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search dishes or chaat..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-100 border-none outline-none focus:ring-1 focus:ring-orange-500"
-          />
+        <div className="mt-3">
+          <p className="text-xs font-medium text-gray-600 mb-1.5">What are you craving?</p>
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search dishes, chaat, beverages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:bg-white transition-all"
+            />
+          </div>
         </div>
 
-        {/* Filter veg / non-veg pill */}
+        {/* Filter veg / non-veg */}
         <div className="mt-2.5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setFilterVegOnly(!filterVegOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                 filterVegOnly
-                  ? 'bg-green-50 border-green-400 text-green-800'
-                  : 'bg-white border-slate-200 text-slate-600'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
               <VegIcon isVeg={true} size="sm" />
@@ -331,41 +336,65 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             </button>
           </div>
 
-          <span className="text-[11px] text-slate-400">
-            Powered by Swaad Sevak
+          <span className="text-[11px] text-gray-400">
+            Swaad Sevak Direct
           </span>
         </div>
       </header>
 
       {/* Active Order Live Tracker Bar */}
       {activeOrder && (
-        <div className="m-3 p-4 rounded-2xl bg-slate-900 text-white shadow-card">
+        <div className="m-3 p-4 rounded-xl bg-white border border-gray-200 shadow-sm text-gray-900">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${
-                activeOrder.status === 'COMPLETED' ? 'bg-emerald-400' : 'bg-orange-500 animate-ping'
-              }`} />
-              <span className="text-xs font-extrabold uppercase tracking-wider text-orange-400">
-                Order {activeOrder.orderNumber}
+              <span className="text-xs font-bold text-gray-900">
+                Order #{activeOrder.orderNumber}
               </span>
             </div>
-            <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
-              activeOrder.status === 'COMPLETED' ? 'bg-emerald-600 text-white' : 'bg-orange-600 text-white'
-            }`}>
-              {activeOrder.status === 'READY' ? 'FOOD SERVED' : activeOrder.status}
+            <span className="flex items-center gap-1.5 text-xs font-medium">
+              {activeOrder.status === 'PENDING' && (
+                <span className="flex items-center gap-1.5 text-orange-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                  Pending Acceptance
+                </span>
+              )}
+              {activeOrder.status === 'ACCEPTED' && (
+                <span className="flex items-center gap-1.5 text-amber-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Accepted
+                </span>
+              )}
+              {activeOrder.status === 'PREPARING' && (
+                <span className="flex items-center gap-1.5 text-amber-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Preparing in Kitchen
+                </span>
+              )}
+              {activeOrder.status === 'READY' && (
+                <span className="flex items-center gap-1.5 text-emerald-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Food Served
+                </span>
+              )}
+              {activeOrder.status === 'COMPLETED' && (
+                <span className="flex items-center gap-1.5 text-gray-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                  Completed
+                </span>
+              )}
             </span>
           </div>
 
-          <p className="text-xs text-slate-300">
-            {activeOrder.status === 'PENDING' && 'Waiting for kitchen manager acceptance...'}
-            {activeOrder.status === 'ACCEPTED' && 'Accepted! Kitchen is preparing your dishes.'}
-            {activeOrder.status === 'PREPARING' && 'Your food is being freshly cooked on the stove.'}
-            {activeOrder.status === 'READY' && '🍽️ Your food has been served to your table! Enjoy your meal.'}
-            {activeOrder.status === 'COMPLETED' && '✅ Bill settled & paid. Thank you for dining with us!'}
+          <p className="text-xs text-gray-600">
+            {activeOrder.status === 'PENDING' && 'Your order is waiting for manager confirmation.'}
+            {activeOrder.status === 'ACCEPTED' && 'Confirmed! The kitchen is preparing your dishes.'}
+            {activeOrder.status === 'PREPARING' && 'Freshly cooking on the station.'}
+            {activeOrder.status === 'READY' && 'Your food is served at your table! Enjoy your meal.'}
+            {activeOrder.status === 'COMPLETED' && 'Bill settled. Thank you for dining with us!'}
           </p>
 
-          <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="text-slate-400 font-medium">
+          <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-gray-500 font-medium">
               {activeOrder.items?.length || 0} items • ₹{activeOrder.total}
             </span>
 
@@ -374,14 +403,14 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                 <>
                   <button
                     onClick={() => downloadInvoicePdf(activeOrder, activeBill, restaurant)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold transition-all shadow-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-medium transition-all shadow-xs"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Download Invoice (PDF)</span>
+                    <span>Download Invoice</span>
                   </button>
                   <button
                     onClick={() => setShowInvoiceModal(true)}
-                    className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition-all"
+                    className="px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-all"
                   >
                     View
                   </button>
@@ -391,12 +420,12 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   {!billRequested ? (
                     <button
                       onClick={handleRequestBill}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium transition-colors border border-gray-200"
                     >
                       Request Bill
                     </button>
                   ) : (
-                    <span className="text-amber-400 font-bold flex items-center gap-1">
+                    <span className="text-amber-700 font-medium flex items-center gap-1">
                       <Receipt className="w-3.5 h-3.5" />
                       <span>Bill Requested</span>
                     </span>
@@ -404,7 +433,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   {activeBill && (
                     <button
                       onClick={() => setShowInvoiceModal(true)}
-                      className="px-2.5 py-1.5 rounded-lg bg-orange-500/20 text-orange-300 font-bold hover:bg-orange-500/30 transition-colors"
+                      className="px-2.5 py-1.5 rounded-lg bg-orange-50 text-orange-700 font-medium border border-orange-200 hover:bg-orange-100 transition-colors"
                     >
                       View Bill
                     </button>
@@ -416,14 +445,14 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         </div>
       )}
 
-      {/* Horizontal Category Scroll Bar (Section 16) */}
-      <div className="bg-white border-b border-slate-200 px-4 py-2 sticky top-[138px] z-20 overflow-x-auto no-scrollbar flex items-center gap-2 shadow-xs">
+      {/* Category Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 sticky top-[152px] z-20 overflow-x-auto no-scrollbar flex items-center gap-2 shadow-xs">
         <button
           onClick={() => setActiveCategory('ALL')}
-          className={`px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all ${
             activeCategory === 'ALL'
               ? 'bg-orange-600 text-white shadow-xs'
-              : 'bg-slate-100 text-slate-600'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           All ({allDishes.length})
@@ -432,10 +461,10 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all ${
               activeCategory === cat.id
                 ? 'bg-orange-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             {cat.name}
@@ -457,9 +486,9 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
           return (
             <section key={category.id} className="space-y-3">
-              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
                 <span>{category.name}</span>
-                <span className="text-xs text-slate-400 font-normal">({categoryItems.length})</span>
+                <span className="text-xs text-gray-400 font-normal">({categoryItems.length})</span>
               </h2>
 
               <div className="space-y-3">
@@ -470,8 +499,8 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   return (
                     <div
                       key={dish.id}
-                      className={`bg-white rounded-2xl p-4 border transition-all flex justify-between gap-3 shadow-card ${
-                        isSoldOut ? 'border-slate-200 opacity-60' : 'border-slate-200 hover:border-slate-300'
+                      className={`bg-white rounded-xl p-4 border transition-all flex justify-between gap-3 shadow-xs ${
+                        isSoldOut ? 'border-gray-200 opacity-60' : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       {/* Left side details */}
@@ -481,38 +510,38 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                           {dish.tags?.map((t: string) => (
                             <span
                               key={t}
-                              className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 text-amber-900"
+                              className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 border border-amber-200 text-amber-800"
                             >
                               {t}
                             </span>
                           ))}
                         </div>
 
-                        <h3 className={`text-sm font-bold text-slate-900 ${isSoldOut ? 'line-through text-slate-400' : ''}`}>
+                        <h3 className={`text-sm font-semibold text-gray-900 ${isSoldOut ? 'line-through text-gray-400' : ''}`}>
                           {dish.name}
                         </h3>
 
                         {dish.description && (
-                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
                             {dish.description}
                           </p>
                         )}
 
                         <div className="mt-2 flex items-center gap-2">
-                          <span className="text-sm font-extrabold text-slate-900">
+                          <span className="text-sm font-bold text-gray-900">
                             ₹{dish.price}
                           </span>
                           {dish.portion && (
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] text-gray-400">
                               • {dish.portion}
                             </span>
                           )}
                         </div>
 
-                        {/* Section 30: Out of stock badge */}
                         {isSoldOut && (
-                          <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
-                            Currently unavailable
+                          <span className="inline-flex items-center gap-1.5 mt-2 text-[11px] font-medium text-gray-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                            Unavailable
                           </span>
                         )}
                       </div>
@@ -522,22 +551,22 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                         {isSoldOut ? (
                           <button
                             disabled
-                            className="px-4 py-1.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed"
+                            className="px-3.5 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200"
                           >
                             Sold Out
                           </button>
                         ) : inCart ? (
-                          <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl p-1 text-orange-950 font-bold text-xs shadow-xs">
+                          <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-1 text-orange-950 font-medium text-xs shadow-xs">
                             <button
                               onClick={() => updateQuantity(dish.id, -1)}
-                              className="w-6 h-6 rounded-lg bg-white flex items-center justify-center text-orange-600 hover:bg-orange-100 shadow-xs"
+                              className="w-6 h-6 rounded bg-white flex items-center justify-center text-orange-600 hover:bg-orange-100 shadow-xs"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-5 text-center">{inCart.quantity}</span>
+                            <span className="w-5 text-center font-bold">{inCart.quantity}</span>
                             <button
                               onClick={() => updateQuantity(dish.id, 1)}
-                              className="w-6 h-6 rounded-lg bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700 shadow-xs"
+                              className="w-6 h-6 rounded bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700 shadow-xs"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -545,9 +574,9 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                         ) : (
                           <button
                             onClick={() => addToCart(dish)}
-                            className="px-5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-600 text-xs font-bold shadow-xs transition-transform active:scale-95"
+                            className="px-4 py-1.5 rounded-lg bg-white hover:bg-orange-50 border border-orange-300 text-orange-600 text-xs font-semibold shadow-xs transition-colors"
                           >
-                            ADD +
+                            + Add
                           </button>
                         )}
                       </div>
@@ -560,24 +589,24 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         })}
       </main>
 
-      {/* Sticky Bottom Cart Bar (Section 40) */}
+      {/* Sticky Bottom Cart Bar */}
       {cartItemCount > 0 && !isCartOpen && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 animate-in slide-in-from-bottom-3 duration-200">
           <button
             onClick={() => setIsCartOpen(true)}
-            className="w-full bg-slate-900 text-white rounded-2xl p-4 shadow-elevated border border-slate-700 flex items-center justify-between hover:bg-slate-800 transition-all"
+            className="w-full bg-[#111827] text-white rounded-xl p-3.5 shadow-lg border border-gray-800 flex items-center justify-between hover:bg-gray-900 transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center font-bold text-xs">
                 {cartItemCount}
               </div>
               <div className="text-left">
-                <span className="text-xs font-bold block">{table?.tableNumber} Cart</span>
-                <span className="text-[11px] text-slate-400">₹{cartTotal} (+ ₹{cartTax} GST)</span>
+                <span className="text-xs font-semibold block">{table?.tableNumber} Cart</span>
+                <span className="text-[11px] text-gray-400">₹{cartTotal} (+ ₹{cartTax} GST)</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 font-bold text-xs text-orange-400">
+            <div className="flex items-center gap-1.5 font-semibold text-xs text-orange-400">
               <span>View Cart</span>
               <ArrowRight className="w-4 h-4" />
             </div>
@@ -587,43 +616,43 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* Cart Modal / Drawer */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-end">
-          <div className="bg-white rounded-t-3xl max-w-lg mx-auto w-full max-h-[85vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end">
+          <div className="bg-white rounded-t-2xl max-w-lg mx-auto w-full max-h-[85vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
             {/* Cart Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/80">
               <div>
-                <h3 className="font-bold text-sm text-slate-900">Your Order Review</h3>
-                <p className="text-xs text-orange-600 font-bold">{table?.tableNumber}</p>
+                <h3 className="font-bold text-sm text-gray-900">Your Order</h3>
+                <p className="text-xs text-orange-600 font-semibold">{table?.tableNumber}</p>
               </div>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Cart Items List */}
-            <div className="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
+            <div className="flex-1 overflow-y-auto p-4 divide-y divide-gray-100">
               {cart.map((item) => (
                 <div key={item.menuItemId} className="py-3 flex items-center justify-between">
                   <div className="flex items-start gap-2">
                     <VegIcon isVeg={item.isVeg} size="sm" className="mt-0.5" />
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900">{item.name}</h4>
-                      <p className="text-[11px] text-slate-500">₹{item.price} each</p>
+                      <h4 className="text-xs font-semibold text-gray-900">{item.name}</h4>
+                      <p className="text-[11px] text-gray-500">₹{item.price} each</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1 text-xs font-bold">
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 text-xs font-medium">
                       <button
                         onClick={() => updateQuantity(item.menuItemId, -1)}
-                        className="w-5 h-5 rounded bg-white flex items-center justify-center text-slate-700 shadow-xs"
+                        className="w-5 h-5 rounded bg-white flex items-center justify-center text-gray-700 shadow-xs"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="w-4 text-center">{item.quantity}</span>
+                      <span className="w-4 text-center font-bold">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.menuItemId, 1)}
                         className="w-5 h-5 rounded bg-orange-600 text-white flex items-center justify-center shadow-xs"
@@ -631,7 +660,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    <span className="text-xs font-bold text-slate-900 w-14 text-right">
+                    <span className="text-xs font-bold text-gray-900 w-14 text-right">
                       ₹{item.price * item.quantity}
                     </span>
                   </div>
@@ -640,7 +669,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
               {/* Special Cooking Instructions */}
               <div className="pt-4">
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Cooking Instructions for Chef (Optional)
                 </label>
                 <input
@@ -648,21 +677,21 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   placeholder="e.g. Less spicy, extra onions, no coriander..."
                   value={customerNotes}
                   onChange={(e) => setCustomerNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 outline-none focus:border-orange-500"
                 />
               </div>
 
               {/* Summary */}
               <div className="pt-4 space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-gray-600">
                   <span>GST (5%)</span>
                   <span>₹{cartTax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
+                <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>Grand Total</span>
                   <span>₹{cartGrandTotal.toFixed(2)}</span>
                 </div>
@@ -670,11 +699,11 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             </div>
 
             {/* Submit Order Action */}
-            <div className="p-4 bg-slate-50 border-t border-slate-100">
+            <div className="p-4 bg-gray-50 border-t border-gray-200">
               <button
                 onClick={handlePlaceOrder}
                 disabled={isPlacingOrder}
-                className="w-full py-3.5 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs shadow-glow flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                className="w-full py-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {isPlacingOrder ? (
                   <span>Sending to Kitchen...</span>

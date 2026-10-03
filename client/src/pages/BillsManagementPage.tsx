@@ -36,33 +36,33 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
             Bills & Digital Invoices
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             View completed table bills, record payments (Cash, UPI, Card), and reprint receipts.
           </p>
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             placeholder="Search by table or bill #..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-orange-500"
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:bg-white transition-all"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 uppercase tracking-wider text-[10px] font-semibold">
+              <tr className="border-b border-gray-200 bg-gray-50 text-gray-600 uppercase tracking-wider text-[11px] font-semibold">
                 <th className="py-3 px-4">Invoice #</th>
                 <th className="py-3 px-4">Table</th>
                 <th className="py-3 px-4">Order #</th>
@@ -74,10 +74,10 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
                 <th className="py-3 px-4 text-right">Receipt</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-gray-100">
               {filteredBills.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={9} className="py-12 text-center text-gray-400 text-xs">
                     No bills generated yet. Bills are automatically generated when guests request the bill or an order is completed.
                   </td>
                 </tr>
@@ -96,34 +96,34 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
                   const isPaid = bill.paymentStatus.startsWith('PAID');
 
                   return (
-                    <tr key={bill.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                    <tr key={bill.id} className="hover:bg-gray-50/70 transition-colors">
+                      <td className="py-3 px-4 font-mono font-semibold text-gray-900">
                         {bill.billNumber}
                       </td>
-                      <td className="py-3 px-4 font-bold text-slate-800">
+                      <td className="py-3 px-4 font-semibold text-gray-800">
                         {bill.tableNumber}
                       </td>
-                      <td className="py-3 px-4 text-slate-500 font-mono">
+                      <td className="py-3 px-4 text-gray-500 font-mono">
                         {bill.orderNumber}
                       </td>
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-3 px-4 text-gray-500">
                         {billDate}, {billTime}
                       </td>
-                      <td className="py-3 px-4 text-slate-600">
+                      <td className="py-3 px-4 text-gray-600">
                         ₹{bill.subtotal.toFixed(2)}
                       </td>
-                      <td className="py-3 px-4 text-slate-600">
+                      <td className="py-3 px-4 text-gray-600">
                         ₹{bill.tax.toFixed(2)}
                       </td>
-                      <td className="py-3 px-4 font-extrabold text-slate-900 text-sm">
+                      <td className="py-3 px-4 font-bold text-gray-900 text-sm">
                         ₹{bill.grandTotal.toFixed(2)}
                       </td>
 
                       {/* Payment Status & Settlement */}
                       <td className="py-3 px-4">
                         {isPaid ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                            <Check className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>{bill.paymentStatus.replace('PAID_', '')}</span>
                           </span>
                         ) : (
@@ -131,21 +131,21 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
                             <button
                               onClick={() => handleSettle(bill.id, 'PAID_UPI')}
                               title="Settle with UPI"
-                              className="px-2 py-1 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 text-[10px] font-bold"
+                              className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-purple-700 hover:bg-purple-50 text-[11px] font-medium"
                             >
                               UPI
                             </button>
                             <button
                               onClick={() => handleSettle(bill.id, 'PAID_CASH')}
                               title="Settle with Cash"
-                              className="px-2 py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold"
+                              className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-emerald-700 hover:bg-emerald-50 text-[11px] font-medium"
                             >
                               Cash
                             </button>
                             <button
                               onClick={() => handleSettle(bill.id, 'PAID_CARD')}
                               title="Settle with Card"
-                              className="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 text-[10px] font-bold"
+                              className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-blue-700 hover:bg-blue-50 text-[11px] font-medium"
                             >
                               Card
                             </button>
@@ -157,7 +157,7 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => setSelectedBill(bill)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 transition-colors"
                           title="View / Print Tax Invoice"
                         >
                           <Printer className="w-4 h-4" />

@@ -54,28 +54,28 @@ export const KotModal: React.FC<KotModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-elevated border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <Printer className="w-4 h-4 text-orange-600" />
               Kitchen Order Ticket (KOT)
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500 mt-0.5">
               {order.kotNumber || 'KOT Generated'} • {order.tableNumber}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex rounded-lg bg-slate-200 p-0.5 text-xs font-medium">
+            <div className="flex rounded-lg bg-gray-100 border border-gray-200 p-0.5 text-xs font-medium">
               <button
                 onClick={() => setPaperWidth('58mm')}
                 className={`px-2.5 py-1 rounded-md transition-all ${
                   paperWidth === '58mm'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-gray-900 shadow-xs font-semibold'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 58mm
@@ -84,8 +84,8 @@ export const KotModal: React.FC<KotModalProps> = ({
                 onClick={() => setPaperWidth('80mm')}
                 className={`px-2.5 py-1 rounded-md transition-all ${
                   paperWidth === '80mm'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-gray-900 shadow-xs font-semibold'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 80mm
@@ -94,7 +94,7 @@ export const KotModal: React.FC<KotModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
             >
               <X className="w-5 h-5" />
             </button>
@@ -102,19 +102,19 @@ export const KotModal: React.FC<KotModalProps> = ({
         </div>
 
         {/* Thermal Slip Preview Container */}
-        <div className="p-6 bg-slate-100 flex justify-center">
+        <div className="p-6 bg-gray-100 flex justify-center">
           <div
             id="thermal-print-area"
             style={{ width: paperWidth === '58mm' ? '240px' : '320px' }}
-            className="bg-white p-5 rounded-lg shadow-sm border border-slate-300 font-mono text-xs text-slate-800 transition-all select-all"
+            className="bg-white p-5 rounded-lg shadow-xs border border-gray-300 font-mono text-xs text-gray-800 transition-all select-all"
           >
             <div className="text-center font-bold text-sm tracking-wider uppercase mb-1">
               {restaurant?.name || 'Swaad Sevak'}
             </div>
-            <div className="text-center font-semibold text-xs text-slate-600 tracking-widest uppercase mb-1">
+            <div className="text-center font-semibold text-xs text-gray-600 tracking-widest uppercase mb-1">
               *** KITCHEN TICKET ***
             </div>
-            <div className="text-center font-bold text-xs border-y border-dashed border-slate-400 py-1 my-1">
+            <div className="text-center font-bold text-xs border-y border-dashed border-gray-400 py-1 my-1">
               {order.kotNumber || 'KOT-1042'} | ORD {order.orderNumber}
             </div>
 
@@ -122,24 +122,24 @@ export const KotModal: React.FC<KotModalProps> = ({
               <span>TABLE: {order.tableNumber}</span>
               <span>{orderTime}</span>
             </div>
-            <div className="text-[11px] text-slate-600 mb-1">
+            <div className="text-[11px] text-gray-600 mb-1">
               TYPE: {order.source}
             </div>
 
-            <div className="border-t border-slate-400 my-1"></div>
-            <div className="flex justify-between font-bold text-[11px] py-1 border-b border-dashed border-slate-300">
+            <div className="border-t border-gray-400 my-1"></div>
+            <div className="flex justify-between font-bold text-[11px] py-1 border-b border-dashed border-gray-300">
               <span>QTY  ITEM</span>
               <span>PORTION</span>
             </div>
 
             <div className="py-1 space-y-1.5">
               {order.items.map((item, idx) => (
-                <div key={idx} className="border-b border-dotted border-slate-200 pb-1">
+                <div key={idx} className="border-b border-dotted border-gray-200 pb-1">
                   <div className="flex justify-between font-semibold">
                     <span>
-                      <strong className="text-slate-900">{item.quantity}x</strong> {item.name}
+                      <strong className="text-gray-900">{item.quantity}x</strong> {item.name}
                     </span>
-                    <span className="text-[10px] text-slate-500">{item.portion || '-'}</span>
+                    <span className="text-[10px] text-gray-500">{item.portion || '-'}</span>
                   </div>
                   {item.notes && (
                     <div className="text-[10px] text-amber-700 italic pl-4">
@@ -151,23 +151,23 @@ export const KotModal: React.FC<KotModalProps> = ({
             </div>
 
             {order.customerNotes && (
-              <div className="mt-2 pt-1 border-t border-dashed border-slate-400 text-[11px]">
+              <div className="mt-2 pt-1 border-t border-dashed border-gray-400 text-[11px]">
                 <span className="font-bold">INSTRUCTIONS:</span>
-                <p className="text-slate-700 italic">{order.customerNotes}</p>
+                <p className="text-gray-700 italic">{order.customerNotes}</p>
               </div>
             )}
 
-            <div className="border-t border-dashed border-slate-400 mt-3 pt-2 text-center text-[10px] text-slate-500 uppercase">
+            <div className="border-t border-dashed border-gray-400 mt-3 pt-2 text-center text-[10px] text-gray-500 uppercase">
               Powered by Swaad Sevak
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gray-50/70 border-t border-gray-200 flex items-center justify-between">
           <button
             onClick={handleCopyText}
-            className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-white"
+            className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-900 font-medium px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-white transition-colors"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? 'Copied Raw KOT' : 'Copy Text'}
@@ -176,13 +176,13 @@ export const KotModal: React.FC<KotModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
             >
               Close
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm transition-colors"
+              className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />
               Print to Thermal ({paperWidth})

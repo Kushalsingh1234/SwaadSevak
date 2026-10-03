@@ -352,10 +352,10 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                           ? 'text-gray-500'
                           : 'text-blue-600 font-medium'
                       }`}>
-                        {order.status === 'PENDING' && '● Pending'}
-                        {order.status === 'ACCEPTED' && '● Accepted'}
-                        {order.status === 'PREPARING' && '● Cooking'}
-                        {order.status === 'READY' && '● Ready'}
+                        {order.status === 'PENDING' && '● Incoming'}
+                        {order.status === 'ACCEPTED' && '● Kitchen Cooking'}
+                        {order.status === 'PREPARING' && '● Kitchen Cooking'}
+                        {order.status === 'READY' && '● Ready to Serve'}
                         {order.status === 'COMPLETED' && '✓ Settled'}
                         {order.status === 'REJECTED' && '✕ Cancelled'}
                       </span>

@@ -110,10 +110,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   const completedOrders = filteredOrders.filter(o => o.status === 'COMPLETED');
 
   const columns = [
-    { id: 'PENDING', label: 'Pending', count: pendingOrders.length, items: pendingOrders, dotColor: 'bg-amber-500' },
-    { id: 'PREPARING', label: 'Cooking', count: preparingOrders.length, items: preparingOrders, dotColor: 'bg-blue-500' },
+    { id: 'PENDING', label: 'Incoming Orders', count: pendingOrders.length, items: pendingOrders, dotColor: 'bg-amber-500' },
+    { id: 'PREPARING', label: 'Kitchen Cooking', count: preparingOrders.length, items: preparingOrders, dotColor: 'bg-blue-500' },
     { id: 'READY', label: 'Ready to Serve', count: readyOrders.length, items: readyOrders, dotColor: 'bg-emerald-500' },
-    { id: 'COMPLETED', label: 'Completed', count: completedOrders.length, items: completedOrders, dotColor: 'bg-gray-400' },
+    { id: 'COMPLETED', label: 'At Table & Settled', count: completedOrders.length, items: completedOrders, dotColor: 'bg-gray-400' },
   ];
 
   return (
@@ -234,10 +234,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               ? 'text-emerald-600'
                               : 'text-blue-600'
                           }`}>
-                            {order.status === 'PENDING' && '● Pending'}
-                            {order.status === 'ACCEPTED' && '● Accepted'}
-                            {order.status === 'PREPARING' && '● Cooking'}
-                            {order.status === 'READY' && '● Ready'}
+                            {order.status === 'PENDING' && '● Incoming'}
+                            {order.status === 'ACCEPTED' && '● Kitchen Cooking'}
+                            {order.status === 'PREPARING' && '● Kitchen Cooking'}
+                            {order.status === 'READY' && '● Ready to Serve'}
                             {order.status === 'COMPLETED' && '✓ Settled'}
                           </span>
                           {elapsedMins > 0 && order.status !== 'COMPLETED' && (

@@ -187,7 +187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <span className="font-bold text-sm text-gray-900">TABLE 05</span>
                       <span className="flex items-center gap-1.5 text-xs font-medium text-orange-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                        Pending
+                        Incoming Orders
                       </span>
                     </div>
                     <div className="text-[11px] text-gray-500 mt-1">Order #1042 • 7:42 PM</div>
@@ -215,7 +215,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <span className="font-bold text-sm text-gray-900">TABLE 02</span>
                       <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        Preparing
+                        Kitchen Cooking
                       </span>
                     </div>
                     <div className="text-[11px] text-gray-500 mt-1">Order #1041 • 7:38 PM</div>
@@ -243,7 +243,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <span className="font-bold text-sm text-gray-900">TABLE 08</span>
                       <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Ready
+                        Ready to Serve
                       </span>
                     </div>
                     <div className="text-[11px] text-gray-500 mt-1">Order #1039 • 7:31 PM</div>

@@ -300,9 +300,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Floating Chip 1: New Order Notification (Clean white card popping off brown) */}
-            <div className="hidden sm:flex absolute -top-5 -left-6 bg-white p-3 rounded-xl border border-stone-200 shadow-2xl items-center gap-3 animate-bounce duration-1000">
-              <div className="w-9 h-9 rounded-lg bg-turmeric text-slate-900 flex items-center justify-center font-bold">
+            {/* Floating Chip 1: New Order Notification (White Background Container) */}
+            <div className="hidden sm:flex absolute -top-5 -left-6 bg-white p-3.5 rounded-xl border border-stone-200/90 shadow-2xl items-center gap-3 animate-bounce duration-1000">
+              <div className="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
                 <Volume2 className="w-4 h-4" />
               </div>
               <div className="text-left">
@@ -311,14 +311,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Floating Chip 2: Daily Sales */}
-            <div className="hidden sm:flex absolute -bottom-5 -right-6 bg-white p-3 rounded-xl border border-stone-200 shadow-2xl items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-cardamom text-white flex items-center justify-center font-bold">
+            {/* Floating Chip 2: Daily Sales (White Background Container) */}
+            <div className="hidden sm:flex absolute -bottom-5 -right-6 bg-white p-3.5 rounded-xl border border-stone-200/90 shadow-2xl items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
                 <TrendingUp className="w-4 h-4" />
               </div>
               <div className="text-left">
                 <p className="text-xs font-bold text-slate-900">Today's Sales</p>
-                <p className="text-sm font-extrabold text-cardamom tabular-nums">₹24,850</p>
+                <p className="text-sm font-extrabold text-emerald-600 tabular-nums">₹24,850</p>
               </div>
             </div>
           </div>

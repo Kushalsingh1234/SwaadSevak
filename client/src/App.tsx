@@ -12,7 +12,7 @@ import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
-import { api } from './services/api';
+import { api, ApiError } from './services/api';
 import { getSocket, joinRestaurantRoom } from './services/socket';
 import { soundManager } from './utils/sound';
 import { Restaurant, Manager, MenuCategory, MenuItem, TableItem, Order, Bill, PrinterConfig } from './types';
@@ -29,9 +29,25 @@ export function App() {
     return <CustomerMenuPage restaurantSlug={restaurantSlug} qrToken={qrToken} />;
   }
 
-  // Persisted session & active tab
+  // Persisted session, active tab & cached restaurant/manager
   const savedToken = typeof window !== 'undefined' ? localStorage.getItem('swaad_token') : null;
   const savedTab = typeof window !== 'undefined' ? localStorage.getItem('swaad_active_tab') : null;
+  const savedRestaurant = typeof window !== 'undefined' ? (() => {
+    try {
+      const item = localStorage.getItem('swaad_restaurant');
+      return item ? (JSON.parse(item) as Restaurant) : null;
+    } catch {
+      return null;
+    }
+  })() : null;
+  const savedManager = typeof window !== 'undefined' ? (() => {
+    try {
+      const item = localStorage.getItem('swaad_manager');
+      return item ? (JSON.parse(item) as Manager) : null;
+    } catch {
+      return null;
+    }
+  })() : null;
 
   // Manager App States
   const [authView, setAuthView] = useState<'LANDING' | 'REGISTER' | 'LOGIN' | 'APP'>(
@@ -39,15 +55,17 @@ export function App() {
   );
   const [currentTab, setCurrentTab] = useState<string>(savedTab || 'orders');
   const [isFirstSetup, setIsFirstSetup] = useState<boolean>(false);
+  const [isServerConnecting, setIsServerConnecting] = useState<boolean>(false);
+  const [serverConnectMessage, setServerConnectMessage] = useState<string | null>(null);
 
   const handleTabChange = (tab: string) => {
     setCurrentTab(tab);
     localStorage.setItem('swaad_active_tab', tab);
   };
 
-  // App Data State
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [manager, setManager] = useState<Manager | null>(null);
+  // App Data State (pre-loaded from cache for zero-delay instant dashboard)
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(savedRestaurant);
+  const [manager, setManager] = useState<Manager | null>(savedManager);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [tables, setTables] = useState<TableItem[]>([]);
@@ -57,6 +75,11 @@ export function App() {
 
   // Manual Add Dish Modal
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
+
+  // Pre-warm backend cloud server on initial page load
+  useEffect(() => {
+    api.pingServer();
+  }, []);
 
   // Check existing session on load
   useEffect(() => {
@@ -77,13 +100,18 @@ export function App() {
     }
   }, [pendingCount, authView]);
 
-  const loadInitialData = async () => {
+  const loadInitialData = async (retryCount = 0) => {
     try {
+      setIsServerConnecting(true);
       const meRes = await api.getMe();
       if (meRes.success) {
         setRestaurant(meRes.restaurant);
         setManager(meRes.manager);
+        localStorage.setItem('swaad_restaurant', JSON.stringify(meRes.restaurant));
+        localStorage.setItem('swaad_manager', JSON.stringify(meRes.manager));
         setAuthView('APP');
+        setIsServerConnecting(false);
+        setServerConnectMessage(null);
 
         // Fetch remaining restaurant resources
         await refreshAllData(meRes.restaurant.id);
@@ -92,13 +120,38 @@ export function App() {
         joinRestaurantRoom(meRes.restaurant.id);
       } else {
         localStorage.removeItem('swaad_token');
+        localStorage.removeItem('swaad_restaurant');
+        localStorage.removeItem('swaad_manager');
         localStorage.removeItem('swaad_active_tab');
         setAuthView('LANDING');
+        setIsServerConnecting(false);
       }
-    } catch {
-      localStorage.removeItem('swaad_token');
-      localStorage.removeItem('swaad_active_tab');
-      setAuthView('LANDING');
+    } catch (err: any) {
+      // If server explicitly said 401 or 403, the session has expired
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        localStorage.removeItem('swaad_token');
+        localStorage.removeItem('swaad_restaurant');
+        localStorage.removeItem('swaad_manager');
+        localStorage.removeItem('swaad_active_tab');
+        setAuthView('LANDING');
+        setIsServerConnecting(false);
+      } else {
+        // Cold start spin-up or temporary network delay: DO NOT wipe token!
+        console.warn('Backend server waking up or network delay, keeping session...', err);
+        setIsServerConnecting(true);
+        setServerConnectMessage('Waking up cloud server from sleep mode...');
+
+        // Auto-retry with backoff while server finishes waking up
+        if (retryCount < 8) {
+          const delay = Math.min(3000 + retryCount * 1500, 10000);
+          setTimeout(() => {
+            loadInitialData(retryCount + 1);
+          }, delay);
+        } else {
+          setIsServerConnecting(false);
+          setServerConnectMessage('Server connection taking longer than usual. Retrying in background...');
+        }
+      }
     }
   };
 
@@ -201,6 +254,8 @@ export function App() {
   const handleRegisterSuccess = async (data: any) => {
     setRestaurant(data.restaurant);
     setManager(data.manager);
+    if (data.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(data.restaurant));
+    if (data.manager) localStorage.setItem('swaad_manager', JSON.stringify(data.manager));
     setIsFirstSetup(true);
     setAuthView('APP');
     if (data.restaurant?.id) {
@@ -212,6 +267,8 @@ export function App() {
   const handleLoginSuccess = async (data: any) => {
     setRestaurant(data.restaurant);
     setManager(data.manager);
+    if (data.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(data.restaurant));
+    if (data.manager) localStorage.setItem('swaad_manager', JSON.stringify(data.manager));
     setIsFirstSetup(false);
     setAuthView('APP');
     if (data.restaurant?.id) {
@@ -222,6 +279,8 @@ export function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('swaad_token');
+    localStorage.removeItem('swaad_restaurant');
+    localStorage.removeItem('swaad_manager');
     localStorage.removeItem('swaad_active_tab');
     setRestaurant(null);
     setManager(null);
@@ -335,6 +394,8 @@ export function App() {
       const res = await api.login({ username: 'demo_manager', pin: '1234' });
       if (res.success) {
         localStorage.setItem('swaad_token', res.token);
+        if (res.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(res.restaurant));
+        if (res.manager) localStorage.setItem('swaad_manager', JSON.stringify(res.manager));
         await handleLoginSuccess(res);
       }
     } catch {
@@ -403,16 +464,46 @@ export function App() {
           S
         </div>
         <div className="mt-4 font-bold text-slate-200 text-sm tracking-wide">Swaad Sevak</div>
-        <div className="mt-1 text-xs text-slate-400 flex items-center gap-2">
+        <div className="mt-2 text-xs text-slate-400 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-          <span>Restoring workspace...</span>
+          <span>{serverConnectMessage || 'Restoring workspace...'}</span>
         </div>
+
+        {serverConnectMessage && (
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <p className="text-xs text-slate-400 max-w-xs text-center">
+              Cloud server is starting up after idle sleep (~20–30s). Please hold on...
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => loadInitialData(0)}
+                className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shadow-md transition-all"
+              >
+                Retry Now
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-all"
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden relative">
+      {/* Subtle cloud server waking-up notification pill */}
+      {isServerConnecting && serverConnectMessage && (
+        <div className="fixed top-3 right-4 z-50 px-3 py-1.5 rounded-full bg-slate-900/90 text-orange-400 border border-orange-500/30 text-xs shadow-lg flex items-center gap-2 backdrop-blur-md animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping shrink-0" />
+          <span>{serverConnectMessage}</span>
+        </div>
+      )}
+
       {/* Navigation (Fixed Sidebar on Desktop, Drawer/Bottom Bar on Mobile) */}
       <Navigation
         currentTab={currentTab}

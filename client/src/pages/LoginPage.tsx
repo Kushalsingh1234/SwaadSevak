@@ -18,6 +18,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [pin, setPin] = useState('1234');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+
+  // Pre-warm server as soon as login page is loaded
+  React.useEffect(() => {
+    api.pingServer();
+  }, []);
+
+  // Show cold-start wake up message if login takes longer than 2.5 seconds
+  React.useEffect(() => {
+    let timer: any;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setIsWakingUp(true);
+      }, 2500);
+    } else {
+      setIsWakingUp(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +51,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const res = await api.login({ username: username.trim(), pin });
       if (res.success) {
         localStorage.setItem('swaad_token', res.token);
+        if (res.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(res.restaurant));
+        if (res.manager) localStorage.setItem('swaad_manager', JSON.stringify(res.manager));
         onLoginSuccess({
           token: res.token,
           restaurant: res.restaurant,
@@ -114,6 +135,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   </>
                 )}
               </button>
+
+              {isWakingUp && (
+                <div className="mt-2.5 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-300 text-[11px] text-center flex items-center justify-center gap-2 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping shrink-0" />
+                  <span>Cloud server is waking up from sleep mode (~20-30s). Please hold on...</span>
+                </div>
+              )}
             </div>
           </form>
 

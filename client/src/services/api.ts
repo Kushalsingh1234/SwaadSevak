@@ -1,3 +1,5 @@
+import { AnalyticsData, AnalyticsQueryOptions } from '../types';
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
 function getAuthHeader(): Record<string, string> {
@@ -103,8 +105,31 @@ export const api = {
   getPrinterConfig: () => request<any>('/printer/config'),
   updatePrinterConfig: (config: any) => request<any>('/printer/config', { method: 'PUT', body: JSON.stringify(config) }),
 
-  // Stats
+  // Stats & Analytics
   getTodayStats: () => request<any>('/stats/today'),
+  getAnalytics: (params?: AnalyticsQueryOptions) => {
+    const query = new URLSearchParams(params as any).toString();
+    return request<{ success: boolean; analytics: AnalyticsData }>(`/analytics${query ? `?${query}` : ''}`);
+  },
+  downloadAnalyticsCsv: async (params?: AnalyticsQueryOptions): Promise<void> => {
+    const query = new URLSearchParams(params as any).toString();
+    const token = localStorage.getItem('swaad_token');
+    const res = await fetch(`${API_BASE}/analytics/export/csv${query ? `?${query}` : ''}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
+    if (!res.ok) throw new Error('Failed to download CSV');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `swaad_sevak_analytics_${params?.range || 'custom'}_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
 
   // Public Diner APIs (No auth needed)
   getPublicMenu: (restaurantSlug: string, qrToken: string) => fetch(`${API_BASE}/public/menu/${restaurantSlug}/${qrToken}`).then(r => r.json()),

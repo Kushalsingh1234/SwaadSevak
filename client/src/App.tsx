@@ -9,6 +9,7 @@ import { MenuManagementPage } from './pages/MenuManagementPage';
 import { TablesManagementPage } from './pages/TablesManagementPage';
 import { BillsManagementPage } from './pages/BillsManagementPage';
 import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
@@ -529,6 +530,14 @@ export function App() {
             menuItems={menuItems}
             onNavigateTab={handleTabChange}
             onRefreshOrders={refreshAllData}
+          />
+        )}
+
+        {currentTab === 'analytics' && (
+          <AnalyticsPage
+            restaurant={restaurant}
+            manager={manager}
+            onNavigateTab={handleTabChange}
           />
         )}
 

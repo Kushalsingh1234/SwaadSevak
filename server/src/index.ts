@@ -10,6 +10,7 @@ import billsRoutes from './routes/bills.js';
 import printerRoutes from './routes/printer.js';
 import statsRoutes from './routes/stats.js';
 import publicRoutes from './routes/public.js';
+import analyticsRoutes from './routes/analytics.js';
 import { initializeSocket } from './realtime/socket.js';
 
 dotenv.config();
@@ -39,6 +40,7 @@ app.use('/api/bills', billsRoutes);
 app.use('/api/printer', printerRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoints (for uptime monitors like cron-job.org / UptimeRobot and pre-warming)
 const handleHealth = (req: express.Request, res: express.Response) => {

@@ -319,7 +319,16 @@ class KotPrinterManager {
 </html>
       `;
 
-      // Create an invisible iframe to execute the print job cleanly
+      // 1. Capacitor Native Bridge Support: If Capacitor native Printer plugin is present
+      const capacitor = (window as any).Capacitor;
+      if (capacitor?.Plugins?.Printer?.print) {
+        capacitor.Plugins.Printer.print({ content: htmlContent }).catch((err: any) => {
+          console.warn('[KotPrinter] Capacitor native print error, falling back to spooler:', err);
+        });
+        return true;
+      }
+
+      // 2. Direct In-App Thermal Spooler (Android WebView PrintManager / Browser Spooler)
       let iframe = document.getElementById('swaad_thermal_printer_frame') as HTMLIFrameElement;
       if (!iframe) {
         iframe = document.createElement('iframe');
@@ -342,10 +351,15 @@ class KotPrinterManager {
 
         setTimeout(() => {
           try {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
+            if (iframe.contentWindow) {
+              iframe.contentWindow.focus();
+              iframe.contentWindow.print();
+            } else {
+              window.print();
+            }
           } catch (e) {
             console.warn('[KotPrinter] Spooler print trigger fallback:', e);
+            window.print();
           }
         }, 250);
 

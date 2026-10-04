@@ -5,6 +5,17 @@ function getAuthHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+export class ApiError extends Error {
+  status: number;
+  data?: any;
+  constructor(message: string, status: number, data?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
   const headers = {
@@ -18,9 +29,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
-  const data = await response.json();
+  let data: any;
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
   if (!response.ok) {
-    throw new Error(data.message || `Request failed with status ${response.status}`);
+    throw new ApiError(data?.message || `Request failed with status ${response.status}`, response.status, data);
   }
   return data as T;
 }
@@ -102,5 +119,16 @@ export const api = {
     body: JSON.stringify(payload)
   }).then(r => r.json()),
   getPublicOrderStatus: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/status`).then(r => r.json()),
-  getPublicInvoice: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/invoice`).then(r => r.json())
+  getPublicInvoice: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/invoice`).then(r => r.json()),
+
+  // Pre-warm server ping
+  pingServer: async (): Promise<boolean> => {
+    try {
+      const baseUrl = API_BASE.replace('/api', '');
+      const res = await fetch(`${baseUrl}/health`, { method: 'GET', cache: 'no-cache' });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
 };

@@ -40,15 +40,17 @@ app.use('/api/printer', printerRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/public', publicRoutes);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoints (for uptime monitors like cron-job.org / UptimeRobot and pre-warming)
+const handleHealth = (req: express.Request, res: express.Response) => {
   res.json({
     status: 'ok',
     service: 'Swaad Sevak API',
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
-});
+};
+app.get('/health', handleHealth);
+app.get('/api/health', handleHealth);
 
 server.listen(PORT, () => {
   console.log(`=========================================`);

@@ -141,6 +141,8 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
 
       if (res.success) {
         localStorage.setItem('swaad_token', res.token);
+        if (res.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(res.restaurant));
+        if (res.manager) localStorage.setItem('swaad_manager', JSON.stringify(res.manager));
         // Fire celebration confetti!
         try {
           confetti({

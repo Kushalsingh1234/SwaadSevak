@@ -416,6 +416,153 @@ class DatabaseStore {
         createdAt: new Date()
       });
     }
+
+    // Seed realistic 30-day orders for demo restaurant
+    const dishList = Array.from(this.menuItems.values()).filter(d => d.restaurantId === restaurantId);
+    const tableList = Array.from(this.tables.values()).filter(t => t.restaurantId === restaurantId);
+
+    // Distribution seeds across past 30 days
+    const now = new Date();
+    const daysBackDistribution = [
+      // Today (12 orders)
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      // Yesterday (14 orders)
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      // Days 2 to 6 (Last 7 Days total ~70 orders)
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      3, 3, 3, 3, 3, 3, 3, 3, 3,
+      4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+      5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+      // Days 7 to 29 (Rest of the month: ~60 orders)
+      7, 7, 7, 8, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 12, 13, 13, 14, 14,
+      15, 15, 16, 16, 17, 18, 18, 19, 19, 20, 20, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 27, 28, 29
+    ];
+
+    const mealTimeSlots = [
+      { hour: 12, min: 35 }, { hour: 13, min: 15 }, { hour: 13, min: 45 }, { hour: 14, min: 10 }, // Lunch peak
+      { hour: 17, min: 20 }, // Evening chai
+      { hour: 19, min: 15 }, { hour: 19, min: 40 }, { hour: 20, min: 10 }, { hour: 20, min: 35 }, { hour: 21, min: 0 }, { hour: 21, min: 25 } // Dinner peak
+    ];
+
+    let orderIndex = 0;
+    for (const daysAgo of daysBackDistribution) {
+      orderIndex++;
+      const orderNum = 100 + orderIndex;
+      const orderId = `ord_demo_${orderNum}`;
+
+      // Pick source: 52% Dine-in, 28% Swiggy, 20% Zomato
+      const randSrc = Math.random();
+      let source: OrderSource = 'DINE_IN';
+      if (randSrc > 0.80) source = 'ZOMATO';
+      else if (randSrc > 0.52) source = 'SWIGGY';
+
+      // Pick table for dine-in
+      const table = tableList[orderIndex % tableList.length];
+
+      // Time of day
+      const slot = mealTimeSlots[orderIndex % mealTimeSlots.length];
+      const orderDate = new Date(now);
+      orderDate.setDate(orderDate.getDate() - daysAgo);
+      orderDate.setHours(slot.hour, slot.min, (orderIndex * 7) % 60, 0);
+
+      // Status
+      let status: OrderStatus = 'COMPLETED';
+      let rejectionReason: string | undefined = undefined;
+
+      if (daysAgo === 0) {
+        if (orderIndex % 9 === 0) {
+          status = 'REJECTED';
+          rejectionReason = 'Item out of stock / ingredient unavailable';
+        } else if (orderIndex % 6 === 0) {
+          status = 'PREPARING';
+        } else if (orderIndex % 5 === 0) {
+          status = 'READY';
+        }
+      } else {
+        if (orderIndex % 23 === 0) {
+          status = 'REJECTED';
+          rejectionReason = 'Kitchen at peak rush capacity';
+        }
+      }
+
+      // Pick 2-4 items for the order
+      const itemCombinations: MenuItem[][] = [
+        [dishList[1], dishList[6], dishList[7]], // Amritsari Paneer Tikka + Butter Garlic Naan + Masala Chai
+        [dishList[3], dishList[6], dishList[6], dishList[8]], // Dal Makhani + 2 Naans + Gulab Jamun
+        [dishList[5], dishList[6], dishList[6], dishList[7]], // Butter Chicken + 2 Naans + Masala Chai
+        [dishList[1], dishList[4], dishList[6], dishList[7]], // Paneer Tikka + Paneer Butter Masala + Naan + Chai
+        [dishList[0], dishList[3], dishList[6]], // Dahi Ke Kebab + Dal Makhani + Naan
+        [dishList[2], dishList[5], dishList[6], dishList[6]], // Chicken Malai Tikka + Butter Chicken + 2 Naans
+        [dishList[7], dishList[8]] // Masala Chai + Gulab Jamun
+      ];
+
+      const combo = itemCombinations[orderIndex % itemCombinations.length];
+      const orderItems: OrderItem[] = combo.map((dish, i) => {
+        const qty = (dish.id === 'item_07' || dish.id === 'item_08') && Math.random() > 0.5 ? 2 : 1;
+        return {
+          id: `item_ord_${orderNum}_${i}`,
+          orderId,
+          menuItemId: dish.id,
+          name: dish.name,
+          price: dish.price,
+          quantity: qty,
+          portion: dish.portion,
+          notes: ''
+        };
+      });
+
+      const subtotal = orderItems.reduce((acc, it) => acc + (it.price * it.quantity), 0);
+      const tax = Math.round(subtotal * 0.05);
+      const total = subtotal + tax;
+
+      const orderObj: Order = {
+        id: orderId,
+        restaurantId,
+        tableId: table.id,
+        tableNumber: source === 'DINE_IN' ? table.tableNumber : 'Online',
+        orderNumber: `#${orderNum}`,
+        source,
+        status,
+        subtotal,
+        tax,
+        total,
+        kotGenerated: status !== 'REJECTED',
+        kotNumber: status !== 'REJECTED' ? `KOT-${1000 + orderIndex}` : undefined,
+        billRequested: status === 'COMPLETED' && source === 'DINE_IN',
+        rejectionReason,
+        createdAt: orderDate,
+        updatedAt: orderDate,
+        items: orderItems
+      };
+
+      this.orders.set(orderId, orderObj);
+
+      // Create bills for completed dine-in orders
+      if (status === 'COMPLETED' && source === 'DINE_IN') {
+        const billId = `bill_${orderId}`;
+        const payModes: ('PAID_UPI' | 'PAID_CASH' | 'PAID_CARD')[] = ['PAID_UPI', 'PAID_UPI', 'PAID_CASH', 'PAID_CARD'];
+        this.bills.set(billId, {
+          id: billId,
+          restaurantId,
+          orderId,
+          orderNumber: orderObj.orderNumber,
+          tableNumber: orderObj.tableNumber,
+          billNumber: `INV-${5000 + orderIndex}`,
+          subtotal,
+          tax,
+          discount: 0,
+          grandTotal: total,
+          paymentStatus: payModes[orderIndex % payModes.length],
+          createdAt: orderDate,
+          items: orderItems
+        });
+      }
+    }
+
+    this.orderCounter = 100 + orderIndex;
+    this.kotCounter = 1000 + orderIndex;
+    this.billCounter = 5000 + orderIndex;
   }
 
   // Next identifiers
@@ -864,10 +1011,13 @@ class DatabaseStore {
     return order;
   }
 
-  updateOrderStatus(restaurantId: string, orderId: string, status: OrderStatus): Order | null {
+  updateOrderStatus(restaurantId: string, orderId: string, status: OrderStatus, rejectionReason?: string): Order | null {
     const order = this.orders.get(orderId);
     if (!order || order.restaurantId !== restaurantId) return null;
     order.status = status;
+    if (rejectionReason) {
+      order.rejectionReason = rejectionReason;
+    }
     order.updatedAt = new Date();
 
     if (status === 'ACCEPTED' && !order.kotGenerated) {
@@ -889,7 +1039,8 @@ class DatabaseStore {
         data: {
           status: order.status,
           kotGenerated: order.kotGenerated,
-          kotNumber: order.kotNumber
+          kotNumber: order.kotNumber,
+          rejectionReason: order.rejectionReason
         }
       }).catch(err => console.error('Prisma updateOrderStatus error:', err));
     }

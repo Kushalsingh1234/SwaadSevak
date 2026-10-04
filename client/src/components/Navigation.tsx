@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu as MenuIcon,
   X,
-  Store
+  Store,
+  TrendingUp
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
@@ -60,6 +61,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       icon: LayoutDashboard
     },
     {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: TrendingUp
+    },
+    {
       id: 'menu',
       label: 'Menu & Stock',
       icon: Store
@@ -74,9 +80,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   // Mobile Bottom Bar (5 quick touch items)
   const mobileBottomItems = [
     { id: 'orders', label: 'Orders', icon: UtensilsCrossed, badge: pendingOrdersCount > 0 ? pendingOrdersCount : null },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'menu', label: 'Menu', icon: Store },
-    { id: 'tables', label: 'Tables', icon: QrCode },
     { id: 'bills', label: 'Bills', icon: Receipt },
   ];
 

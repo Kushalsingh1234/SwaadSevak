@@ -83,6 +83,7 @@ export interface Order {
   kotGenerated: boolean;
   kotNumber?: string;
   billRequested: boolean;
+  rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date;
   items: OrderItem[];
@@ -149,3 +150,175 @@ export interface ExtractedMenuItem {
   tags: string[];
   confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
 }
+
+export interface AnalyticsQueryOptions {
+  range?: 'today' | 'yesterday' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'custom';
+  startDate?: string;
+  endDate?: string;
+  tz?: string;
+}
+
+export interface AnalyticsData {
+  period: {
+    key: string;
+    label: string;
+    startDate: string;
+    endDate: string;
+    comparisonStartDate: string;
+    comparisonEndDate: string;
+    comparisonLabel: string;
+  };
+  summary: {
+    totalSales: number;
+    previousSales: number;
+    salesChangePercent: number;
+
+    totalOrders: number;
+    previousOrders: number;
+    ordersChangePercent: number;
+
+    averageOrderValue: number;
+    previousAov: number;
+    aovChangePercent: number;
+
+    dineInSales: number;
+    previousDineInSales: number;
+    dineInSalesChangePercent: number;
+
+    onlineSales: number;
+    previousOnlineSales: number;
+    onlineSalesChangePercent: number;
+
+    rejectionRate: number;
+    previousRejectionRate: number;
+    rejectionRateChangeDiff: number;
+  };
+  executiveReport: {
+    headline: string;
+    bullets: string[];
+  };
+  salesTrend: {
+    granularity: 'hour' | 'day';
+    data: {
+      label: string;
+      fullDate: string;
+      timestamp: string;
+      sales: number;
+      orders: number;
+      dineInSales: number;
+      onlineSales: number;
+    }[];
+  };
+  channelBreakdown: {
+    channels: {
+      source: OrderSource;
+      displayName: string;
+      orders: number;
+      sales: number;
+      aov: number;
+      shareOfSales: number;
+      shareOfOrders: number;
+      hasData: boolean;
+      statusNote: string;
+    }[];
+    plainEnglishInsight: string;
+  };
+  onlineAnalytics: {
+    swiggy: {
+      orders: number;
+      sales: number;
+      aov: number;
+      rejected: number;
+      shareOfSales: number;
+      hasOrders: boolean;
+    };
+    zomato: {
+      orders: number;
+      sales: number;
+      aov: number;
+      rejected: number;
+      shareOfSales: number;
+      hasOrders: boolean;
+    };
+  };
+  itemPerformance: {
+    items: {
+      itemId: string;
+      name: string;
+      category: string;
+      quantitySold: number;
+      revenue: number;
+      averagePrice: number;
+      shareOfSales: number;
+      isVeg: boolean;
+      tags: string[];
+    }[];
+    mostSoldItem: { name: string; quantity: number; revenue: number } | null;
+    highestRevenueItem: { name: string; quantity: number; revenue: number } | null;
+  };
+  categoryPerformance: {
+    categoryId: string;
+    categoryName: string;
+    sales: number;
+    quantity: number;
+    shareOfSales: number;
+  }[];
+  peakHours: {
+    hourlyData: {
+      hour: number;
+      label: string;
+      orders: number;
+      sales: number;
+    }[];
+    busiestPeriodLabel: string;
+    busiestPeriodShare: number;
+  };
+  peakDays: {
+    dayData: {
+      dayIndex: number;
+      dayName: string;
+      sales: number;
+      orders: number;
+    }[];
+    bestDayName: string;
+    slowestDayName: string;
+  };
+  tablePerformance: {
+    tables: {
+      tableNumber: string;
+      orders: number;
+      sales: number;
+      aov: number;
+    }[];
+    mostActiveTable: string | null;
+  };
+  orderOutcomes: {
+    completed: number;
+    acceptedPreparing: number;
+    ready: number;
+    rejected: number;
+    completionRate: number;
+    rejectionRate: number;
+    rejectedReasons?: { reason: string; count: number }[];
+  };
+  insights: {
+    id: string;
+    type: 'positive' | 'warning' | 'channel' | 'timing' | 'menu';
+    title: string;
+    description: string;
+    priority: number;
+  }[];
+  exportOrders: {
+    date: string;
+    orderNumber: string;
+    source: string;
+    table: string;
+    status: string;
+    itemsSummary: string;
+    subtotal: number;
+    tax: number;
+    discount: number;
+    total: number;
+  }[];
+}
+

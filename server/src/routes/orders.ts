@@ -4,6 +4,7 @@ import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 import { emitOrderStatus } from '../realtime/socket.js';
 import { PrinterService } from '../printing/printerService.js';
 import { OrderStatus } from '../types/index.js';
+import { aggregatorManager } from '../aggregators/aggregatorManager.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -44,6 +45,46 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
 
   // Real-time broadcast to manager and table
   emitOrderStatus(restaurantId, updatedOrder.tableId, updatedOrder);
+
+  // Aggregator notification if order came from Swiggy or Zomato
+  if (updatedOrder.source === 'SWIGGY' || updatedOrder.source === 'ZOMATO') {
+    try {
+      const provider = aggregatorManager.getProvider(updatedOrder.source);
+      if (status === 'ACCEPTED') {
+        provider.acceptOrder(restaurantId, updatedOrder.orderNumber, 25);
+        aggregatorManager.logSyncEvent(
+          restaurantId,
+          updatedOrder.source,
+          'ACCEPT_ORDER',
+          'ORDER',
+          'SUCCESS',
+          `Accepted ${updatedOrder.source} order #${updatedOrder.orderNumber} (KOT dispatched)`
+        );
+      } else if (status === 'REJECTED') {
+        provider.rejectOrder(restaurantId, updatedOrder.orderNumber, rejectionReason || 'Kitchen rejected');
+        aggregatorManager.logSyncEvent(
+          restaurantId,
+          updatedOrder.source,
+          'REJECT_ORDER',
+          'ORDER',
+          'WARNING',
+          `Rejected ${updatedOrder.source} order #${updatedOrder.orderNumber} (${rejectionReason || 'No reason'})`
+        );
+      } else if (status === 'READY') {
+        provider.markOrderReady(restaurantId, updatedOrder.orderNumber);
+        aggregatorManager.logSyncEvent(
+          restaurantId,
+          updatedOrder.source,
+          'ORDER_READY',
+          'ORDER',
+          'SUCCESS',
+          `Marked ${updatedOrder.source} order #${updatedOrder.orderNumber} READY for pickup`
+        );
+      }
+    } catch (aggErr) {
+      console.warn('[OrdersRoute] Aggregator sync hook warning:', aggErr);
+    }
+  }
 
   // If order was accepted and KOT generated, also return KOT payload
   let kotData = null;

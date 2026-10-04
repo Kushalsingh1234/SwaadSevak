@@ -18,7 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',
@@ -157,5 +157,46 @@ export const api = {
     } catch {
       return false;
     }
-  }
+  },
+
+  // Aggregator Integration APIs
+  getAggregatorStatus: () => request('/aggregators/status'),
+  connectAggregator: (payload: { provider: string; outletId: string; outletName: string; apiKey?: string; merchantSecret?: string }) =>
+    request('/aggregators/connect', { method: 'POST', body: JSON.stringify(payload) }),
+  disconnectAggregator: (provider: string) =>
+    request('/aggregators/disconnect', { method: 'POST', body: JSON.stringify({ provider }) }),
+  getUnifiedAggregatorMenu: () => request('/aggregators/menu'),
+  syncAggregatorMenu: (channel?: 'SWIGGY' | 'ZOMATO' | 'ALL') =>
+    request('/aggregators/menu/sync', { method: 'POST', body: JSON.stringify({ channel }) }),
+  updateMenuItemOverride: (menuItemId: string, overrides: any) =>
+    request('/aggregators/menu/override', { method: 'PATCH', body: JSON.stringify({ menuItemId, overrides }) }),
+  bulkUpdateAggregatorPrices: (payload: {
+    itemIds?: string[];
+    channels: ('SWIGGY' | 'ZOMATO' | 'SWAAD_SEVAK')[];
+    adjustmentType: 'PERCENTAGE' | 'FIXED' | 'EXACT';
+    adjustmentValue: number;
+    rounding: 'NONE' | 'NEAREST_1' | 'NEAREST_5' | 'NEAREST_10';
+    previewOnly?: boolean;
+  }) => request('/aggregators/menu/bulk-price', { method: 'POST', body: JSON.stringify(payload) }),
+  bulkUpdateAggregatorStock: (payload: {
+    itemIds: string[];
+    channels: ('SWIGGY' | 'ZOMATO' | 'SWAAD_SEVAK')[];
+    isAvailable: boolean;
+  }) => request('/aggregators/menu/bulk-stock', { method: 'POST', body: JSON.stringify(payload) }),
+  updateAggregatorOutletStatus: (payload: {
+    status: 'OPEN' | 'PAUSED' | 'CLOSED';
+    pauseMinutes?: number;
+    reason?: string;
+    channels?: ('SWIGGY' | 'ZOMATO')[];
+  }) => request('/aggregators/outlet/status', { method: 'PATCH', body: JSON.stringify(payload) }),
+  updateAggregatorPrepTime: (prepTimeMinutes: number, channels?: ('SWIGGY' | 'ZOMATO')[]) =>
+    request('/aggregators/outlet/preptime', { method: 'PATCH', body: JSON.stringify({ prepTimeMinutes, channels }) }),
+  setAggregatorRushMode: (payload: { activate: boolean; prepTimeMinutes?: number; pauseZomato?: boolean }) =>
+    request('/aggregators/outlet/rush-mode', { method: 'POST', body: JSON.stringify(payload) }),
+  getAggregatorReconciliation: (period?: string) =>
+    request(`/aggregators/reconciliation${period ? `?period=${encodeURIComponent(period)}` : ''}`),
+  getAggregatorLogs: () => request('/aggregators/logs'),
+  simulateAggregatorOrder: (provider: 'SWIGGY' | 'ZOMATO') =>
+    request('/aggregators/simulate-order', { method: 'POST', body: JSON.stringify({ provider }) })
 };
+

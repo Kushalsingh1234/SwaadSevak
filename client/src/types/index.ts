@@ -320,3 +320,89 @@ export interface AnalyticsData {
   }[];
 }
 
+// Aggregator Module Types
+export type AggregatorProviderId = 'SWIGGY' | 'ZOMATO' | 'MOCK';
+export type AggregatorConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'ERROR' | 'SYNCING';
+export type ChannelSyncStatus = 'SYNCED' | 'PENDING' | 'FAILED' | 'NEEDS_REVIEW' | 'NOT_MAPPED';
+
+export interface AggregatorConnection {
+  id: string;
+  restaurantId: string;
+  provider: AggregatorProviderId;
+  outletId: string;
+  outletName: string;
+  status: AggregatorConnectionStatus;
+  isOnline: boolean;
+  pausedUntil?: string | null;
+  prepTimeMinutes: number;
+  rushMode: boolean;
+  menuSynced: boolean;
+  ordersConnected: boolean;
+  lastSyncAt?: string | null;
+  lastOrderAt?: string | null;
+  lastSuccessfulEvent?: string | null;
+  errorMessage?: string | null;
+  updatedAt: string;
+}
+
+export interface MenuItemChannelConfig {
+  enabled: boolean;
+  price?: number;
+  customName?: string;
+  customDescription?: string;
+  customImage?: string;
+  isAvailable: boolean;
+  syncStatus: ChannelSyncStatus;
+  lastSyncAt?: string;
+  syncMessage?: string;
+}
+
+export interface MenuItemChannelOverrides {
+  menuItemId: string;
+  priceMode: 'SAME_EVERYWHERE' | 'SEPARATE_CHANNELS';
+  swiggy: MenuItemChannelConfig;
+  zomato: MenuItemChannelConfig;
+}
+
+export interface UnifiedMenuItem extends MenuItem {
+  channelOverrides?: MenuItemChannelOverrides;
+}
+
+export interface AggregatorSyncLog {
+  id: string;
+  restaurantId: string;
+  provider: AggregatorProviderId | 'ALL';
+  action: string;
+  entityType: 'MENU' | 'PRICE' | 'AVAILABILITY' | 'OUTLET_STATUS' | 'ORDER' | 'PREP_TIME';
+  status: 'SUCCESS' | 'WARNING' | 'FAILED';
+  summary: string;
+  details?: any;
+  timestamp: string;
+}
+
+export interface AggregatorReconciliationSummary {
+  provider: AggregatorProviderId;
+  period: string;
+  grossOrdersCount: number;
+  grossSales: number;
+  packagingCharges: number;
+  taxesCollected: number;
+  platformCommission: number;
+  discountsTotal: number;
+  restaurantFundedDiscounts: number;
+  otherDeductions: number;
+  expectedSettlement: number;
+  actualSettlement: number;
+  difference: number;
+  status: 'MATCHED' | 'MISMATCH';
+}
+
+export interface KitchenIntelligence {
+  loadScore: number;
+  activeOrdersCount: number;
+  pendingOrdersCount: number;
+  recommendedPrepTime: number;
+  statusLabel: 'HIGH_LOAD' | 'MODERATE' | 'NORMAL';
+}
+
+

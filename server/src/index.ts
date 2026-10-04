@@ -11,6 +11,8 @@ import printerRoutes from './routes/printer.js';
 import statsRoutes from './routes/stats.js';
 import publicRoutes from './routes/public.js';
 import analyticsRoutes from './routes/analytics.js';
+import aggregatorsRoutes from './routes/aggregators.js';
+import webhooksRoutes from './routes/webhooks.js';
 import { initializeSocket } from './realtime/socket.js';
 
 dotenv.config();
@@ -41,6 +43,8 @@ app.use('/api/printer', printerRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/aggregators', aggregatorsRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 
 // Health check endpoints (for uptime monitors like cron-job.org / UptimeRobot and pre-warming)
 const handleHealth = (req: express.Request, res: express.Response) => {

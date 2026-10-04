@@ -10,6 +10,7 @@ import { TablesManagementPage } from './pages/TablesManagementPage';
 import { BillsManagementPage } from './pages/BillsManagementPage';
 import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
@@ -562,6 +563,16 @@ export function App() {
             onUpdateOrderStatus={handleUpdateOrderStatus}
             onRefreshOrders={refreshAllData}
             printerConfig={printerConfig}
+          />
+        )}
+
+        {currentTab === 'aggregators' && (
+          <AggregatorHubPage
+            restaurant={restaurant}
+            manager={manager}
+            orders={orders}
+            onRefreshOrders={refreshAllData}
+            onNavigateTab={handleTabChange}
           />
         )}
 

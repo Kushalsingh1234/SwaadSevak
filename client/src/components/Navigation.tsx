@@ -9,7 +9,8 @@ import {
   Menu as MenuIcon,
   X,
   Store,
-  TrendingUp
+  TrendingUp,
+  Layers
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
@@ -41,6 +42,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       icon: UtensilsCrossed,
       badge: pendingOrdersCount > 0 ? pendingOrdersCount : null,
       urgent: pendingOrdersCount > 0
+    },
+    {
+      id: 'aggregators',
+      label: 'Aggregator Hub',
+      icon: Layers,
+      badge: 'Swiggy+Zomato'
     },
     {
       id: 'tables',

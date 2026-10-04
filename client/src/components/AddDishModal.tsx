@@ -278,6 +278,25 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
             />
           </div>
 
+          {/* Aggregator Channel Publishing */}
+          <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100">
+            <span className="block text-[11px] font-bold text-gray-800 mb-1.5">Publish to Channels:</span>
+            <div className="flex flex-wrap gap-4 text-xs">
+              <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
+                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <span>Swaad Sevak (Dine-In QR)</span>
+              </label>
+              <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
+                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <span className="text-[#FC8019] font-bold">Swiggy</span>
+              </label>
+              <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
+                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <span className="text-[#E23744] font-bold">Zomato</span>
+              </label>
+            </div>
+          </div>
+
           <div className="pt-2 flex items-center justify-end gap-3">
             <button
               type="button"

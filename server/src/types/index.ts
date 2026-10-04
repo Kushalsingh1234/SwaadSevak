@@ -55,7 +55,7 @@ export interface Table {
 }
 
 export type OrderSource = 'DINE_IN' | 'SWIGGY' | 'ZOMATO' | 'OTHER';
-export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'REJECTED';
+export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'SERVED' | 'COMPLETED' | 'REJECTED';
 
 export interface OrderItem {
   id: string;
@@ -66,6 +66,20 @@ export interface OrderItem {
   quantity: number;
   portion?: string;
   notes?: string;
+}
+
+export interface OrderAddition {
+  id: string;
+  orderId: string;
+  additionNumber?: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  rejectionReason?: string;
+  customerNotes?: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  createdAt: Date;
+  items: OrderItem[];
 }
 
 export interface Order {
@@ -84,6 +98,7 @@ export interface Order {
   kotNumber?: string;
   billRequested: boolean;
   rejectionReason?: string;
+  additions?: OrderAddition[];
   createdAt: Date;
   updatedAt: Date;
   items: OrderItem[];

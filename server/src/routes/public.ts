@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { emitNewOrder, emitBillRequested } from '../realtime/socket.js';
+import { emitNewOrder, emitBillRequested, emitOrderAddition } from '../realtime/socket.js';
 import { OrderItem } from '../types/index.js';
 
 const router = Router();
@@ -116,6 +116,34 @@ router.post('/order', (req: Request, res: Response) => {
   const tax = Math.round(subtotal * 0.05 * 100) / 100;
   const total = Math.round((subtotal + tax) * 100) / 100;
 
+  // Check if this table already has an active order in progress
+  const activeOrder = db.getActiveOrderByTable(restaurant.id, table.id);
+
+  if (activeOrder) {
+    // Attach additional items directly to the existing order card
+    const additionResult = db.addOrderAddition(restaurant.id, activeOrder.id, {
+      customerNotes: customerNotes ? String(customerNotes).trim() : undefined,
+      subtotal,
+      tax,
+      total,
+      items: verifiedItems
+    });
+
+    if (additionResult) {
+      // Real-time broadcast to manager dashboard
+      emitOrderAddition(restaurant.id, additionResult.order, additionResult.addition);
+
+      return res.status(201).json({
+        success: true,
+        isAddition: true,
+        message: 'New dishes added to your table order! Sent to kitchen.',
+        order: additionResult.order,
+        addition: additionResult.addition
+      });
+    }
+  }
+
+  // If no existing active order, create a new primary order
   const order = db.createOrder({
     restaurantId: restaurant.id,
     tableId: table.id,
@@ -139,6 +167,7 @@ router.post('/order', (req: Request, res: Response) => {
 
   return res.status(201).json({
     success: true,
+    isAddition: false,
     message: 'Your order has been sent to the kitchen!',
     order
   });

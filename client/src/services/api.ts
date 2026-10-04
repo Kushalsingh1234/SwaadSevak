@@ -93,8 +93,10 @@ export const api = {
     const query = new URLSearchParams(params as any).toString();
     return request<any>(`/orders${query ? `?${query}` : ''}`);
   },
-  updateOrderStatus: (id: string, status: string) => request<any>(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateOrderStatus: (id: string, status: string, rejectionReason?: string) => request<any>(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, rejectionReason }) }),
   getOrderKot: (id: string) => request<any>(`/orders/${id}/kot`),
+  acceptOrderAddition: (orderId: string, additionId: string) => request<any>(`/orders/${orderId}/additions/${additionId}/accept`, { method: 'PATCH' }),
+  rejectOrderAddition: (orderId: string, additionId: string, reason?: string) => request<any>(`/orders/${orderId}/additions/${additionId}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
 
   // Bills
   getBills: () => request<any>('/bills'),

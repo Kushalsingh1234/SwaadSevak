@@ -59,6 +59,14 @@ export function emitOrderStatus(restaurantId: string, tableId: string, order: Or
   }
 }
 
+export function emitOrderAddition(restaurantId: string, order: Order, addition: any) {
+  if (ioInstance) {
+    ioInstance.to(`restaurant_${restaurantId}`).emit('order:addition_added', { order, addition });
+    ioInstance.emit(`order:addition_added_${restaurantId}`, { order, addition });
+    ioInstance.to(`table_${restaurantId}_${order.tableId}`).emit('order:status_updated', order);
+  }
+}
+
 export function emitBillRequested(restaurantId: string, tableId: string, order: Order) {
   if (ioInstance) {
     const payload = {

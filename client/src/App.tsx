@@ -91,15 +91,19 @@ export function App() {
   }, []);
 
   const pendingCount = orders.filter(o => o.status === 'PENDING').length;
+  const pendingAdditionsCount = orders.reduce((sum, o) => {
+    return sum + (o.additions?.filter(a => a.status === 'PENDING').length || 0);
+  }, 0);
+  const totalNeedsAttentionCount = pendingCount + pendingAdditionsCount;
 
   // Global continuous sound alert: rings continuously on any tab and in background Chrome tabs
   useEffect(() => {
-    if (authView === 'APP' && pendingCount > 0) {
+    if (authView === 'APP' && totalNeedsAttentionCount > 0) {
       soundManager.startPendingLoop();
     } else {
       soundManager.stopPendingLoop();
     }
-  }, [pendingCount, authView]);
+  }, [totalNeedsAttentionCount, authView]);
 
   const loadInitialData = async (retryCount = 0) => {
     try {
@@ -211,10 +215,17 @@ export function App() {
       setBills(prev => [newBill, ...prev.filter(b => b.id !== newBill.id)]);
     };
 
+    const handleAdditionAdded = (data: { order: Order; addition: any }) => {
+      setOrders(prev => prev.map(o => o.id === data.order.id ? data.order : o));
+      soundManager.playTing(1174.66, 0.5);
+    };
+
     socket.on('order:new', handleNewOrder);
     socket.on(`order:new_${restaurant.id}`, handleNewOrder);
     socket.on('order:status_updated', handleStatusUpdate);
     socket.on(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
+    socket.on('order:addition_added', handleAdditionAdded);
+    socket.on(`order:addition_added_${restaurant.id}`, handleAdditionAdded);
     socket.on('bill:requested', handleBillRequested);
     socket.on(`bill:requested_${restaurant.id}`, handleBillRequested);
     socket.on('bill:generated', handleBillGenerated);
@@ -243,6 +254,8 @@ export function App() {
       socket.off(`order:new_${restaurant.id}`, handleNewOrder);
       socket.off('order:status_updated', handleStatusUpdate);
       socket.off(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
+      socket.off('order:addition_added', handleAdditionAdded);
+      socket.off(`order:addition_added_${restaurant.id}`, handleAdditionAdded);
       socket.off('bill:requested', handleBillRequested);
       socket.off(`bill:requested_${restaurant.id}`, handleBillRequested);
       socket.off('bill:generated', handleBillGenerated);
@@ -512,7 +525,7 @@ export function App() {
         restaurant={restaurant}
         manager={manager}
         onLogout={handleLogout}
-        pendingOrdersCount={pendingCount}
+        pendingOrdersCount={totalNeedsAttentionCount}
       />
 
       {/* Main Content Area */}

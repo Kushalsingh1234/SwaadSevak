@@ -133,10 +133,19 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     };
     socket.on('connect', handleConnect);
 
+    // 4. Order addition added
+    const handleAdditionAdded = (data: { order: any; addition: any }) => {
+      if (data?.order?.tableId === table.id) {
+        setActiveOrder(data.order);
+      }
+    };
+
     socket.on('menu:stock_updated', handleStockUpdate);
     socket.on(`menu:stock_updated_${restaurant.id}`, handleStockUpdate);
     socket.on('order:status_updated', handleOrderStatus);
     socket.on(`order:status_updated_${restaurant.id}`, handleOrderStatus);
+    socket.on('order:addition_added', handleAdditionAdded);
+    socket.on(`order:addition_added_${restaurant.id}`, handleAdditionAdded);
     socket.on('bill:generated', handleBillGenerated);
     socket.on(`bill:generated_${restaurant.id}`, handleBillGenerated);
 
@@ -146,6 +155,8 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
       socket.off(`menu:stock_updated_${restaurant.id}`, handleStockUpdate);
       socket.off('order:status_updated', handleOrderStatus);
       socket.off(`order:status_updated_${restaurant.id}`, handleOrderStatus);
+      socket.off('order:addition_added', handleAdditionAdded);
+      socket.off(`order:addition_added_${restaurant.id}`, handleAdditionAdded);
       socket.off('bill:generated', handleBillGenerated);
       socket.off(`bill:generated_${restaurant.id}`, handleBillGenerated);
     };
@@ -371,6 +382,12 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                 </span>
               )}
               {activeOrder.status === 'READY' && (
+                <span className="flex items-center gap-1.5 text-blue-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  Ready to Serve
+                </span>
+              )}
+              {activeOrder.status === 'SERVED' && (
                 <span className="flex items-center gap-1.5 text-emerald-600">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Food Served
@@ -389,9 +406,27 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             {activeOrder.status === 'PENDING' && 'Your order is waiting for manager confirmation.'}
             {activeOrder.status === 'ACCEPTED' && 'Confirmed! The kitchen is preparing your dishes.'}
             {activeOrder.status === 'PREPARING' && 'Freshly cooking on the station.'}
-            {activeOrder.status === 'READY' && 'Your food is served at your table! Enjoy your meal.'}
+            {activeOrder.status === 'READY' && 'Your dishes are plated and being brought to your table.'}
+            {activeOrder.status === 'SERVED' && 'Food is served! Enjoy your meal. Feel free to add more items from the menu below anytime.'}
             {activeOrder.status === 'COMPLETED' && 'Bill settled. Thank you for dining with us!'}
           </p>
+
+          {/* Pending Add-on Banner for Customer */}
+          {activeOrder.additions && activeOrder.additions.some((a: any) => a.status === 'PENDING') && (
+            <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                <span>New items added! Waiting for kitchen confirmation...</span>
+              </span>
+            </div>
+          )}
+
+          {/* Declined Add-on Notification for Customer */}
+          {activeOrder.additions && activeOrder.additions.some((a: any) => a.status === 'REJECTED') && (
+            <div className="mt-2 p-2 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800">
+              <span className="font-semibold">Note:</span> A requested item was unavailable. Your main order is continuing normally!
+            </div>
+          )}
 
           <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
             <span className="text-gray-500 font-medium">

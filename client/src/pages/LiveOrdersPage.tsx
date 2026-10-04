@@ -16,10 +16,14 @@ import {
   PanelRightClose,
   PanelRightOpen,
   AlertTriangle,
-  FileText
+  FileText,
+  Bell,
+  Sparkles
 } from 'lucide-react';
 import { Order, Restaurant, Manager, PrinterConfig, Bill } from '../types';
 import { api } from '../services/api';
+import { getSocket } from '../services/socket';
+import { soundManager } from '../utils/sound';
 import { SoundBanner } from '../components/SoundBanner';
 import { KotModal } from '../components/KotModal';
 import { InvoiceModal } from '../components/InvoiceModal';
@@ -32,6 +36,17 @@ interface LiveOrdersPageProps {
   onUpdateOrderStatus: (orderId: string, status: string) => Promise<void>;
   onRefreshOrders: () => void;
   printerConfig?: PrinterConfig;
+}
+
+interface AdditionToast {
+  id: string;
+  orderId: string;
+  additionId: string;
+  tableNumber: string;
+  additionNumber: string;
+  itemSummary: string;
+  total: number;
+  time: string;
 }
 
 export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
@@ -48,6 +63,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
   const [activeBill, setActiveBill] = useState<Bill | null>(null);
   const [settleOrder, setSettleOrder] = useState<Order | null>(null);
+  const [processingAdditionId, setProcessingAdditionId] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<AdditionToast[]>([]);
 
   // Completed / Settled Orders Right Drawer
   const [isSettledDrawerOpen, setIsSettledDrawerOpen] = useState(false);
@@ -63,6 +80,69 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   const getElapsedMins = (createdAt: Date | string) => {
     const elapsed = Math.floor((now - new Date(createdAt).getTime()) / 60000);
     return Math.max(0, elapsed);
+  };
+
+  // Real-time socket listener for table add-on alerts
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const socket = getSocket();
+
+    const handleAddition = (data: { order: Order; addition: any }) => {
+      const { order, addition } = data;
+      const itemSummary = addition.items?.map((i: any) => `${i.quantity}× ${i.name}`).join(', ') || 'Additional items';
+      const newToast: AdditionToast = {
+        id: `toast_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        orderId: order.id,
+        additionId: addition.id,
+        tableNumber: order.tableNumber || 'Counter',
+        additionNumber: addition.additionNumber || 'New Table Add-on',
+        itemSummary,
+        total: addition.total,
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      };
+      setToasts(prev => [newToast, ...prev.slice(0, 3)]);
+    };
+
+    socket.on('order:addition_added', handleAddition);
+    socket.on(`order:addition_added_${restaurant.id}`, handleAddition);
+
+    return () => {
+      socket.off('order:addition_added', handleAddition);
+      socket.off(`order:addition_added_${restaurant.id}`, handleAddition);
+    };
+  }, [restaurant?.id]);
+
+  const dismissToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleAcceptAddition = async (orderId: string, additionId: string) => {
+    try {
+      setProcessingAdditionId(additionId);
+      const res = await api.acceptOrderAddition(orderId, additionId);
+      if (res.success) {
+        soundManager.playTing(880, 0.4);
+        onRefreshOrders();
+      }
+    } catch (e) {
+      console.error('Failed to accept addition:', e);
+    } finally {
+      setProcessingAdditionId(null);
+    }
+  };
+
+  const handleRejectAddition = async (orderId: string, additionId: string) => {
+    try {
+      setProcessingAdditionId(additionId);
+      const res = await api.rejectOrderAddition(orderId, additionId, 'Item unavailable at the moment');
+      if (res.success) {
+        onRefreshOrders();
+      }
+    } catch (e) {
+      console.error('Failed to reject addition:', e);
+    } finally {
+      setProcessingAdditionId(null);
+    }
   };
 
   const handleSettleBill = async (orderId: string, paymentStatus: 'PAID_UPI' | 'PAID_CASH' | 'PAID_CARD') => {
@@ -118,15 +198,22 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
     const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.tableNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.items.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      order.items.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (order.additions && order.additions.some(a => a.items.some(ai => ai.name.toLowerCase().includes(searchQuery.toLowerCase()))));
     return matchesSource && matchesSearch;
   });
 
-  // Pipeline Stages
+  // Pipeline Stages (Decoupled: PENDING -> PREPARING -> READY -> SERVED -> COMPLETED)
   const pendingOrders = filteredOrders.filter(o => o.status === 'PENDING');
   const preparingOrders = filteredOrders.filter(o => o.status === 'ACCEPTED' || o.status === 'PREPARING');
   const readyOrders = filteredOrders.filter(o => o.status === 'READY');
+  const servedOrders = filteredOrders.filter(o => o.status === 'SERVED');
   const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+
+  // Count pending additions waiting for confirmation across live orders
+  const pendingAdditionsCount = filteredOrders.reduce((sum, o) => {
+    return sum + (o.additions?.filter(a => a.status === 'PENDING').length || 0);
+  }, 0);
 
   // Completed drawer search
   const filteredCompletedOrders = completedOrders.filter(o =>
@@ -138,7 +225,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   // Today's Sales Calculation
   const todaySales = completedOrders.reduce((acc, curr) => acc + (curr.total || 0), 0);
 
-  // Primary 3 Live Kitchen Stages (Settled is cleanly housed in the drawer)
+  // 4 Live Kitchen & Floor Stages
   const liveColumns = [
     {
       id: 'PENDING',
@@ -160,22 +247,33 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-900',
       emptyIcon: Flame,
       emptyTitle: 'Kitchen is all clear',
-      emptySubtitle: 'Accepted orders move here so chefs can track prep time.'
+      emptySubtitle: 'Accepted orders and add-on items cook here so chefs track prep time.'
     },
     {
       id: 'READY',
       label: 'Ready to Serve',
       count: readyOrders.length,
       items: readyOrders,
-      dotColor: 'bg-cardamom',
-      badgeBg: 'bg-cardamom-50 border-cardamom-100 text-cardamom-700',
+      dotColor: 'bg-blue-500',
+      badgeBg: 'bg-blue-50 border-blue-200 text-blue-900',
       emptyIcon: CheckCircle2,
       emptyTitle: 'No orders waiting',
-      emptySubtitle: 'Food marked ready will appear here for waitstaff to serve.'
+      emptySubtitle: 'Plated food ready for waitstaff to serve to tables.'
+    },
+    {
+      id: 'SERVED',
+      label: 'Served / Dining',
+      count: servedOrders.length,
+      items: servedOrders,
+      dotColor: 'bg-cardamom',
+      badgeBg: 'bg-cardamom-50 border-cardamom-100 text-cardamom-700',
+      emptyIcon: UtensilsCrossed,
+      emptyTitle: 'No active dining tables',
+      emptySubtitle: 'Tables currently dining. Settle bill when guests finish their meal.'
     }
   ];
 
-  const [mobileTab, setMobileTab] = useState<'PENDING' | 'PREPARING' | 'READY'>('PENDING');
+  const [mobileTab, setMobileTab] = useState<'PENDING' | 'PREPARING' | 'READY' | 'SERVED'>('PENDING');
 
   return (
     <div className="flex flex-col h-full space-y-3 flex-1 min-h-0 relative">
@@ -188,7 +286,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               <span className="w-2 h-2 rounded-full bg-cardamom animate-pulse" title="Socket Connected" />
             </h1>
             <p className="text-xs text-[var(--muted)]">
-              {restaurant?.name || 'Restaurant'} • Real-Time Order Flow
+              {restaurant?.name || 'Restaurant'} • Real-Time Order Flow & Dining Tables
             </p>
           </div>
 
@@ -202,16 +300,23 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
               <span>{preparingOrders.length} Cooking</span>
             </div>
+            <div className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span>{readyOrders.length} Ready</span>
+            </div>
             <div className="px-2.5 py-1 rounded-lg bg-cardamom-50 border border-cardamom-100 text-cardamom font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cardamom" />
-              <span>{readyOrders.length} Ready</span>
+              <span>{servedOrders.length} Dining</span>
             </div>
           </div>
         </div>
 
         {/* Right Actions: Sound Banner & Settled Drawer Toggle */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <SoundBanner pendingCount={pendingOrders.length} />
+          <SoundBanner
+            pendingCount={pendingOrders.length}
+            pendingAdditionsCount={pendingAdditionsCount}
+          />
 
           {/* Collapsible Settled Drawer Toggle */}
           <button
@@ -234,10 +339,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         {/* Source Channels: All, Dine-In, Swiggy, Zomato */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {[
-            { id: 'ALL', label: 'All Orders', count: orders.filter(o => o.status !== 'COMPLETED').length },
-            { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED').length },
-            { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED').length },
-            { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED').length },
+            { id: 'ALL', label: 'All Orders', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
+            { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
+            { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
+            { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
           ].map(tab => (
             <button
               key={tab.id}
@@ -273,8 +378,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         </div>
       </div>
 
-      {/* Mobile Stage Selector Tabs (For narrow mobile portrait view) */}
-      <div className="shrink-0 flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+      {/* Mobile Stage Selector Tabs */}
+      <div className="shrink-0 flex xl:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
         {liveColumns.map(col => (
           <button
             key={col.id}
@@ -296,14 +401,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         ))}
       </div>
 
-      {/* 3-Column Live Kitchen Board (Hero of the Kitchen OS) */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-3.5 items-stretch pb-1">
+      {/* 4-Column Live Kitchen & Floor Board */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-stretch pb-1">
         {liveColumns.map(col => {
           const isMobileVisible = mobileTab === col.id;
           return (
             <div
               key={col.id}
-              className={`${isMobileVisible ? 'flex' : 'hidden md:flex'} bg-stone-100/70 rounded-xl p-3 border border-stone-200/80 flex-col h-full min-h-0 overflow-hidden`}
+              className={`${isMobileVisible ? 'flex' : 'hidden xl:flex'} bg-stone-100/70 rounded-xl p-3 border border-stone-200/80 flex-col h-full min-h-0 overflow-hidden`}
             >
               {/* Column Header (Pinned) */}
               <div className="shrink-0 flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200">
@@ -331,6 +436,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                 ) : (
                   col.items.map(order => {
                     const isPending = order.status === 'PENDING';
+                    const hasPendingAdditions = order.additions && order.additions.some(a => a.status === 'PENDING');
                     const elapsedMins = getElapsedMins(order.createdAt);
                     const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
@@ -346,8 +452,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                       <div
                         key={order.id}
                         className={`bg-white rounded-xl border p-3.5 shadow-xs transition-all ${
-                          isPending
-                            ? 'border-amber-300 ring-2 ring-amber-400/40 animate-ring-pulse'
+                          hasPendingAdditions
+                            ? 'border-amber-400 ring-2 ring-amber-400/40'
+                            : isPending
+                            ? 'border-amber-300 ring-2 ring-amber-400/30'
                             : 'border-stone-200/90 hover:border-stone-300'
                         }`}
                       >
@@ -391,7 +499,97 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                           </div>
                         </div>
 
-                        {/* Order Items */}
+                        {/* SERVED State Indicator */}
+                        {order.status === 'SERVED' && (
+                          <div className="my-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 font-semibold">
+                              <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Food Served • Table Dining</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 bg-white px-1.5 py-0.5 rounded font-medium border border-emerald-200">
+                              Can add dishes
+                            </span>
+                          </div>
+                        )}
+
+                        {/* PENDING TABLE ADD-ON BANNER (Consolidated right on top of same card) */}
+                        {order.additions && order.additions.filter(a => a.status === 'PENDING').map(addition => (
+                          <div
+                            key={addition.id}
+                            className="my-2.5 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 shadow-sm"
+                          >
+                            <div className="flex items-center justify-between pb-1.5 border-b border-amber-200/80">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
+                                  <span>🔔 {addition.additionNumber || 'New Table Add-on'}</span>
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 uppercase tracking-wider">
+                                Action Required
+                              </span>
+                            </div>
+
+                            {/* Add-on Items list */}
+                            <div className="py-2 divide-y divide-amber-200/50 text-xs">
+                              {addition.items.map((item, idx) => (
+                                <div key={idx} className="py-1 flex items-baseline justify-between gap-2">
+                                  <div className="text-amber-950 font-medium">
+                                    <span className="font-bold text-amber-900 mr-1.5">{item.quantity} ×</span>
+                                    <span>{item.name}</span>
+                                    {item.portion && (
+                                      <span className="text-[10px] text-amber-700 ml-1">({item.portion})</span>
+                                    )}
+                                    {item.notes && (
+                                      <div className="text-[10px] text-amber-800 italic pl-3 mt-0.5">
+                                        Note: {item.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-amber-950 font-semibold tabular-nums shrink-0">
+                                    ₹{item.price * item.quantity}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {addition.customerNotes && (
+                              <div className="text-[10px] text-amber-800 bg-amber-100/60 p-1.5 rounded mb-2">
+                                <span className="font-bold">Guest Note:</span> {addition.customerNotes}
+                              </div>
+                            )}
+
+                            {/* Independent Add-on Decision Actions */}
+                            <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between gap-2">
+                              <div>
+                                <span className="text-[10px] text-amber-700 block">Add-on Total</span>
+                                <span className="text-xs font-bold text-amber-950 tabular-nums">+₹{addition.total?.toFixed(0)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectAddition(order.id, addition.id)}
+                                  disabled={processingAdditionId === addition.id}
+                                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:text-rose-800 transition-colors border border-rose-300 bg-white"
+                                  title="Reject only this addition. Existing order will remain active!"
+                                >
+                                  Reject Addition
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAcceptAddition(order.id, addition.id)}
+                                  disabled={processingAdditionId === addition.id}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Accept Addition</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Order Base Items */}
                         <div className="py-2.5 divide-y divide-stone-100 text-xs">
                           {order.items.map((item, idx) => (
                             <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
@@ -414,6 +612,20 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                           ))}
                         </div>
 
+                        {/* Accepted Additions History if any */}
+                        {order.additions && order.additions.some(a => a.status !== 'PENDING') && (
+                          <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-[11px] text-slate-600 flex items-center justify-between">
+                            <span>
+                              {order.additions.filter(a => a.status === 'ACCEPTED').length} add-on round(s) merged
+                            </span>
+                            {order.additions.some(a => a.status === 'REJECTED') && (
+                              <span className="text-rose-600 text-[10px] font-semibold">
+                                ({order.additions.filter(a => a.status === 'REJECTED').length} declined)
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Customer / Table Notes */}
                         {order.customerNotes && (
                           <div className="mb-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-1.5">
@@ -435,7 +647,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                           </div>
                         )}
 
-                        {/* Card Footer: Total Price & 1-Tap Primary Action */}
+                        {/* Card Footer: Total Price & Stage-Specific Actions */}
                         <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
                           <div>
                             <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
@@ -482,7 +694,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               </>
                             )}
 
-                            {/* READY State Actions */}
+                            {/* READY State Actions: Mark as Served (decoupled from bill settlement) */}
                             {order.status === 'READY' && (
                               <>
                                 <button
@@ -493,11 +705,32 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                   <Printer className="w-4 h-4 text-slate-500" />
                                 </button>
                                 <button
+                                  onClick={() => onUpdateOrderStatus(order.id, 'SERVED')}
+                                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                >
+                                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                                  <span>Mark as Served</span>
+                                </button>
+                              </>
+                            )}
+
+                            {/* SERVED State Actions: Settle Bill (removes card permanently on settlement) */}
+                            {order.status === 'SERVED' && (
+                              <>
+                                <button
+                                  onClick={() => handleOpenInvoice(order)}
+                                  className="min-h-[40px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-700 hover:bg-stone-50 text-xs font-semibold flex items-center gap-1 transition-colors"
+                                  title="View Invoice / Bill"
+                                >
+                                  <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                                  <span className="hidden sm:inline">Receipt</span>
+                                </button>
+                                <button
                                   onClick={() => setSettleOrder(order)}
                                   className="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                                 >
                                   <Check className="w-3.5 h-3.5" />
-                                  <span>Serve & Settle</span>
+                                  <span>Settle Bill</span>
                                 </button>
                               </>
                             )}
@@ -513,7 +746,61 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         })}
       </div>
 
-      {/* Settled Orders Right Drawer (Cleanly separated from active cooking workflow) */}
+      {/* Floating Toast Notification Stack for New Table Add-ons */}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
+          {toasts.map(toast => (
+            <div
+              key={toast.id}
+              className="pointer-events-auto bg-slate-900 text-white p-3.5 rounded-xl shadow-2xl border border-slate-700 flex items-start gap-3 animate-slide-up"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <Bell className="w-4 h-4 animate-bounce" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-bold text-xs text-amber-300">
+                    Table {toast.tableNumber} added items!
+                  </span>
+                  <button
+                    onClick={() => dismissToast(toast.id)}
+                    className="text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <p className="text-xs text-slate-200 mt-1 line-clamp-2">
+                  {toast.itemSummary}
+                </p>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-amber-400 font-bold tabular-nums">
+                    +₹{toast.total}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={async () => {
+                        dismissToast(toast.id);
+                        await handleAcceptAddition(toast.orderId, toast.additionId);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-xs transition-colors"
+                    >
+                      Accept Add-on
+                    </button>
+                    <button
+                      onClick={() => dismissToast(toast.id)}
+                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Settled Orders Right Drawer (Cleanly separated from active floor workflow) */}
       {isSettledDrawerOpen && (
         <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-96 bg-white border-l border-stone-200 shadow-xl flex flex-col">
           {/* Drawer Header */}
@@ -583,7 +870,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                       onClick={() => handleOpenInvoice(order)}
                       className="px-2.5 py-1 rounded-lg bg-white border border-stone-200 text-slate-700 hover:bg-stone-50 text-[11px] font-semibold flex items-center gap-1"
                     >
-                      <Receipt className="w-3 h-3 text-slate-500" />
+                      <Receipt className="w-3.5 h-3.5 text-slate-500" />
                       <span>Receipt</span>
                     </button>
                   </div>

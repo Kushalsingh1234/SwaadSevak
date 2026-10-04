@@ -12,7 +12,8 @@ import {
   Bill,
   PrinterConfig,
   OrderStatus,
-  OrderSource
+  OrderSource,
+  OrderAddition
 } from '../types/index.js';
 
 class DatabaseStore {
@@ -169,6 +170,13 @@ class DatabaseStore {
 
         const table = this.tables.get(ord.tableId);
 
+        let additions: any[] = [];
+        try {
+          additions = ord.additions ? JSON.parse(ord.additions) : [];
+        } catch {
+          additions = [];
+        }
+
         this.orders.set(ord.id, {
           id: ord.id,
           restaurantId: r.id,
@@ -184,6 +192,8 @@ class DatabaseStore {
           kotGenerated: ord.kotGenerated,
           kotNumber: ord.kotNumber || undefined,
           billRequested: ord.billRequested,
+          rejectionReason: ord.rejectionReason || undefined,
+          additions,
           createdAt: ord.createdAt,
           updatedAt: ord.updatedAt,
           items: orderItems
@@ -958,6 +968,146 @@ class DatabaseStore {
     return undefined;
   }
 
+  getActiveOrderByTable(restaurantId: string, tableId: string): Order | undefined {
+    for (const ord of this.orders.values()) {
+      if (
+        ord.restaurantId === restaurantId &&
+        ord.tableId === tableId &&
+        ord.status !== 'COMPLETED' &&
+        ord.status !== 'REJECTED'
+      ) {
+        return ord;
+      }
+    }
+    return undefined;
+  }
+
+  addOrderAddition(
+    restaurantId: string,
+    orderId: string,
+    data: { customerNotes?: string; subtotal: number; tax: number; total: number; items: OrderItem[] }
+  ): { order: Order; addition: OrderAddition } | null {
+    const order = this.getOrder(restaurantId, orderId);
+    if (!order) return null;
+
+    if (!order.additions) order.additions = [];
+    const additionId = `add_${crypto.randomUUID()}`;
+    const additionNumber = `Add-on #${order.additions.length + 1}`;
+
+    const addition: OrderAddition = {
+      id: additionId,
+      orderId: order.id,
+      additionNumber,
+      status: 'PENDING',
+      customerNotes: data.customerNotes,
+      subtotal: data.subtotal,
+      tax: data.tax,
+      total: data.total,
+      createdAt: new Date(),
+      items: data.items.map(it => ({ ...it, orderId: order.id }))
+    };
+
+    order.additions.push(addition);
+    order.updatedAt = new Date();
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.update({
+        where: { id: orderId },
+        data: {
+          additions: JSON.stringify(order.additions)
+        }
+      }).catch(err => console.error('Prisma addOrderAddition error:', err));
+    }
+
+    return { order, addition };
+  }
+
+  acceptOrderAddition(
+    restaurantId: string,
+    orderId: string,
+    additionId: string
+  ): { order: Order; addition: OrderAddition; kotData?: any } | null {
+    const order = this.getOrder(restaurantId, orderId);
+    if (!order || !order.additions) return null;
+
+    const addition = order.additions.find(a => a.id === additionId);
+    if (!addition || addition.status !== 'PENDING') return null;
+
+    addition.status = 'ACCEPTED';
+
+    // Merge addition items into order
+    for (const item of addition.items) {
+      order.items.push({
+        id: item.id || `item_${crypto.randomUUID()}`,
+        orderId: order.id,
+        menuItemId: item.menuItemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        portion: item.portion || 'Standard',
+        notes: item.notes
+      });
+    }
+
+    // Update totals
+    order.subtotal = Math.round((order.subtotal + addition.subtotal) * 100) / 100;
+    order.tax = Math.round((order.tax + addition.tax) * 100) / 100;
+    order.total = Math.round((order.total + addition.total) * 100) / 100;
+
+    // If order was already served or ready, move back to PREPARING so kitchen prepares the extra items
+    if (order.status === 'SERVED' || order.status === 'READY') {
+      order.status = 'PREPARING';
+    }
+    order.updatedAt = new Date();
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: order.status,
+          subtotal: order.subtotal,
+          tax: order.tax,
+          total: order.total,
+          additions: JSON.stringify(order.additions)
+        }
+      }).catch(err => console.error('Prisma acceptOrderAddition error:', err));
+    }
+
+    return { order, addition };
+  }
+
+  rejectOrderAddition(
+    restaurantId: string,
+    orderId: string,
+    additionId: string,
+    rejectionReason?: string
+  ): { order: Order; addition: OrderAddition } | null {
+    const order = this.getOrder(restaurantId, orderId);
+    if (!order || !order.additions) return null;
+
+    const addition = order.additions.find(a => a.id === additionId);
+    if (!addition || addition.status !== 'PENDING') return null;
+
+    // Reject ONLY this addition. The main order remains completely unaffected!
+    addition.status = 'REJECTED';
+    addition.rejectionReason = rejectionReason || 'Item unavailable';
+    order.updatedAt = new Date();
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      prisma.order.update({
+        where: { id: orderId },
+        data: {
+          additions: JSON.stringify(order.additions)
+        }
+      }).catch(err => console.error('Prisma rejectOrderAddition error:', err));
+    }
+
+    return { order, addition };
+  }
+
   createOrder(data: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt' | 'kotGenerated' | 'billRequested'>): Order {
     const id = `ord_${crypto.randomUUID()}`;
     const orderNumber = this.getNextOrderNumber();
@@ -1093,7 +1243,13 @@ class DatabaseStore {
     if (!order || order.restaurantId !== restaurantId) return null;
 
     const existing = this.getBillByOrder(orderId);
-    if (existing) return existing;
+    if (existing) {
+      existing.subtotal = order.subtotal;
+      existing.tax = order.tax;
+      existing.grandTotal = order.total;
+      existing.items = order.items;
+      return existing;
+    }
 
     const billNumber = this.getNextBillNumber();
     const id = `bill_${crypto.randomUUID()}`;

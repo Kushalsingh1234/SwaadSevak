@@ -105,6 +105,7 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   READY
+  SERVED
   COMPLETED
   REJECTED
 }
@@ -126,6 +127,7 @@ model Order {
   kotNumber      String?
   billRequested  Boolean      @default(false)
   rejectionReason String?
+  additions      String?      @default("[]")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 

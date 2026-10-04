@@ -205,7 +205,7 @@ export function resolveDateRanges(options: AnalyticsQueryOptions): DateRange {
 }
 
 function isValidSalesOrder(status: OrderStatus): boolean {
-  return status === 'COMPLETED' || status === 'READY' || status === 'PREPARING' || status === 'ACCEPTED';
+  return status === 'COMPLETED' || status === 'SERVED' || status === 'READY' || status === 'PREPARING' || status === 'ACCEPTED';
 }
 
 function formatHourLabel(hour: number): string {

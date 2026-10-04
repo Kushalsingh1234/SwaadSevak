@@ -20,10 +20,11 @@ import {
   Bell,
   Sparkles
 } from 'lucide-react';
-import { Order, Restaurant, Manager, PrinterConfig, Bill } from '../types';
+import { Order, Restaurant, Manager, PrinterConfig, Bill, OrderAddition } from '../types';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
 import { soundManager } from '../utils/sound';
+import { kotPrinter } from '../utils/kotPrinter';
 import { SoundBanner } from '../components/SoundBanner';
 import { KotModal } from '../components/KotModal';
 import { InvoiceModal } from '../components/InvoiceModal';
@@ -70,6 +71,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   const [filterSource, setFilterSource] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedKotOrder, setSelectedKotOrder] = useState<Order | null>(null);
+  const [selectedKotAddition, setSelectedKotAddition] = useState<OrderAddition | null>(null);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
   const [activeBill, setActiveBill] = useState<Bill | null>(null);
   const [settleOrder, setSettleOrder] = useState<Order | null>(null);
@@ -127,13 +129,33 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
+  const handleAcceptOrder = async (order: Order) => {
+    try {
+      await onUpdateOrderStatus(order.id, 'ACCEPTED');
+      // Automatically send KOT to connected printer without opening any dialogs
+      if (printerConfig?.autoPrintKot ?? true) {
+        kotPrinter.printOrderKot(restaurant, order, printerConfig);
+      }
+    } catch (e) {
+      console.error('Failed to accept order:', e);
+    }
+  };
+
   const handleAcceptAddition = async (orderId: string, additionId: string) => {
     try {
       setProcessingAdditionId(additionId);
+      const targetOrder = orders.find(o => o.id === orderId);
+      const targetAddition = targetOrder?.additions?.find(a => a.id === additionId);
+
       const res = await api.acceptOrderAddition(orderId, additionId);
       if (res.success) {
         soundManager.playTing(880, 0.4);
         onRefreshOrders();
+
+        // Automatically send New Addition KOT to connected printer!
+        if (targetOrder && targetAddition && (printerConfig?.autoPrintKot ?? true)) {
+          kotPrinter.printAdditionKot(restaurant, targetOrder, targetAddition, printerConfig);
+        }
       }
     } catch (e) {
       console.error('Failed to accept addition:', e);
@@ -520,6 +542,17 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
+                                  onClick={() => {
+                                    setSelectedKotOrder(order);
+                                    setSelectedKotAddition(addition);
+                                  }}
+                                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
+                                  title="View & Print Add-on KOT"
+                                >
+                                  <Printer className="w-3.5 h-3.5 text-slate-500" />
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleRejectAddition(order.id, addition.id)}
                                   disabled={processingAdditionId === addition.id}
                                   className="min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-rose-300 bg-white transition-colors"
@@ -630,7 +663,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                 Reject
                               </button>
                               <button
-                                onClick={() => onUpdateOrderStatus(order.id, 'ACCEPTED')}
+                                onClick={() => handleAcceptOrder(order)}
                                 className="min-h-[38px] px-4 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                               >
                                 <Check className="w-3.5 h-3.5" />
@@ -1091,10 +1124,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       {/* Modals */}
       <KotModal
         order={selectedKotOrder}
+        addition={selectedKotAddition}
         restaurant={restaurant}
         printerConfig={printerConfig}
         isOpen={Boolean(selectedKotOrder)}
-        onClose={() => setSelectedKotOrder(null)}
+        onClose={() => {
+          setSelectedKotOrder(null);
+          setSelectedKotAddition(null);
+        }}
       />
 
       <InvoiceModal

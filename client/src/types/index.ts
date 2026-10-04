@@ -111,6 +111,25 @@ export interface Bill {
   items: OrderItem[];
 }
 
+export interface KOTData {
+  restaurantName: string;
+  kotNumber: string;
+  orderNumber: string;
+  tableNumber: string;
+  time: string;
+  source: OrderSource;
+  items: {
+    name: string;
+    quantity: number;
+    portion?: string;
+    notes?: string;
+  }[];
+  specialInstructions?: string;
+  paperWidth: '58mm' | '80mm';
+  isAddition?: boolean;
+  additionNumber?: string;
+}
+
 export interface PrinterConfig {
   id: string;
   printerName: string;

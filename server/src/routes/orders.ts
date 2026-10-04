@@ -97,7 +97,10 @@ router.patch('/:id/additions/:additionId/accept', (req: AuthenticatedRequest, re
       orderNumber: `${result.order.orderNumber} (${result.addition.additionNumber || 'Add-on'})`,
       items: result.addition.items
     };
-    kotData = PrinterService.generateKotData(restaurant, additionOrderDraft as any, printerConfig);
+    kotData = PrinterService.generateKotData(restaurant, additionOrderDraft as any, printerConfig, {
+      isAddition: true,
+      additionNumber: result.addition.additionNumber || 'New Addition'
+    });
     thermalText = PrinterService.generateThermalText(kotData);
 
     if (printerConfig?.printerType === 'NETWORK' && printerConfig.printerIp) {

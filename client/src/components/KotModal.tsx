@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { X, Printer, Check, Copy } from 'lucide-react';
-import { Order, Restaurant, PrinterConfig } from '../types';
+import { X, Printer, Check, Copy, Sparkles, Bell } from 'lucide-react';
+import { Order, Restaurant, PrinterConfig, OrderAddition } from '../types';
 import { Logo } from './Logo';
+import { kotPrinter } from '../utils/kotPrinter';
 
 interface KotModalProps {
   order: Order | null;
+  addition?: OrderAddition | null;
   restaurant: Restaurant | null;
   printerConfig?: PrinterConfig;
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface KotModalProps {
 
 export const KotModal: React.FC<KotModalProps> = ({
   order,
+  addition,
   restaurant,
   printerConfig,
   isOpen,
@@ -23,33 +26,39 @@ export const KotModal: React.FC<KotModalProps> = ({
 
   if (!isOpen || !order) return null;
 
-  const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
+  const isAddition = Boolean(addition);
+  const items = addition ? addition.items : order.items;
+  const notes = addition ? addition.customerNotes : order.customerNotes;
+
+  const orderTime = new Date(addition?.createdAt || order.createdAt).toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
   });
 
   const handlePrint = () => {
-    window.print();
+    if (isAddition && addition) {
+      kotPrinter.printAdditionKot(restaurant, order, addition, {
+        id: printerConfig?.id || 'cfg',
+        printerName: printerConfig?.printerName || 'Thermal',
+        paperWidth,
+        autoPrintKot: true,
+        printerType: printerConfig?.printerType || 'BROWSER'
+      });
+    } else {
+      kotPrinter.printOrderKot(restaurant, order, {
+        id: printerConfig?.id || 'cfg',
+        printerName: printerConfig?.printerName || 'Thermal',
+        paperWidth,
+        autoPrintKot: true,
+        printerType: printerConfig?.printerType || 'BROWSER'
+      });
+    }
   };
 
   const handleCopyText = () => {
-    const lines = [
-      '========================================',
-      restaurant?.name.toUpperCase() || 'SWAAD SEVAK KITCHEN',
-      '*** KITCHEN ORDER TICKET (KOT) ***',
-      `${order.kotNumber || 'KOT-1001'}  |  ORD ${order.orderNumber}`,
-      '========================================',
-      `TABLE: ${order.tableNumber}     TIME: ${orderTime}`,
-      `SOURCE: ${order.source}`,
-      '----------------------------------------',
-      ...order.items.map(i => `${i.quantity} x ${i.name} ${i.portion ? `(${i.portion})` : ''}${i.notes ? `\n   Note: ${i.notes}` : ''}`),
-      '----------------------------------------',
-      order.customerNotes ? `INSTRUCTIONS: ${order.customerNotes}\n----------------------------------------` : '',
-      'POWERED BY SWAAD SEVAK'
-    ].filter(Boolean).join('\n');
-
-    navigator.clipboard.writeText(lines);
+    const rawText = kotPrinter.generateEscPosText(restaurant, order, paperWidth, addition || undefined);
+    navigator.clipboard.writeText(rawText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -62,10 +71,10 @@ export const KotModal: React.FC<KotModalProps> = ({
           <div>
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <Printer className="w-4 h-4 text-orange-600" />
-              Kitchen Order Ticket (KOT)
+              <span>{isAddition ? 'Table Add-on KOT (New Addition)' : 'Kitchen Order Ticket (KOT)'}</span>
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              {order.kotNumber || 'KOT Generated'} • {order.tableNumber}
+              {isAddition ? `${addition?.additionNumber} • ${order.tableNumber}` : `${order.kotNumber || 'KOT Generated'} • ${order.tableNumber}`}
             </p>
           </div>
 
@@ -115,29 +124,46 @@ export const KotModal: React.FC<KotModalProps> = ({
             <div className="text-center font-bold text-sm tracking-wider uppercase mb-1">
               {restaurant?.name || 'Swaad Sevak'}
             </div>
-            <div className="text-center font-semibold text-xs text-gray-600 tracking-widest uppercase mb-1">
-              *** KITCHEN TICKET ***
-            </div>
-            <div className="text-center font-bold text-xs border-y border-dashed border-gray-400 py-1 my-1">
-              {order.kotNumber || 'KOT-1042'} | ORD {order.orderNumber}
-            </div>
 
-            <div className="flex justify-between py-1 text-[11px] font-semibold">
+            {isAddition ? (
+              <div className="text-center my-1 w-full">
+                <div className="bg-slate-900 text-white font-bold text-[11px] py-1 px-2 rounded mb-1">
+                  *** TABLE ADD-ON KOT ***
+                </div>
+                <div className="font-extrabold text-xs text-amber-900 tracking-wider">
+                  &gt;&gt;&gt; NEW ADDITION &lt;&lt;&lt;
+                </div>
+                <div className="text-[11px] font-bold border-y border-dashed border-gray-400 py-1 my-1">
+                  {addition?.additionNumber} | REF ORD #{order.orderNumber.replace('#', '')}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center w-full">
+                <div className="font-semibold text-xs text-gray-600 tracking-widest uppercase mb-1">
+                  *** KITCHEN TICKET ***
+                </div>
+                <div className="font-bold text-xs border-y border-dashed border-gray-400 py-1 my-1">
+                  {order.kotNumber || 'KOT-1042'} | ORD #{order.orderNumber.replace('#', '')}
+                </div>
+              </div>
+            )}
+
+            <div className="w-full flex justify-between py-1 text-[11px] font-semibold">
               <span>TABLE: {order.tableNumber}</span>
               <span>{orderTime}</span>
             </div>
-            <div className="text-[11px] text-gray-600 mb-1">
-              TYPE: {order.source}
+            <div className="w-full text-[11px] text-gray-600 mb-1">
+              TYPE: {order.source || 'DINE_IN'} {isAddition ? '• (NEW TABLE ADDITION)' : ''}
             </div>
 
-            <div className="border-t border-gray-400 my-1"></div>
-            <div className="flex justify-between font-bold text-[11px] py-1 border-b border-dashed border-gray-300">
+            <div className="w-full border-t border-gray-400 my-1"></div>
+            <div className="w-full flex justify-between font-bold text-[11px] py-1 border-b border-dashed border-gray-300">
               <span>QTY  ITEM</span>
               <span>PORTION</span>
             </div>
 
-            <div className="py-1 space-y-1.5">
-              {order.items.map((item, idx) => (
+            <div className="w-full py-1 space-y-1.5">
+              {items.map((item, idx) => (
                 <div key={idx} className="border-b border-dotted border-gray-200 pb-1">
                   <div className="flex justify-between font-semibold">
                     <span>
@@ -154,15 +180,21 @@ export const KotModal: React.FC<KotModalProps> = ({
               ))}
             </div>
 
-            {order.customerNotes && (
-              <div className="mt-2 pt-1 border-t border-dashed border-gray-400 text-[11px]">
+            {notes && (
+              <div className="w-full mt-2 pt-1 border-t border-dashed border-gray-400 text-[11px]">
                 <span className="font-bold">INSTRUCTIONS:</span>
-                <p className="text-gray-700 italic">{order.customerNotes}</p>
+                <p className="text-gray-700 italic">{notes}</p>
               </div>
             )}
 
-            <div className="border-t border-dashed border-gray-400 mt-3 pt-2 text-center text-[10px] text-gray-500 uppercase">
-              Powered by Swaad Sevak
+            {isAddition && (
+              <div className="w-full my-2 p-1.5 rounded bg-amber-50 border border-amber-200 text-center text-[10px] font-bold text-amber-900">
+                PREPARE & DELIVER TO ACTIVE TABLE
+              </div>
+            )}
+
+            <div className="w-full border-t border-dashed border-gray-400 mt-3 pt-2 text-center text-[10px] text-gray-500 uppercase">
+              Powered by Swaad Sevak POS
             </div>
           </div>
         </div>
@@ -174,7 +206,7 @@ export const KotModal: React.FC<KotModalProps> = ({
             className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-900 font-medium px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-white transition-colors"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? 'Copied Raw KOT' : 'Copy Text'}
+            <span>{copied ? 'Copied Raw KOT' : 'Copy Text'}</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -189,7 +221,7 @@ export const KotModal: React.FC<KotModalProps> = ({
               className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />
-              Print to Thermal ({paperWidth})
+              <span>Print to Connected Thermal ({paperWidth})</span>
             </button>
           </div>
         </div>

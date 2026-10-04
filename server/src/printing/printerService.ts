@@ -2,9 +2,14 @@ import { Order, Restaurant, KOTData, PrinterConfig } from '../types/index.js';
 
 export class PrinterService {
   /**
-   * Generates structured KOT payload for an order
+   * Generates structured KOT payload for an order or table addition
    */
-  static generateKotData(restaurant: Restaurant, order: Order, printerConfig: PrinterConfig): KOTData {
+  static generateKotData(
+    restaurant: Restaurant,
+    order: Order,
+    printerConfig: PrinterConfig,
+    options?: { isAddition?: boolean; additionNumber?: string }
+  ): KOTData {
     const timeFormatted = new Date(order.createdAt).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
@@ -25,7 +30,9 @@ export class PrinterService {
         notes: i.notes
       })),
       specialInstructions: order.customerNotes,
-      paperWidth: printerConfig.paperWidth
+      paperWidth: printerConfig.paperWidth,
+      isAddition: options?.isAddition,
+      additionNumber: options?.additionNumber
     };
   }
 
@@ -46,11 +53,20 @@ export class PrinterService {
     let receipt = '';
     receipt += `${doubleDivider}\n`;
     receipt += `${center(kot.restaurantName.toUpperCase())}\n`;
-    receipt += `${center('*** KITCHEN ORDER TICKET ***')}\n`;
-    receipt += `${center(`${kot.kotNumber}  |  ORD ${kot.orderNumber}`)}\n`;
+    if (kot.isAddition) {
+      receipt += `${center('*** TABLE ADD-ON KOT ***')}\n`;
+      receipt += `${center('>>> NEW ADDITION <<<')}\n`;
+      receipt += `${center(`${kot.additionNumber || 'ADD-ON'}  |  REF ORD ${kot.orderNumber}`)}\n`;
+    } else {
+      receipt += `${center('*** KITCHEN ORDER TICKET ***')}\n`;
+      receipt += `${center(`${kot.kotNumber}  |  ORD ${kot.orderNumber}`)}\n`;
+    }
     receipt += `${doubleDivider}\n`;
     receipt += `TABLE: ${kot.tableNumber.padEnd(16)} TIME: ${kot.time}\n`;
     receipt += `SOURCE: ${kot.source}\n`;
+    if (kot.isAddition) {
+      receipt += `TYPE: NEW ADDITION TO ACTIVE TABLE\n`;
+    }
     receipt += `${divider}\n`;
     receipt += `QTY   ITEM DESCRIPTION\n`;
     receipt += `${divider}\n`;

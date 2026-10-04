@@ -119,6 +119,8 @@ export interface KOTData {
   }[];
   specialInstructions?: string;
   paperWidth: '58mm' | '80mm';
+  isAddition?: boolean;
+  additionNumber?: string;
 }
 
 export interface Bill {

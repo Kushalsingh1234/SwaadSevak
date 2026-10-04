@@ -42,12 +42,22 @@ interface AdditionToast {
   id: string;
   orderId: string;
   additionId: string;
-  tableNumber: string;
+  tableLabel: string;
   additionNumber: string;
   itemSummary: string;
   total: number;
   time: string;
 }
+
+const formatTableLabel = (tableNumber?: string) => {
+  if (!tableNumber) return 'Counter';
+  return tableNumber.toLowerCase().startsWith('table') ? tableNumber : `Table ${tableNumber}`;
+};
+
+const formatOrderNumber = (orderNumber?: string) => {
+  if (!orderNumber) return '';
+  return orderNumber.startsWith('#') ? orderNumber : `#${orderNumber}`;
+};
 
 export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   restaurant,
@@ -89,18 +99,19 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
     const handleAddition = (data: { order: Order; addition: any }) => {
       const { order, addition } = data;
-      const itemSummary = addition.items?.map((i: any) => `${i.quantity}× ${i.name}`).join(', ') || 'Additional items';
+      const tableLabel = formatTableLabel(order.tableNumber);
+      const itemSummary = addition.items?.map((i: any) => `${i.quantity}× ${i.name}`).join(', ') || 'Additional dishes';
       const newToast: AdditionToast = {
         id: `toast_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         orderId: order.id,
         additionId: addition.id,
-        tableNumber: order.tableNumber || 'Counter',
-        additionNumber: addition.additionNumber || 'New Table Add-on',
+        tableLabel,
+        additionNumber: addition.additionNumber || 'New Add-on',
         itemSummary,
         total: addition.total,
         time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
       };
-      setToasts(prev => [newToast, ...prev.slice(0, 3)]);
+      setToasts(prev => [newToast, ...prev.slice(0, 2)]);
     };
 
     socket.on('order:addition_added', handleAddition);
@@ -203,17 +214,23 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
     return matchesSource && matchesSearch;
   });
 
-  // Pipeline Stages (Decoupled: PENDING -> PREPARING -> READY -> SERVED -> COMPLETED)
+  // Pipeline Stages (Preserve the clean 3 sections: Incoming -> Cooking -> Ready & Served)
   const pendingOrders = filteredOrders.filter(o => o.status === 'PENDING');
   const preparingOrders = filteredOrders.filter(o => o.status === 'ACCEPTED' || o.status === 'PREPARING');
-  const readyOrders = filteredOrders.filter(o => o.status === 'READY');
-  const servedOrders = filteredOrders.filter(o => o.status === 'SERVED');
+  const readyAndServedOrders = filteredOrders.filter(o => o.status === 'READY' || o.status === 'SERVED');
   const completedOrders = orders.filter(o => o.status === 'COMPLETED');
 
-  // Count pending additions waiting for confirmation across live orders
-  const pendingAdditionsCount = filteredOrders.reduce((sum, o) => {
+  // Active table orders that have pending additions (displayed in the Incoming section)
+  const activeOrdersWithPendingAdditions = filteredOrders.filter(
+    o => o.status !== 'PENDING' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' &&
+         o.additions && o.additions.some(a => a.status === 'PENDING')
+  );
+
+  const pendingAdditionsCount = activeOrdersWithPendingAdditions.reduce((sum, o) => {
     return sum + (o.additions?.filter(a => a.status === 'PENDING').length || 0);
   }, 0);
+
+  const totalIncomingCount = pendingOrders.length + pendingAdditionsCount;
 
   // Completed drawer search
   const filteredCompletedOrders = completedOrders.filter(o =>
@@ -225,55 +242,41 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   // Today's Sales Calculation
   const todaySales = completedOrders.reduce((acc, curr) => acc + (curr.total || 0), 0);
 
-  // 4 Live Kitchen & Floor Stages
+  // 3 Core Live Kitchen & Floor Stages
   const liveColumns = [
     {
       id: 'PENDING',
       label: 'Incoming Orders',
-      count: pendingOrders.length,
-      items: pendingOrders,
+      count: totalIncomingCount,
       dotColor: 'bg-turmeric',
       badgeBg: 'bg-amber-50 border-amber-200 text-amber-900',
       emptyIcon: Clock,
-      emptyTitle: 'No incoming orders',
-      emptySubtitle: 'New customer QR scans and tickets will appear here with a sound alert.'
+      emptyTitle: 'No incoming orders or add-ons',
+      emptySubtitle: 'New customer tickets and table additions will appear here with an alert.'
     },
     {
       id: 'PREPARING',
       label: 'Kitchen Cooking',
       count: preparingOrders.length,
-      items: preparingOrders,
       dotColor: 'bg-indigo-500',
       badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-900',
       emptyIcon: Flame,
       emptyTitle: 'Kitchen is all clear',
-      emptySubtitle: 'Accepted orders and add-on items cook here so chefs track prep time.'
+      emptySubtitle: 'Accepted orders and approved dishes cook here for chefs.'
     },
     {
-      id: 'READY',
-      label: 'Ready to Serve',
-      count: readyOrders.length,
-      items: readyOrders,
-      dotColor: 'bg-blue-500',
-      badgeBg: 'bg-blue-50 border-blue-200 text-blue-900',
-      emptyIcon: CheckCircle2,
-      emptyTitle: 'No orders waiting',
-      emptySubtitle: 'Plated food ready for waitstaff to serve to tables.'
-    },
-    {
-      id: 'SERVED',
-      label: 'Served / Dining',
-      count: servedOrders.length,
-      items: servedOrders,
+      id: 'READY_SERVED',
+      label: 'Ready & Served',
+      count: readyAndServedOrders.length,
       dotColor: 'bg-cardamom',
       badgeBg: 'bg-cardamom-50 border-cardamom-100 text-cardamom-700',
       emptyIcon: UtensilsCrossed,
-      emptyTitle: 'No active dining tables',
-      emptySubtitle: 'Tables currently dining. Settle bill when guests finish their meal.'
+      emptyTitle: 'No ready orders or active dining tables',
+      emptySubtitle: 'Food waiting to be served and tables currently dining. Settle bill when ready.'
     }
   ];
 
-  const [mobileTab, setMobileTab] = useState<'PENDING' | 'PREPARING' | 'READY' | 'SERVED'>('PENDING');
+  const [mobileTab, setMobileTab] = useState<'PENDING' | 'PREPARING' | 'READY_SERVED'>('PENDING');
 
   return (
     <div className="flex flex-col h-full space-y-3 flex-1 min-h-0 relative">
@@ -286,7 +289,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               <span className="w-2 h-2 rounded-full bg-cardamom animate-pulse" title="Socket Connected" />
             </h1>
             <p className="text-xs text-[var(--muted)]">
-              {restaurant?.name || 'Restaurant'} • Real-Time Order Flow & Dining Tables
+              {restaurant?.name || 'Restaurant'} • Real-Time Order Flow & Dining Floor
             </p>
           </div>
 
@@ -294,19 +297,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           <div className="hidden sm:flex items-center gap-2 text-xs">
             <div className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-900 font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-turmeric" />
-              <span>{pendingOrders.length} Incoming</span>
+              <span>{totalIncomingCount} Incoming</span>
             </div>
             <div className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/60 text-indigo-900 font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
               <span>{preparingOrders.length} Cooking</span>
             </div>
-            <div className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span>{readyOrders.length} Ready</span>
-            </div>
             <div className="px-2.5 py-1 rounded-lg bg-cardamom-50 border border-cardamom-100 text-cardamom font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cardamom" />
-              <span>{servedOrders.length} Dining</span>
+              <span>{readyAndServedOrders.filter(o => o.status === 'READY').length} Ready • {readyAndServedOrders.filter(o => o.status === 'SERVED').length} Served</span>
             </div>
           </div>
         </div>
@@ -378,8 +377,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         </div>
       </div>
 
-      {/* Mobile Stage Selector Tabs */}
-      <div className="shrink-0 flex xl:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+      {/* Mobile Stage Selector Tabs (3 core columns) */}
+      <div className="shrink-0 flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
         {liveColumns.map(col => (
           <button
             key={col.id}
@@ -401,14 +400,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         ))}
       </div>
 
-      {/* 4-Column Live Kitchen & Floor Board */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-stretch pb-1">
+      {/* 3-Column Live Board: Spacious layout with zero card overflow */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-3.5 items-stretch pb-1">
         {liveColumns.map(col => {
           const isMobileVisible = mobileTab === col.id;
+
           return (
             <div
               key={col.id}
-              className={`${isMobileVisible ? 'flex' : 'hidden xl:flex'} bg-stone-100/70 rounded-xl p-3 border border-stone-200/80 flex-col h-full min-h-0 overflow-hidden`}
+              className={`${isMobileVisible ? 'flex' : 'hidden md:flex'} bg-stone-100/70 rounded-xl p-3 border border-stone-200/80 flex-col h-full min-h-0 overflow-hidden`}
             >
               {/* Column Header (Pinned) */}
               <div className="shrink-0 flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200">
@@ -423,130 +423,80 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                 </span>
               </div>
 
-              {/* Column Tickets (Scrolls internally) */}
+              {/* Column Content */}
               <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
-                {col.items.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-slate-400 mb-2 shadow-xs">
-                      <col.emptyIcon className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs font-semibold text-slate-700">{col.emptyTitle}</p>
-                    <p className="text-[11px] text-slate-400 max-w-[200px] mt-0.5 leading-relaxed">{col.emptySubtitle}</p>
-                  </div>
-                ) : (
-                  col.items.map(order => {
-                    const isPending = order.status === 'PENDING';
-                    const hasPendingAdditions = order.additions && order.additions.some(a => a.status === 'PENDING');
-                    const elapsedMins = getElapsedMins(order.createdAt);
-                    const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
-                    });
-
-                    // Elapsed Time Styling
-                    const isDelayed = elapsedMins >= 20;
-                    const isWarning = elapsedMins >= 10 && elapsedMins < 20;
-
-                    return (
-                      <div
-                        key={order.id}
-                        className={`bg-white rounded-xl border p-3.5 shadow-xs transition-all ${
-                          hasPendingAdditions
-                            ? 'border-amber-400 ring-2 ring-amber-400/40'
-                            : isPending
-                            ? 'border-amber-300 ring-2 ring-amber-400/30'
-                            : 'border-stone-200/90 hover:border-stone-300'
-                        }`}
-                      >
-                        {/* Ticket Header: Table Pill, ID, Elapsed Badge */}
-                        <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
-                                {order.tableNumber || 'Counter'}
-                              </span>
-                              <span className="text-[11px] text-slate-500 font-mono font-medium">
-                                #{order.orderNumber}
-                              </span>
-                              {order.source && order.source !== 'DINE_IN' && (
-                                <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                                  order.source === 'SWIGGY'
-                                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                    : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                  {order.source}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-slate-400 block mt-1">
-                              Ordered at {orderTime}
-                            </span>
-                          </div>
-
-                          {/* Dynamic Elapsed Badge */}
-                          <div className="text-right">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                              isDelayed
-                                ? 'bg-red-50 border-red-200 text-red-700 animate-pulse'
-                                : isWarning
-                                ? 'bg-amber-50 border-amber-200 text-amber-800'
-                                : 'bg-stone-50 border-stone-200 text-slate-600'
-                            }`}>
-                              <Clock className="w-3 h-3" />
-                              <span>{elapsedMins}m ago</span>
-                            </span>
-                          </div>
+                {/* ======================================================== */}
+                {/* 1. INCOMING ORDERS COLUMN                                */}
+                {/* ======================================================== */}
+                {col.id === 'PENDING' && (
+                  <>
+                    {/* Empty State */}
+                    {totalIncomingCount === 0 && (
+                      <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-slate-400 mb-2 shadow-xs">
+                          <col.emptyIcon className="w-5 h-5" />
                         </div>
+                        <p className="text-xs font-semibold text-slate-700">{col.emptyTitle}</p>
+                        <p className="text-[11px] text-slate-400 max-w-[200px] mt-0.5 leading-relaxed">{col.emptySubtitle}</p>
+                      </div>
+                    )}
 
-                        {/* SERVED State Indicator */}
-                        {order.status === 'SERVED' && (
-                          <div className="my-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 font-semibold">
-                              <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Food Served • Table Dining</span>
-                            </div>
-                            <span className="text-[10px] text-emerald-700 bg-white px-1.5 py-0.5 rounded font-medium border border-emerald-200">
-                              Can add dishes
-                            </span>
-                          </div>
-                        )}
+                    {/* Table Add-ons waiting for confirmation (placed right here in Pending!) */}
+                    {activeOrdersWithPendingAdditions.flatMap(order =>
+                      order.additions?.filter(a => a.status === 'PENDING').map(addition => {
+                        const elapsedMins = getElapsedMins(addition.createdAt);
+                        const isDining = order.status === 'SERVED';
 
-                        {/* PENDING TABLE ADD-ON BANNER (Consolidated right on top of same card) */}
-                        {order.additions && order.additions.filter(a => a.status === 'PENDING').map(addition => (
+                        return (
                           <div
                             key={addition.id}
-                            className="my-2.5 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 shadow-sm"
+                            className="bg-white rounded-xl border-2 border-amber-400 ring-2 ring-amber-400/25 p-3.5 shadow-sm transition-all"
                           >
-                            <div className="flex items-center justify-between pb-1.5 border-b border-amber-200/80">
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                                <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
-                                  <span>🔔 {addition.additionNumber || 'New Table Add-on'}</span>
+                            {/* Card Header: Table, Target Order, Elapsed */}
+                            <div className="flex items-start justify-between pb-2 border-b border-stone-100">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
+                                    {formatTableLabel(order.tableNumber)}
+                                  </span>
+                                  <span className="text-[11px] text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                    Add-on to {formatOrderNumber(order.orderNumber)}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-500 block mt-1">
+                                  Table state: {isDining ? 'Dining at table (Served)' : 'Food preparing in kitchen'}
                                 </span>
                               </div>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 uppercase tracking-wider">
-                                Action Required
+
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-800">
+                                <Clock className="w-3 h-3" />
+                                <span>{elapsedMins}m ago</span>
                               </span>
                             </div>
 
-                            {/* Add-on Items list */}
-                            <div className="py-2 divide-y divide-amber-200/50 text-xs">
+                            {/* Alert Tag */}
+                            <div className="my-2 px-2.5 py-1.5 rounded-lg bg-amber-50/90 border border-amber-200/80 text-[11px] text-amber-900 flex items-center gap-1.5">
+                              <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0 animate-bounce" />
+                              <span className="font-semibold">Table added new dish(es) • Needs confirmation</span>
+                            </div>
+
+                            {/* Added Items */}
+                            <div className="py-2 divide-y divide-stone-100 text-xs">
                               {addition.items.map((item, idx) => (
-                                <div key={idx} className="py-1 flex items-baseline justify-between gap-2">
-                                  <div className="text-amber-950 font-medium">
-                                    <span className="font-bold text-amber-900 mr-1.5">{item.quantity} ×</span>
+                                <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
+                                  <div className="text-slate-900 font-medium">
+                                    <span className="font-bold text-slate-900 mr-2">{item.quantity} ×</span>
                                     <span>{item.name}</span>
                                     {item.portion && (
-                                      <span className="text-[10px] text-amber-700 ml-1">({item.portion})</span>
+                                      <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
                                     )}
                                     {item.notes && (
-                                      <div className="text-[10px] text-amber-800 italic pl-3 mt-0.5">
+                                      <div className="text-[10px] text-amber-700 italic pl-4 mt-0.5">
                                         Note: {item.notes}
                                       </div>
                                     )}
                                   </div>
-                                  <span className="text-amber-950 font-semibold tabular-nums shrink-0">
+                                  <span className="text-slate-700 font-semibold tabular-nums shrink-0">
                                     ₹{item.price * item.quantity}
                                   </span>
                                 </div>
@@ -554,24 +504,26 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                             </div>
 
                             {addition.customerNotes && (
-                              <div className="text-[10px] text-amber-800 bg-amber-100/60 p-1.5 rounded mb-2">
-                                <span className="font-bold">Guest Note:</span> {addition.customerNotes}
+                              <div className="mb-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-1.5">
+                                <span className="font-bold shrink-0">Guest Note:</span>
+                                <span>{addition.customerNotes}</span>
                               </div>
                             )}
 
-                            {/* Independent Add-on Decision Actions */}
-                            <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between gap-2">
+                            {/* Card Footer: Add-on Total & Independent Decision Buttons */}
+                            <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
                               <div>
-                                <span className="text-[10px] text-amber-700 block">Add-on Total</span>
-                                <span className="text-xs font-bold text-amber-950 tabular-nums">+₹{addition.total?.toFixed(0)}</span>
+                                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Add-on Total</span>
+                                <span className="text-sm font-bold text-slate-900 tabular-nums">+₹{addition.total?.toFixed(0)}</span>
                               </div>
-                              <div className="flex items-center gap-1.5">
+
+                              <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => handleRejectAddition(order.id, addition.id)}
                                   disabled={processingAdditionId === addition.id}
-                                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:text-rose-800 transition-colors border border-rose-300 bg-white"
-                                  title="Reject only this addition. Existing order will remain active!"
+                                  className="min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-rose-300 bg-white transition-colors"
+                                  title="Declines only this add-on. Existing order remains active!"
                                 >
                                   Reject Addition
                                 </button>
@@ -579,7 +531,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                   type="button"
                                   onClick={() => handleAcceptAddition(order.id, addition.id)}
                                   disabled={processingAdditionId === addition.id}
-                                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1"
+                                  className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Accept Addition</span>
@@ -587,158 +539,413 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               </div>
                             </div>
                           </div>
-                        ))}
+                        );
+                      })
+                    )}
 
-                        {/* Order Base Items */}
-                        <div className="py-2.5 divide-y divide-stone-100 text-xs">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
-                              <div className="text-slate-900 font-medium">
-                                <span className="font-bold text-slate-900 mr-2">{item.quantity} ×</span>
-                                <span>{item.name}</span>
-                                {item.portion && (
-                                  <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
-                                )}
-                                {item.notes && (
-                                  <div className="text-[10px] text-amber-700 italic pl-4 mt-0.5">
-                                    Note: {item.notes}
-                                  </div>
+                    {/* Fresh Pending Orders */}
+                    {pendingOrders.map(order => {
+                      const elapsedMins = getElapsedMins(order.createdAt);
+                      const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      });
+
+                      return (
+                        <div
+                          key={order.id}
+                          className="bg-white rounded-xl border border-amber-300 ring-2 ring-amber-400/30 p-3.5 shadow-xs transition-all"
+                        >
+                          <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
+                                  {formatTableLabel(order.tableNumber)}
+                                </span>
+                                <span className="text-[11px] text-slate-500 font-mono font-medium">
+                                  {formatOrderNumber(order.orderNumber)}
+                                </span>
+                                {order.source && order.source !== 'DINE_IN' && (
+                                  <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                                    order.source === 'SWIGGY'
+                                      ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                      : 'bg-red-50 text-red-700 border border-red-200'
+                                  }`}>
+                                    {order.source}
+                                  </span>
                                 )}
                               </div>
-                              <span className="text-slate-700 font-semibold tabular-nums shrink-0">
-                                ₹{item.price * item.quantity}
+                              <span className="text-[10px] text-slate-400 block mt-1">
+                                Ordered at {orderTime}
                               </span>
                             </div>
-                          ))}
-                        </div>
 
-                        {/* Accepted Additions History if any */}
-                        {order.additions && order.additions.some(a => a.status !== 'PENDING') && (
-                          <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-[11px] text-slate-600 flex items-center justify-between">
-                            <span>
-                              {order.additions.filter(a => a.status === 'ACCEPTED').length} add-on round(s) merged
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-50 border border-stone-200 text-slate-600">
+                              <Clock className="w-3 h-3" />
+                              <span>{elapsedMins}m ago</span>
                             </span>
-                            {order.additions.some(a => a.status === 'REJECTED') && (
-                              <span className="text-rose-600 text-[10px] font-semibold">
-                                ({order.additions.filter(a => a.status === 'REJECTED').length} declined)
+                          </div>
+
+                          <div className="py-2.5 divide-y divide-stone-100 text-xs">
+                            {order.items.map((item, idx) => (
+                              <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
+                                <div className="text-slate-900 font-medium">
+                                  <span className="font-bold text-slate-900 mr-2">{item.quantity} ×</span>
+                                  <span>{item.name}</span>
+                                  {item.portion && (
+                                    <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
+                                  )}
+                                  {item.notes && (
+                                    <div className="text-[10px] text-amber-700 italic pl-4 mt-0.5">
+                                      Note: {item.notes}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-slate-700 font-semibold tabular-nums shrink-0">
+                                  ₹{item.price * item.quantity}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {order.customerNotes && (
+                            <div className="mb-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-1.5">
+                              <span className="font-bold shrink-0">Note:</span>
+                              <span>{order.customerNotes}</span>
+                            </div>
+                          )}
+
+                          <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
+                              <span className="text-sm font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => onUpdateOrderStatus(order.id, 'REJECTED')}
+                                className="min-h-[38px] px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                Reject
+                              </button>
+                              <button
+                                onClick={() => onUpdateOrderStatus(order.id, 'ACCEPTED')}
+                                className="min-h-[38px] px-4 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Accept Order</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* ======================================================== */}
+                {/* 2. KITCHEN COOKING COLUMN                                */}
+                {/* ======================================================== */}
+                {col.id === 'PREPARING' && (
+                  <>
+                    {preparingOrders.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-slate-400 mb-2 shadow-xs">
+                          <col.emptyIcon className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-700">{col.emptyTitle}</p>
+                        <p className="text-[11px] text-slate-400 max-w-[200px] mt-0.5 leading-relaxed">{col.emptySubtitle}</p>
+                      </div>
+                    ) : (
+                      preparingOrders.map(order => {
+                        const elapsedMins = getElapsedMins(order.createdAt);
+                        const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        });
+                        const hasPendingAdd = order.additions?.some(a => a.status === 'PENDING');
+                        const acceptedAdditionsCount = order.additions?.filter(a => a.status === 'ACCEPTED').length || 0;
+
+                        return (
+                          <div
+                            key={order.id}
+                            className="bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 p-3.5 shadow-xs transition-all"
+                          >
+                            <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
+                                    {formatTableLabel(order.tableNumber)}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 font-mono font-medium">
+                                    {formatOrderNumber(order.orderNumber)}
+                                  </span>
+                                  {acceptedAdditionsCount > 0 && (
+                                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      +{acceptedAdditionsCount} Add-on
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-slate-400 block mt-1">
+                                  Ordered at {orderTime}
+                                </span>
+                              </div>
+
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-50 border border-stone-200 text-slate-600">
+                                <Clock className="w-3 h-3" />
+                                <span>{elapsedMins}m ago</span>
                               </span>
-                            )}
-                          </div>
-                        )}
+                            </div>
 
-                        {/* Customer / Table Notes */}
-                        {order.customerNotes && (
-                          <div className="mb-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-1.5">
-                            <span className="font-bold shrink-0">Note:</span>
-                            <span>{order.customerNotes}</span>
-                          </div>
-                        )}
-
-                        {/* Bill Requested Alert Banner */}
-                        {order.billRequested && (
-                          <div className="mb-2 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-semibold flex items-center justify-between">
-                            <span>Guest requested bill at table</span>
-                            <button
-                              onClick={() => setSettleOrder(order)}
-                              className="px-2 py-0.5 rounded bg-purple-600 text-white text-[10px] font-bold hover:bg-purple-700"
-                            >
-                              Settle
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Card Footer: Total Price & Stage-Specific Actions */}
-                        <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
-                          <div>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
-                            <span className="text-sm font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {/* PENDING State Actions */}
-                            {order.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => onUpdateOrderStatus(order.id, 'REJECTED')}
-                                  className="min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                  Reject
-                                </button>
-                                <button
-                                  onClick={() => onUpdateOrderStatus(order.id, 'ACCEPTED')}
-                                  className="min-h-[40px] px-4 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
-                                >
-                                  <Check className="w-3.5 h-3.5" />
-                                  <span>Accept Order</span>
-                                </button>
-                              </>
+                            {/* Informational banner if an add-on is waiting in Incoming Orders */}
+                            {hasPendingAdd && (
+                              <div className="my-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
+                                <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span>New add-on requested • Action in Incoming Orders</span>
+                              </div>
                             )}
 
-                            {/* PREPARING State Actions */}
-                            {(order.status === 'ACCEPTED' || order.status === 'PREPARING') && (
-                              <>
+                            {/* Cooking Items */}
+                            <div className="py-2.5 divide-y divide-stone-100 text-xs">
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
+                                  <div className="text-slate-900 font-medium">
+                                    <span className="font-bold text-slate-900 mr-2">{item.quantity} ×</span>
+                                    <span>{item.name}</span>
+                                    {item.portion && (
+                                      <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
+                                    )}
+                                    {item.notes && (
+                                      <div className="text-[10px] text-amber-700 italic pl-4 mt-0.5">
+                                        Note: {item.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-slate-700 font-semibold tabular-nums shrink-0">
+                                    ₹{item.price * item.quantity}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {order.customerNotes && (
+                              <div className="mb-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-1.5">
+                                <span className="font-bold shrink-0">Note:</span>
+                                <span>{order.customerNotes}</span>
+                              </div>
+                            )}
+
+                            <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
+                              <div>
+                                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
+                                <span className="text-sm font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => handleOpenKot(order)}
-                                  className="min-h-[40px] p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
+                                  className="min-h-[38px] p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
                                   title="Print Kitchen Order Ticket (KOT)"
                                 >
                                   <Printer className="w-4 h-4 text-slate-500" />
                                 </button>
                                 <button
                                   onClick={() => onUpdateOrderStatus(order.id, 'READY')}
-                                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Mark Ready</span>
                                 </button>
-                              </>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </>
+                )}
+
+                {/* ======================================================== */}
+                {/* 3. READY & SERVED COLUMN (Incorporates Dining & Settle)   */}
+                {/* ======================================================== */}
+                {col.id === 'READY_SERVED' && (
+                  <>
+                    {readyAndServedOrders.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-slate-400 mb-2 shadow-xs">
+                          <col.emptyIcon className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-700">{col.emptyTitle}</p>
+                        <p className="text-[11px] text-slate-400 max-w-[200px] mt-0.5 leading-relaxed">{col.emptySubtitle}</p>
+                      </div>
+                    ) : (
+                      readyAndServedOrders.map(order => {
+                        const isReady = order.status === 'READY';
+                        const isServed = order.status === 'SERVED';
+                        const elapsedMins = getElapsedMins(order.createdAt);
+                        const orderTime = new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        });
+                        const hasPendingAdd = order.additions?.some(a => a.status === 'PENDING');
+
+                        return (
+                          <div
+                            key={order.id}
+                            className={`bg-white rounded-xl border p-3.5 shadow-xs transition-all ${
+                              isReady
+                                ? 'border-blue-300 ring-2 ring-blue-400/20'
+                                : 'border-emerald-200/90'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
+                                    {formatTableLabel(order.tableNumber)}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 font-mono font-medium">
+                                    {formatOrderNumber(order.orderNumber)}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 block mt-1">
+                                  Ordered at {orderTime}
+                                </span>
+                              </div>
+
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-50 border border-stone-200 text-slate-600">
+                                <Clock className="w-3 h-3" />
+                                <span>{elapsedMins}m ago</span>
+                              </span>
+                            </div>
+
+                            {/* Status State Badge */}
+                            {isReady && (
+                              <div className="my-2 p-2 rounded-lg bg-blue-50 border border-blue-200 text-[11px] text-blue-900 flex items-center justify-between font-semibold">
+                                <span className="flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>Plated & Ready to Serve</span>
+                                </span>
+                                <span className="text-[10px] text-blue-700 bg-white px-1.5 py-0.5 rounded border border-blue-200">
+                                  Waitstaff Alert
+                                </span>
+                              </div>
                             )}
 
-                            {/* READY State Actions: Mark as Served (decoupled from bill settlement) */}
-                            {order.status === 'READY' && (
-                              <>
-                                <button
-                                  onClick={() => handleOpenKot(order)}
-                                  className="min-h-[40px] p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
-                                  title="Print KOT"
-                                >
-                                  <Printer className="w-4 h-4 text-slate-500" />
-                                </button>
-                                <button
-                                  onClick={() => onUpdateOrderStatus(order.id, 'SERVED')}
-                                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
-                                >
-                                  <UtensilsCrossed className="w-3.5 h-3.5" />
-                                  <span>Mark as Served</span>
-                                </button>
-                              </>
+                            {isServed && (
+                              <div className="my-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between font-semibold">
+                                <span className="flex items-center gap-1.5">
+                                  <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Food Served • Table Dining</span>
+                                </span>
+                                <span className="text-[10px] text-emerald-700 bg-white px-1.5 py-0.5 rounded border border-emerald-200">
+                                  Can add dishes
+                                </span>
+                              </div>
                             )}
 
-                            {/* SERVED State Actions: Settle Bill (removes card permanently on settlement) */}
-                            {order.status === 'SERVED' && (
-                              <>
-                                <button
-                                  onClick={() => handleOpenInvoice(order)}
-                                  className="min-h-[40px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-700 hover:bg-stone-50 text-xs font-semibold flex items-center gap-1 transition-colors"
-                                  title="View Invoice / Bill"
-                                >
-                                  <Receipt className="w-3.5 h-3.5 text-slate-500" />
-                                  <span className="hidden sm:inline">Receipt</span>
-                                </button>
+                            {/* Informational banner if an add-on is waiting in Incoming Orders */}
+                            {hasPendingAdd && (
+                              <div className="my-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
+                                <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span>New add-on requested • Action in Incoming Orders</span>
+                              </div>
+                            )}
+
+                            {/* Items list */}
+                            <div className="py-2.5 divide-y divide-stone-100 text-xs">
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="py-1.5 flex items-baseline justify-between gap-2">
+                                  <div className="text-slate-900 font-medium">
+                                    <span className="font-bold text-slate-900 mr-2">{item.quantity} ×</span>
+                                    <span>{item.name}</span>
+                                    {item.portion && (
+                                      <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>
+                                    )}
+                                    {item.notes && (
+                                      <div className="text-[10px] text-amber-700 italic pl-4 mt-0.5">
+                                        Note: {item.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-slate-700 font-semibold tabular-nums shrink-0">
+                                    ₹{item.price * item.quantity}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Bill Requested Alert Banner */}
+                            {order.billRequested && (
+                              <div className="mb-2 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-semibold flex items-center justify-between">
+                                <span>Guest requested bill at table</span>
                                 <button
                                   onClick={() => setSettleOrder(order)}
-                                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  className="px-2 py-0.5 rounded bg-purple-600 text-white text-[10px] font-bold hover:bg-purple-700"
                                 >
-                                  <Check className="w-3.5 h-3.5" />
-                                  <span>Settle Bill</span>
+                                  Settle Bill
                                 </button>
-                              </>
+                              </div>
                             )}
+
+                            {/* Card Footer: Total Price & State-Specific Actions */}
+                            <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
+                              <div>
+                                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
+                                <span className="text-sm font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                {/* When READY: Mark as Served (moves to served state without settling) */}
+                                {isReady && (
+                                  <>
+                                    <button
+                                      onClick={() => handleOpenKot(order)}
+                                      className="min-h-[38px] p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
+                                      title="Print KOT"
+                                    >
+                                      <Printer className="w-4 h-4 text-slate-500" />
+                                    </button>
+                                    <button
+                                      onClick={() => onUpdateOrderStatus(order.id, 'SERVED')}
+                                      className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                    >
+                                      <UtensilsCrossed className="w-3.5 h-3.5" />
+                                      <span>Mark as Served</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* When SERVED: Kept on the floor; option to settle bill permanently */}
+                                {isServed && (
+                                  <>
+                                    <button
+                                      onClick={() => handleOpenInvoice(order)}
+                                      className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-700 hover:bg-stone-50 text-xs font-semibold flex items-center gap-1 transition-colors"
+                                      title="View Invoice / Bill"
+                                    >
+                                      <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                                      <span className="hidden sm:inline">Receipt</span>
+                                    </button>
+                                    <button
+                                      onClick={() => setSettleOrder(order)}
+                                      className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>Settle Bill</span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                        );
+                      })
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -760,7 +967,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-1">
                   <span className="font-bold text-xs text-amber-300">
-                    Table {toast.tableNumber} added items!
+                    {toast.tableLabel} added item(s)!
                   </span>
                   <button
                     onClick={() => dismissToast(toast.id)}
@@ -847,8 +1054,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                 <div key={order.id} className="p-3 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-stone-50 transition-colors">
                   <div className="flex items-center justify-between pb-1.5 border-b border-stone-200/60">
                     <div>
-                      <span className="font-bold text-xs text-slate-900">{order.tableNumber || 'Counter'}</span>
-                      <span className="text-[10px] text-slate-400 font-mono ml-2">#{order.orderNumber}</span>
+                      <span className="font-bold text-xs text-slate-900">{formatTableLabel(order.tableNumber)}</span>
+                      <span className="text-[10px] text-slate-400 font-mono ml-2">{formatOrderNumber(order.orderNumber)}</span>
                     </div>
                     <span className="text-xs font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
                   </div>

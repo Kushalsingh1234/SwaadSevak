@@ -1,11 +1,20 @@
 # Swaad Sevak — Restaurant Operating & QR Management Platform
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-swaadsevak.vercel.app-emerald?style=for-the-badge&logo=vercel)](https://swaadsevak.vercel.app/)
+
+🔗 **Live Deployment:** [https://swaadsevak.vercel.app/](https://swaadsevak.vercel.app/)
+
 **Swaad Sevak** is a modern, production-grade operating system built for Indian cafés, bistros, cloud kitchens, and dine-in establishments.
 
 It provides an end-to-end dining and kitchen workflow:
 **Restaurant Registration → 5-Step Onboarding → AI Menu Setup → Table QR Generation & ZIP Download → Customer QR Ordering → Real-time Order Alert with Ting Sound → KOT Generation → 58mm/80mm Kitchen Thermal Printing → Customer Bill Request → Digital Tax Invoice → Omnichannel Order Tracking.**
 
 ---
+
+## 🌐 Live Demo & Quick Access
+
+* **Live Web App:** [https://swaadsevak.vercel.app/](https://swaadsevak.vercel.app/)
+* **Demo Manager Login:** Username: `demo_manager` | PIN: `1234`
 
 ## 🚀 Quick Start Guide
 

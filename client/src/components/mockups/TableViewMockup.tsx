@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { formatINR } from '../../lib/utils';
-import {
-  Clock,
-  Printer,
-  QrCode,
-  CheckCircle2,
-} from 'lucide-react';
+import { Clock, Printer } from 'lucide-react';
 
 export const TableViewMockup: React.FC = () => {
   const [selectedTable, setSelectedTable] = useState<number>(4);
@@ -24,7 +19,7 @@ export const TableViewMockup: React.FC = () => {
   return (
     <div className="relative w-full max-w-[1000px] mx-auto text-left font-sans select-none">
       
-      {/* 1. Large Laptop Frame showing Table-View Floor Map POS */}
+      {/* Large Laptop Frame showing Table-View Floor Map POS */}
       <div className="device-laptop-frame p-3 sm:p-4 bg-espresso text-white">
         
         {/* Laptop Camera dot */}
@@ -144,28 +139,6 @@ export const TableViewMockup: React.FC = () => {
 
         {/* Laptop Base */}
         <div className="device-laptop-base mt-0 mx-auto w-[102%]" />
-      </div>
-
-      {/* 2. Overlapping Mobile Phone Frame (Bottom-Right) */}
-      <div className="hidden sm:block absolute -bottom-8 -right-4 w-[240px] device-phone-frame p-2.5 bg-espresso shadow-elevated z-20">
-        <div className="w-16 h-3 bg-cocoa rounded-full mx-auto mb-2" />
-        <div className="rounded-[24px] bg-white p-3 text-xs text-left space-y-2.5 border border-sand-200">
-          <div className="flex items-center justify-between border-b border-sand-200 pb-1.5 font-mono text-[10px]">
-            <span className="font-extrabold text-espresso">FAST BILLING</span>
-            <span className="text-success font-extrabold">UPI QR</span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-sand-50 text-center space-y-1 border border-sand-200">
-            <QrCode className="w-12 h-12 mx-auto text-espresso" />
-            <span className="block font-mono font-extrabold text-xs text-orange-dark">₹1,134.00</span>
-            <span className="text-[9px] text-walnut font-bold block">Scan via GPay / PhonePe / Paytm</span>
-          </div>
-
-          <button className="w-full py-2 rounded-lg bg-espresso text-white font-extrabold text-[10px] flex items-center justify-center gap-1 hover:bg-cocoa transition-colors cursor-pointer">
-            <CheckCircle2 className="w-3 h-3 text-success" />
-            <span>Settle &amp; Send WhatsApp Bill</span>
-          </button>
-        </div>
       </div>
 
     </div>

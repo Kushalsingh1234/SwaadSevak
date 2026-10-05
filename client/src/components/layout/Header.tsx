@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { SwaadSevakLogo } from '../ui/SwaadSevakLogo';
-import { useTranslation } from '../../i18n';
 import { SITE_CONTENT } from '../../content/site';
-import { Globe, Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const Header: React.FC = () => {
-  const { t, language, toggleLanguage } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -42,21 +40,21 @@ export const Header: React.FC = () => {
           <a
             href="#products"
             onClick={() => handleNavClick('products')}
-            className="hover:text-orange-500 transition-colors focus-ring rounded"
+            className="hover:text-orange-400 transition-colors focus-ring rounded"
           >
             Products
           </a>
           <a
             href={SITE_CONTENT.links.pricing}
             onClick={() => handleNavClick('pricing')}
-            className="hover:text-orange-500 transition-colors focus-ring rounded"
+            className="hover:text-orange-400 transition-colors focus-ring rounded"
           >
             Pricing
           </a>
           <a
             href={SITE_CONTENT.links.websiteInquiry}
             onClick={() => handleNavClick('website')}
-            className="flex items-center gap-1.5 hover:text-orange-500 transition-colors focus-ring rounded group"
+            className="flex items-center gap-1.5 hover:text-orange-400 transition-colors focus-ring rounded group"
           >
             <span>Website</span>
             <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-espresso-950 transition-colors">
@@ -66,14 +64,14 @@ export const Header: React.FC = () => {
           <a
             href="#why-us"
             onClick={() => handleNavClick('why-us')}
-            className="hover:text-orange-500 transition-colors focus-ring rounded"
+            className="hover:text-orange-400 transition-colors focus-ring rounded"
           >
             Resources
           </a>
           <a
             href={SITE_CONTENT.links.faq}
             onClick={() => handleNavClick('faq')}
-            className="hover:text-orange-500 transition-colors focus-ring rounded"
+            className="hover:text-orange-400 transition-colors focus-ring rounded"
           >
             FAQ
           </a>
@@ -81,22 +79,12 @@ export const Header: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
-          {/* Language Switch */}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-walnut text-xs font-bold text-sand-100 hover:bg-cocoa transition-colors focus-ring cursor-pointer"
-            aria-label={`Switch to ${language === 'en' ? 'Hindi' : 'English'}`}
-          >
-            <Globe className="w-3.5 h-3.5 text-orange-500" />
-            <span>{language === 'en' ? 'हिन्दी' : 'EN'}</span>
-          </button>
-
-          {/* Orange Primary Button with AA contrast Espresso text */}
+          {/* Orange Primary Button */}
           <a
             href={SITE_CONTENT.links.demo}
             data-event="header_get_started_click"
             onClick={() => trackEvent('header_get_started_click')}
-            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-orange-500 text-espresso-950 hover:bg-orange-600 transition-all duration-200 shadow-soft focus-ring"
+            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-all duration-200 shadow-soft focus-ring"
           >
             <span>Get started</span>
             <ArrowRight className="w-4 h-4" />
@@ -165,7 +153,7 @@ export const Header: React.FC = () => {
                 setMobileMenuOpen(false);
                 trackEvent('mobile_menu_demo_click');
               }}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso-950 hover:bg-orange-600 transition-colors shadow-soft"
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft"
             >
               <span>Get started</span>
               <ArrowRight className="w-4 h-4" />

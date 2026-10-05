@@ -1,16 +1,13 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
-import { useTranslation } from '../../i18n';
 import { Accordion } from '../ui/Accordion';
 import { HelpCircle } from 'lucide-react';
 
 export const FAQSection: React.FC = () => {
-  const { language } = useTranslation();
-
   const accordionItems = SITE_CONTENT.faqs.map((faq) => ({
     id: faq.id,
-    title: language === 'hi' ? faq.questionHi : faq.questionEn,
-    content: language === 'hi' ? faq.answerHi : faq.answerEn,
+    title: faq.questionEn,
+    content: faq.answerEn,
   }));
 
   return (
@@ -26,7 +23,7 @@ export const FAQSection: React.FC = () => {
           <h2 className="h2-fluid font-extrabold text-espresso tracking-tight mb-4">
             Everything You Need to Know
           </h2>
-          <p className="text-base sm:text-lg text-bodyText leading-relaxed">
+          <p className="text-base sm:text-lg text-bodyText leading-relaxed font-normal">
             Straight answers to the most common questions from Indian restaurant operators.
           </p>
         </div>

@@ -1,12 +1,9 @@
 import React from 'react';
 import { SwaadSevakLogo } from '../ui/SwaadSevakLogo';
 import { SITE_CONTENT } from '../../content/site';
-import { Phone, Mail, MessageCircle, MapPin, Globe, ShieldCheck, Award } from 'lucide-react';
-import { useTranslation } from '../../i18n';
+import { Phone, Mail, MessageCircle, MapPin, ShieldCheck, Award } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { language, toggleLanguage } = useTranslation();
-
   return (
     <footer className="bg-orange-500 text-espresso pt-16 pb-28 sm:pb-16 border-t border-orange-600/30 font-sans text-left">
       <div className="max-w-container mx-auto px-4 sm:px-6">
@@ -23,16 +20,12 @@ export const Footer: React.FC = () => {
               {SITE_CONTENT.brand.tagline}. Built specifically for Indian restaurants, cafés, cloud kitchens, and multi-outlet chains.
             </p>
             
-            {/* Country & Language Switch */}
-            <div className="pt-2 flex items-center gap-3">
-              <button
-                onClick={toggleLanguage}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-xs font-bold text-espresso border border-espresso/20 shadow-soft transition-colors cursor-pointer focus-ring"
-              >
-                <Globe className="w-3.5 h-3.5 text-espresso" />
-                <span>Language: {language === 'en' ? 'हिन्दी (Hindi)' : 'English'}</span>
-              </button>
-              <span className="text-xs text-espresso font-mono font-bold">🇮🇳 India</span>
+            {/* Country Badge */}
+            <div className="pt-2 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/90 text-xs font-extrabold text-espresso shadow-soft border border-espresso/15">
+                <span>🇮🇳</span>
+                <span>Built for Indian Food Businesses</span>
+              </span>
             </div>
           </div>
 

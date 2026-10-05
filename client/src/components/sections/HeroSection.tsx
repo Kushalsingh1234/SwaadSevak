@@ -10,8 +10,16 @@ export const HeroSection: React.FC = () => {
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       {/* Background radial glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-orange-500/15 rounded-full blur-[120px] pointer-events-none -z-0" />
-      <div className="absolute inset-0 bg-[radial-gradient(#5A3A28_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none -z-0" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[550px] bg-orange-500/20 rounded-full blur-[140px] pointer-events-none -z-0" />
+      
+      {/* High-Visibility Warm Sand Dot Grid */}
+      <div
+        className="absolute inset-0 pointer-events-none -z-0"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.28) 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
 
       <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10">
         {/* Top Pill Label */}

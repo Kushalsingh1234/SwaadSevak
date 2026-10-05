@@ -101,6 +101,12 @@ export interface Order {
   additions?: OrderAddition[];
   estimatedPrepTime?: number;
   settled?: boolean;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  coinsUsed?: number;
+  coinsEarned?: number;
+  coinDiscount?: number;
   createdAt: Date;
   updatedAt: Date;
   items: OrderItem[];
@@ -135,10 +141,96 @@ export interface Bill {
   subtotal: number;
   tax: number;
   discount: number;
+  coinsUsed?: number;
+  coinsEarned?: number;
   grandTotal: number;
   paymentStatus: 'UNPAID' | 'PAID_CASH' | 'PAID_UPI' | 'PAID_CARD';
   createdAt: Date;
   items: OrderItem[];
+}
+
+export type CustomerStatus = 'NEW' | 'REGULAR' | 'VIP' | 'AT_RISK' | 'INACTIVE';
+
+export interface Customer {
+  id: string;
+  restaurantId: string;
+  name: string;
+  phone: string;
+  coinBalance: number;
+  reservedCoins: number;
+  totalCoinsEarned: number;
+  totalCoinsRedeemed: number;
+  totalOrders: number;
+  totalSpent: number;
+  avgOrderValue: number;
+  firstVisit: Date;
+  lastVisit: Date;
+  status: CustomerStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CoinTransactionType =
+  | 'SIGNUP_BONUS'
+  | 'ORDER_EARN'
+  | 'REDEMPTION'
+  | 'REFUND'
+  | 'ADMIN_ADJUSTMENT'
+  | 'REVERSAL';
+
+export interface CoinTransaction {
+  id: string;
+  restaurantId: string;
+  customerId: string;
+  type: CoinTransactionType;
+  coins: number;
+  orderId?: string;
+  discount?: number;
+  reason?: string;
+  balanceAfter: number;
+  createdAt: Date;
+}
+
+export interface CrmSettings {
+  id: string;
+  restaurantId: string;
+  enabled: boolean;
+  coinsPerAmount: number; // e.g. 10 => 1 coin for every 10 Rs spent
+  coinsEarnedPerUnit: number; // e.g. 1
+  signupBonusEnabled: boolean;
+  signupBonusCoins: number; // e.g. 100
+  minOrderValue: number; // e.g. 300
+  redemptionCoinsUnit: number; // e.g. 100
+  redemptionDiscountUnit: number; // e.g. 10 (100 coins = Rs 10 discount)
+  maxDiscountPerOrder: number; // e.g. 100
+  allowFullDiscount: boolean; // default false
+  earnOnFood: boolean;
+  earnOnTax: boolean;
+  earnOnService: boolean;
+  earnOnDelivery: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CrmEventType =
+  | 'CUSTOMER_SIGNED_UP'
+  | 'ORDER_COMPLETED'
+  | 'COINS_REDEEMED'
+  | 'CUSTOMER_INACTIVE_30_DAYS'
+  | 'CUSTOMER_INACTIVE_60_DAYS'
+  | 'CUSTOMER_REACHED_10_VISITS'
+  | 'CUSTOMER_BECAME_VIP'
+  | 'CUSTOMER_BIRTHDAY'
+  | 'CUSTOMER_EARNED_REWARD';
+
+export interface CrmEvent {
+  id: string;
+  restaurantId: string;
+  type: CrmEventType;
+  customerId?: string;
+  orderId?: string;
+  data?: Record<string, any>;
+  createdAt: Date;
 }
 
 export interface PrinterConfig {

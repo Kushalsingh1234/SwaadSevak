@@ -92,6 +92,12 @@ export interface Order {
   additions?: OrderAddition[];
   estimatedPrepTime?: number;
   settled?: boolean;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  coinsUsed?: number;
+  coinsEarned?: number;
+  coinDiscount?: number;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -107,11 +113,96 @@ export interface Bill {
   subtotal: number;
   tax: number;
   discount: number;
+  coinsUsed?: number;
+  coinsEarned?: number;
   grandTotal: number;
   paymentStatus: 'UNPAID' | 'PAID_CASH' | 'PAID_UPI' | 'PAID_CARD';
   createdAt: string;
   items: OrderItem[];
 }
+
+export type CustomerStatus = 'NEW' | 'REGULAR' | 'VIP' | 'AT_RISK' | 'INACTIVE';
+
+export interface Customer {
+  id: string;
+  restaurantId: string;
+  name: string;
+  phone: string;
+  coinBalance: number;
+  reservedCoins: number;
+  totalCoinsEarned: number;
+  totalCoinsRedeemed: number;
+  totalOrders: number;
+  totalSpent: number;
+  avgOrderValue: number;
+  firstVisit: string;
+  lastVisit: string;
+  status: CustomerStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CoinTransactionType =
+  | 'SIGNUP_BONUS'
+  | 'ORDER_EARN'
+  | 'REDEMPTION'
+  | 'REFUND'
+  | 'ADMIN_ADJUSTMENT'
+  | 'REVERSAL';
+
+export interface CoinTransaction {
+  id: string;
+  restaurantId: string;
+  customerId: string;
+  customerName?: string;
+  customerPhone?: string;
+  type: CoinTransactionType;
+  coins: number;
+  orderId?: string;
+  discount?: number;
+  reason?: string;
+  balanceAfter: number;
+  createdAt: string;
+}
+
+export interface CrmSettings {
+  id: string;
+  restaurantId: string;
+  enabled: boolean;
+  coinsPerAmount: number;
+  coinsEarnedPerUnit: number;
+  signupBonusEnabled: boolean;
+  signupBonusCoins: number;
+  minOrderValue: number;
+  redemptionCoinsUnit: number;
+  redemptionDiscountUnit: number;
+  maxDiscountPerOrder: number;
+  allowFullDiscount: boolean;
+  earnOnFood: boolean;
+  earnOnTax: boolean;
+  earnOnService: boolean;
+  earnOnDelivery: boolean;
+  updatedAt?: string;
+}
+
+export interface CrmOverviewStats {
+  totalCustomers: number;
+  identifiedCustomers: number;
+  anonymousCustomers: number;
+  activeCustomers: number;
+  atRiskCustomers: number;
+  totalCoinsIssued: number;
+  totalCoinsRedeemed: number;
+  outstandingLiability: number;
+  newCustomersThisWeek: number;
+  newCustomersThisMonth: number;
+  returningCustomers: number;
+  repeatCustomerRate: number;
+  redemptionRate: number;
+  totalDiscountGenerated: number;
+  avgCoinsPerCustomer: number;
+}
+
 
 export interface KOTData {
   restaurantName: string;

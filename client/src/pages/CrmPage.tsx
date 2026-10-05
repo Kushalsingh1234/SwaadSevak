@@ -1,0 +1,1354 @@
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  Users,
+  Coins,
+  Sparkles,
+  TrendingUp,
+  Receipt,
+  Settings,
+  Filter,
+  Search,
+  Plus,
+  Minus,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  ShieldCheck,
+  Eye,
+  X,
+  ChevronRight,
+  Save,
+  Award,
+  RefreshCw,
+  Gift
+} from 'lucide-react';
+import { api } from '../services/api';
+import { Restaurant, Manager, Customer, CoinTransaction, CrmSettings, CrmOverviewStats } from '../types';
+
+interface CrmPageProps {
+  restaurant: Restaurant | null;
+  manager: Manager | null;
+  onNavigateTab?: (tab: string) => void;
+}
+
+export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigateTab }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'customers' | 'ledger' | 'settings' | 'analytics'>('overview');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Overview Stats
+  const [overview, setOverview] = useState<CrmOverviewStats | null>(null);
+
+  // Customers
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerFilter, setCustomerFilter] = useState<string>('ALL');
+  const [customerSearch, setCustomerSearch] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<any[]>([]);
+  const [customerCoinHistory, setCustomerCoinHistory] = useState<CoinTransaction[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
+
+  // Coin Ledger
+  const [ledgerTransactions, setLedgerTransactions] = useState<CoinTransaction[]>([]);
+
+  // Settings
+  const [settings, setSettings] = useState<CrmSettings>({
+    id: '',
+    restaurantId: restaurant?.id || '',
+    enabled: true,
+    coinsPerAmount: 10,
+    coinsEarnedPerUnit: 1,
+    signupBonusEnabled: true,
+    signupBonusCoins: 100,
+    minOrderValue: 300,
+    redemptionCoinsUnit: 100,
+    redemptionDiscountUnit: 10,
+    maxDiscountPerOrder: 100,
+    allowFullDiscount: false,
+    earnOnFood: true,
+    earnOnTax: false,
+    earnOnService: false,
+    earnOnDelivery: false
+  });
+  const [savingSettings, setSavingSettings] = useState<boolean>(false);
+  const [settingsSaveMsg, setSettingsSaveMsg] = useState<string | null>(null);
+
+  // Manual Adjust Modal
+  const [showAdjustModal, setShowAdjustModal] = useState<boolean>(false);
+  const [adjustCustomerId, setAdjustCustomerId] = useState<string>('');
+  const [adjustCoins, setAdjustCoins] = useState<number>(50);
+  const [adjustReason, setAdjustReason] = useState<string>('Customer satisfaction compensation');
+  const [adjustSubmitting, setAdjustSubmitting] = useState<boolean>(false);
+  const [adjustError, setAdjustError] = useState<string>('');
+
+  // Analytics
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+
+  useEffect(() => {
+    loadAllCrmData();
+  }, [restaurant?.id]);
+
+  const loadAllCrmData = async () => {
+    setLoading(true);
+    try {
+      const [overviewRes, customersRes, ledgerRes, settingsRes, analyticsRes] = await Promise.all([
+        api.getCrmOverview().catch(() => ({ success: false, overview: null })),
+        api.getCustomers(customerFilter, customerSearch).catch(() => ({ success: false, customers: [] })),
+        api.getCoinLedger().catch(() => ({ success: false, transactions: [] })),
+        api.getCrmSettings().catch(() => ({ success: false, settings: null })),
+        api.getCrmAnalytics().catch(() => ({ success: false, overview: null, topSpenders: [], topFrequent: [], segments: null }))
+      ]);
+
+      if (overviewRes.success && overviewRes.overview) {
+        setOverview(overviewRes.overview);
+      }
+      if (customersRes.success && customersRes.customers) {
+        setCustomers(customersRes.customers);
+      }
+      if (ledgerRes.success && ledgerRes.transactions) {
+        setLedgerTransactions(ledgerRes.transactions);
+      }
+      if (settingsRes.success && settingsRes.settings) {
+        setSettings(settingsRes.settings);
+      }
+      if (analyticsRes.success) {
+        setAnalyticsData(analyticsRes);
+      }
+    } catch (err) {
+      console.error('Failed to load CRM data:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadAllCrmData();
+  };
+
+  // Filter & Search customers
+  const handleFilterCustomers = async (filter: string) => {
+    setCustomerFilter(filter);
+    try {
+      const res = await api.getCustomers(filter, customerSearch);
+      if (res.success && res.customers) {
+        setCustomers(res.customers);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSearchCustomers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.getCustomers(customerFilter, customerSearch);
+      if (res.success && res.customers) {
+        setCustomers(res.customers);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // View Customer Profile Drawer
+  const handleViewCustomer = async (cust: Customer) => {
+    setSelectedCustomer(cust);
+    setLoadingProfile(true);
+    try {
+      const res = await api.getCustomer(cust.id);
+      if (res.success) {
+        setSelectedCustomer(res.customer);
+        setCustomerOrders(res.orders || []);
+        setCustomerCoinHistory(res.coinHistory || []);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  // Save Settings
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    setSettingsSaveMsg(null);
+    try {
+      const res = await api.updateCrmSettings(settings);
+      if (res.success && res.settings) {
+        setSettings(res.settings);
+        setSettingsSaveMsg('CRM & Discount Coin settings saved successfully!');
+        setTimeout(() => setSettingsSaveMsg(null), 4000);
+      }
+    } catch (e: any) {
+      alert(e.message || 'Failed to save settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  // Manual Adjust Coins
+  const handlePerformAdjustment = async () => {
+    if (!adjustCustomerId) {
+      setAdjustError('Please select a customer');
+      return;
+    }
+    if (!adjustReason.trim()) {
+      setAdjustError('Reason is required');
+      return;
+    }
+    if (adjustCoins === 0) {
+      setAdjustError('Coins adjustment must not be zero');
+      return;
+    }
+
+    setAdjustSubmitting(true);
+    setAdjustError('');
+    try {
+      const res = await api.adjustCustomerCoins(adjustCustomerId, adjustCoins, adjustReason.trim());
+      if (res.success) {
+        setShowAdjustModal(false);
+        // Refresh customer list & ledger
+        handleRefresh();
+        if (selectedCustomer && selectedCustomer.id === adjustCustomerId) {
+          handleViewCustomer(res.customer);
+        }
+      } else {
+        setAdjustError(res.message || 'Failed to adjust coins');
+      }
+    } catch (e: any) {
+      setAdjustError(e.message || 'Adjustment failed');
+    } finally {
+      setAdjustSubmitting(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'VIP':
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">👑 VIP</span>;
+      case 'REGULAR':
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">Regular</span>;
+      case 'NEW':
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">New</span>;
+      case 'AT_RISK':
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">⚠️ At Risk</span>;
+      case 'INACTIVE':
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">Inactive</span>;
+      default:
+        return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700">{status}</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-5 w-full">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-xl border border-stone-200/80 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+            🪙
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>Customer Loyalty & CRM</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">
+                SwaadSevak Coins
+              </span>
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Reward returning diners, build customer profiles, and automate retention
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          {/* Quick Active Switch */}
+          <button
+            onClick={() => {
+              const updated = !settings.enabled;
+              setSettings(prev => ({ ...prev, enabled: updated }));
+              api.updateCrmSettings({ enabled: updated });
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+              settings.enabled
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${settings.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+            <span>Discount Coins: {settings.enabled ? 'Active (ON)' : 'Disabled (OFF)'}</span>
+          </button>
+
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            title="Refresh CRM Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-orange-600' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* CRM Navigation Tabs */}
+      <div className="flex items-center gap-1.5 p-1 bg-slate-200/60 rounded-xl overflow-x-auto text-xs font-semibold no-scrollbar">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+            activeTab === 'overview'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+          }`}
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-slate-600" />
+          <span>Overview</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('customers')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+            activeTab === 'customers'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5 text-slate-600" />
+          <span>Customer Directory</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-700 font-bold border border-slate-200">
+            {customers.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ledger')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+            activeTab === 'ledger'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+          }`}
+        >
+          <Coins className="w-3.5 h-3.5 text-slate-600" />
+          <span>Discount Coins Ledger</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+            activeTab === 'analytics'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <span>Analytics & Retention</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+            activeTab === 'settings'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+          }`}
+        >
+          <Settings className="w-3.5 h-3.5 text-slate-600" />
+          <span>Loyalty Settings</span>
+        </button>
+      </div>
+
+      {/* TAB 1: OVERVIEW (Phase 17) */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Growth Engine Retention Callout (Phase 23) */}
+          {overview && overview.atRiskCustomers > 0 && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100 border border-amber-300/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+                  🔥
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-amber-950">
+                    {overview.atRiskCustomers} customers are at risk of becoming inactive
+                  </h3>
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    Recommended action: Send a promotional ₹100 Discount Coin bonus to customers whose average order exceeds ₹500.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    handleFilterCustomers('AT_RISK');
+                    setActiveTab('customers');
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-900 text-white text-xs font-bold hover:bg-amber-950 transition-all shadow-xs"
+                >
+                  View At-Risk Customers
+                </button>
+                {onNavigateTab && (
+                  <button
+                    onClick={() => onNavigateTab('growth')}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-900 text-xs font-bold hover:bg-amber-50 transition-all"
+                  >
+                    Open Growth Engine →
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 8 Metric KPI Cards (Phase 17) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Total Customers</span>
+              <span className="text-2xl font-black text-slate-900 block mt-1">
+                {overview?.totalCustomers.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Dine-in + QR Diners</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Identified Customers</span>
+              <span className="text-2xl font-black text-emerald-600 block mt-1">
+                {overview?.identifiedCustomers.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Loyalty Profile Active</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Guest Customers</span>
+              <span className="text-2xl font-black text-slate-700 block mt-1">
+                {overview?.anonymousCustomers.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Quick Guest Orders</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Active Customers (30d)</span>
+              <span className="text-2xl font-black text-blue-600 block mt-1">
+                {overview?.activeCustomers.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Visited within 30 days</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">At-Risk Customers</span>
+              <span className="text-2xl font-black text-amber-600 block mt-1">
+                {overview?.atRiskCustomers.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">30–60 days inactive</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Total Coins Issued</span>
+              <span className="text-2xl font-black text-orange-600 block mt-1">
+                🪙 {overview?.totalCoinsIssued.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Signups & Order rewards</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Total Coins Redeemed</span>
+              <span className="text-2xl font-black text-purple-600 block mt-1">
+                🪙 {overview?.totalCoinsRedeemed.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                {formatCurrency(overview?.totalDiscountGenerated || 0)} discounts given
+              </span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 block">Outstanding Liability</span>
+              <span className="text-2xl font-black text-amber-700 block mt-1">
+                🪙 {overview?.outstandingLiability.toLocaleString('en-IN') || 0}
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1 block">Current wallet balances</span>
+            </div>
+          </div>
+
+          {/* Quick Action Banner */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-sm text-slate-900">Repeat Customer Rate</h4>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                    {overview?.repeatCustomerRate || 0}%
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Percentage of identified diners who have returned for 2 or more dining sessions.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                <span>Returning Customers</span>
+                <span className="font-bold text-slate-900">{overview?.returningCustomers || 0} diners</span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-sm text-slate-900">Coin Redemption Rate</h4>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
+                    {overview?.redemptionRate || 0}%
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Rate at which issued coins are redeemed for discounts, driving repeat footfall.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                <span>Avg Coins / Customer</span>
+                <span className="font-bold text-slate-900">{overview?.avgCoinsPerCustomer || 0} coins</span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col justify-between shadow-sm">
+              <div>
+                <span className="text-xs text-orange-400 font-bold block mb-1">QUICK ACTIONS</span>
+                <h4 className="font-bold text-sm text-white">Manual Coin Adjustment</h4>
+                <p className="text-xs text-slate-300 mt-1">
+                  Credit compensation or loyalty bonus directly to any customer's wallet.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setAdjustCustomerId(customers[0]?.id || '');
+                  setShowAdjustModal(true);
+                }}
+                className="mt-4 w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Adjust Customer Coins</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: CUSTOMERS (Phase 18) */}
+      {activeTab === 'customers' && (
+        <div className="space-y-4">
+          {/* Search & Filters */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <form onSubmit={handleSearchCustomers} className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search customer by name or phone..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
+                />
+              </form>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setAdjustCustomerId(customers[0]?.id || '');
+                    setShowAdjustModal(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Manual Adjust Coins</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Chips (Phase 18) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pt-1">
+              {[
+                { id: 'ALL', label: 'All Customers' },
+                { id: 'NEW', label: 'New' },
+                { id: 'RETURNING', label: 'Returning' },
+                { id: 'VIP', label: '👑 VIP' },
+                { id: 'AT_RISK', label: '⚠️ At Risk' },
+                { id: 'INACTIVE', label: 'Inactive' },
+                { id: 'HIGH_SPENDING', label: 'High Spending (>₹5k)' },
+                { id: 'HIGH_FREQUENCY', label: 'High Frequency (8+)' }
+              ].map(chip => (
+                <button
+                  key={chip.id}
+                  onClick={() => handleFilterCustomers(chip.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    customerFilter === chip.id
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Customers Table */}
+          <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3 whitespace-nowrap">Customer</th>
+                    <th className="py-3 px-2 whitespace-nowrap">Phone</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Orders</th>
+                    <th className="py-3 px-2 text-right whitespace-nowrap">Total Spent</th>
+                    <th className="py-3 px-2 text-right whitespace-nowrap hidden xl:table-cell">Avg Order</th>
+                    <th className="py-3 px-2 whitespace-nowrap hidden lg:table-cell">Last Visit</th>
+                    <th className="py-3 px-2 text-right whitespace-nowrap">Discount Coins</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Status</th>
+                    <th className="py-3 px-3 text-right whitespace-nowrap">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {customers.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                        No customers found matching filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    customers.map((c) => (
+                      <tr
+                        key={c.id}
+                        onClick={() => handleViewCustomer(c)}
+                        className="hover:bg-slate-50/90 transition-colors cursor-pointer group"
+                      >
+                        <td className="py-2.5 px-3 font-bold text-slate-900 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shrink-0 group-hover:bg-orange-100 group-hover:text-orange-700 transition-colors">
+                              {c.name.slice(0, 1)}
+                            </div>
+                            <span className="truncate max-w-[130px]">{c.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 font-mono text-slate-600 whitespace-nowrap text-[11px]">
+                          {c.phone.length === 10 ? `${c.phone.slice(0, 2)}XXXXXX${c.phone.slice(-2)}` : c.phone}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-semibold text-slate-700 whitespace-nowrap">
+                          {c.totalOrders}
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-bold text-slate-900 whitespace-nowrap">
+                          {formatCurrency(c.totalSpent)}
+                        </td>
+                        <td className="py-2.5 px-2 text-right text-slate-600 whitespace-nowrap hidden xl:table-cell">
+                          {formatCurrency(c.avgOrderValue)}
+                        </td>
+                        <td className="py-2.5 px-2 text-slate-600 whitespace-nowrap text-[11px] hidden lg:table-cell">
+                          {new Date(c.lastVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-bold text-amber-700 whitespace-nowrap">
+                          🪙 {c.coinBalance}
+                        </td>
+                        <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                          {getStatusBadge(c.status)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewCustomer(c);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-slate-100 group-hover:bg-orange-600 group-hover:text-white text-slate-700 font-bold text-[11px] transition-all cursor-pointer shadow-2xs"
+                          >
+                            Profile →
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: DISCOUNT COINS LEDGER (Phase 20) */}
+      {activeTab === 'ledger' && (
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-sm text-slate-900">Discount Coin Transaction Ledger</h3>
+              <p className="text-xs text-slate-500">
+                Immutable record of every loyalty coin credited, redeemed, refunded, or adjusted
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setAdjustCustomerId(customers[0]?.id || '');
+                setShowAdjustModal(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Manual Adjustment</span>
+            </button>
+          </div>
+
+          <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4 whitespace-nowrap">Date & Time</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Customer</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Type</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Coins</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Order / Ref</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Reason</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Balance After</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {ledgerTransactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
+                        No coin transactions recorded yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    ledgerTransactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                          {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}{' '}
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(tx.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
+                          {tx.customerName || 'Customer'}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            tx.type === 'SIGNUP_BONUS' ? 'bg-amber-100 text-amber-800' :
+                            tx.type === 'ORDER_EARN' ? 'bg-emerald-100 text-emerald-800' :
+                            tx.type === 'REDEMPTION' ? 'bg-purple-100 text-purple-800' :
+                            tx.type === 'ADMIN_ADJUSTMENT' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {tx.type}
+                          </span>
+                        </td>
+                        <td className={`py-3 px-4 text-right font-black whitespace-nowrap ${
+                          tx.coins > 0 ? 'text-emerald-600' : 'text-purple-600'
+                        }`}>
+                          {tx.coins > 0 ? `+${tx.coins}` : tx.coins}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
+                          {tx.orderId ? tx.orderId.slice(-8) : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
+                          {tx.reason || 'Loyalty transaction'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-bold text-amber-800 whitespace-nowrap">
+                          🪙 {tx.balanceAfter}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: SETTINGS (Phases 3, 4, 26) */}
+      {activeTab === 'settings' && (
+        <div className="max-w-3xl space-y-6">
+          {settingsSaveMsg && (
+            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-800 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <span>{settingsSaveMsg}</span>
+            </div>
+          )}
+
+          {/* Master Switch Card (Phase 3) */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-slate-900">Discount Coins Master Switch</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Reward customers for ordering and let them redeem coins for discounts.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
+                className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors ${
+                  settings.enabled ? 'bg-orange-600' : 'bg-slate-300'
+                }`}
+              >
+                <div
+                  className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform ${
+                    settings.enabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {!settings.enabled && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                <span className="font-bold">System Inactive:</span> Coin prompts and redemption are hidden from diners. Existing customer balances and transaction history are preserved.
+              </div>
+            )}
+          </div>
+
+          {/* Configuration Rules (Phase 3.1, 3.2, 4) */}
+          <div className={`space-y-5 ${!settings.enabled ? 'opacity-60 pointer-events-none' : ''}`}>
+            {/* Earning Rules */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+              <h4 className="font-bold text-sm text-slate-900">1. How Customers Earn Coins</h4>
+              <p className="text-xs text-slate-500">
+                Recommended default: 1 coin for every ₹10 of eligible order value.
+              </p>
+
+              <div className="flex items-center gap-3 pt-2">
+                <span className="text-xs font-semibold text-slate-700">Earn 1 coin for every ₹</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={settings.coinsPerAmount}
+                  onChange={(e) => setSettings(prev => ({ ...prev, coinsPerAmount: Number(e.target.value) || 10 }))}
+                  className="w-24 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                />
+                <span className="text-xs text-slate-500">spent by customer</span>
+              </div>
+            </div>
+
+            {/* Signup Bonus */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">2. New Customer First Signup Bonus</h4>
+                  <p className="text-xs text-slate-500">
+                    Coins awarded once when a customer registers their profile. (Strict one-time protection per phone number).
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.signupBonusEnabled}
+                  onChange={(e) => setSettings(prev => ({ ...prev, signupBonusEnabled: e.target.checked }))}
+                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                />
+              </div>
+
+              {settings.signupBonusEnabled && (
+                <div className="flex items-center gap-3 pt-1">
+                  <span className="text-xs font-semibold text-slate-700">Bonus Coins:</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={settings.signupBonusCoins}
+                    onChange={(e) => setSettings(prev => ({ ...prev, signupBonusCoins: Number(e.target.value) || 100 }))}
+                    className="w-24 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                  />
+                  <span className="text-xs text-slate-500">coins given on welcome</span>
+                </div>
+              )}
+            </div>
+
+            {/* Redemption Rules (Phase 4) */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+              <h4 className="font-bold text-sm text-slate-900">3. How Customers Redeem Coins</h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Minimum Order Value for Redemption
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">₹</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={settings.minOrderValue}
+                      onChange={(e) => setSettings(prev => ({ ...prev, minOrderValue: Number(e.target.value) || 300 }))}
+                      className="w-full pl-7 pr-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                    />
+                  </div>
+                  <span className="text-[11px] text-slate-400 mt-0.5 block">Customer must order at least this amount to use coins</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Maximum Discount Per Order
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">₹</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={settings.maxDiscountPerOrder}
+                      onChange={(e) => setSettings(prev => ({ ...prev, maxDiscountPerOrder: Number(e.target.value) || 100 }))}
+                      className="w-full pl-7 pr-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                    />
+                  </div>
+                  <span className="text-[11px] text-slate-400 mt-0.5 block">Caps max savings on a single order</span>
+                </div>
+              </div>
+
+              {/* Conversion Ratio */}
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Coin-to-Discount Conversion
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.redemptionCoinsUnit}
+                    onChange={(e) => setSettings(prev => ({ ...prev, redemptionCoinsUnit: Number(e.target.value) || 100 }))}
+                    className="w-20 px-2.5 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                  />
+                  <span className="text-xs font-bold text-slate-600">coins = ₹</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.redemptionDiscountUnit}
+                    onChange={(e) => setSettings(prev => ({ ...prev, redemptionDiscountUnit: Number(e.target.value) || 10 }))}
+                    className="w-20 px-2.5 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-orange-500"
+                  />
+                  <span className="text-xs font-bold text-slate-600">discount</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Example: 100 coins = ₹10 OFF
+                </p>
+              </div>
+
+              {/* Earn Coins On Checkboxes (Phase 26) */}
+              <div className="pt-2">
+                <span className="block text-xs font-semibold text-slate-700 mb-2">Earn Coins On:</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.earnOnFood}
+                      onChange={(e) => setSettings(prev => ({ ...prev, earnOnFood: e.target.checked }))}
+                      className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                    />
+                    <span>Food Items (Recommended)</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.earnOnTax}
+                      onChange={(e) => setSettings(prev => ({ ...prev, earnOnTax: e.target.checked }))}
+                      className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                    />
+                    <span>Taxes & GST</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.earnOnService}
+                      onChange={(e) => setSettings(prev => ({ ...prev, earnOnService: e.target.checked }))}
+                      className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                    />
+                    <span>Service Charges</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.earnOnDelivery}
+                      onChange={(e) => setSettings(prev => ({ ...prev, earnOnDelivery: e.target.checked }))}
+                      className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                    />
+                    <span>Delivery Charges</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+              className="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {savingSettings ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save CRM & Coin Settings</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: ANALYTICS (Phase 21) */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {/* Top Leaderboards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Top Spenders */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <h3 className="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
+                <span>Top Spending Customers</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">VIP</span>
+              </h3>
+              <div className="divide-y divide-slate-100">
+                {analyticsData?.topSpenders?.slice(0, 5).map((cust: Customer, idx: number) => (
+                  <div key={cust.id} className="py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-5 font-bold text-xs text-slate-400">#{idx + 1}</span>
+                      <div>
+                        <h4 className="font-bold text-xs text-slate-900">{cust.name}</h4>
+                        <span className="text-[11px] text-slate-500">{cust.totalOrders} visits</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-xs text-slate-900 block">{formatCurrency(cust.totalSpent)}</span>
+                      <span className="text-[11px] text-amber-700 font-medium">🪙 {cust.coinBalance} coins</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Top Frequency */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <h3 className="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
+                <span>Most Frequent Diners</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">Loyal</span>
+              </h3>
+              <div className="divide-y divide-slate-100">
+                {analyticsData?.topFrequent?.slice(0, 5).map((cust: Customer, idx: number) => (
+                  <div key={cust.id} className="py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-5 font-bold text-xs text-slate-400">#{idx + 1}</span>
+                      <div>
+                        <h4 className="font-bold text-xs text-slate-900">{cust.name}</h4>
+                        <span className="text-[11px] text-slate-500">Avg {formatCurrency(cust.avgOrderValue)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-xs text-slate-900 block">{cust.totalOrders} orders</span>
+                      <span className="text-[11px] text-slate-400">
+                        Last visit: {new Date(cust.lastVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Segment Breakdown */}
+          {analyticsData?.segments && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <h3 className="font-bold text-sm text-slate-900 mb-3">Customer Lifecycle Segments</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-center">
+                  <span className="text-[11px] text-purple-700 font-bold block">👑 VIP</span>
+                  <span className="text-xl font-black text-purple-900 block mt-0.5">{analyticsData.segments.vip}</span>
+                  <span className="text-[10px] text-purple-600">High spending diners</span>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-center">
+                  <span className="text-[11px] text-blue-700 font-bold block">Regular</span>
+                  <span className="text-xl font-black text-blue-900 block mt-0.5">{analyticsData.segments.regular}</span>
+                  <span className="text-[10px] text-blue-600">3+ orders</span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                  <span className="text-[11px] text-emerald-700 font-bold block">New</span>
+                  <span className="text-xl font-black text-emerald-900 block mt-0.5">{analyticsData.segments.new}</span>
+                  <span className="text-[10px] text-emerald-600">First time diners</span>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
+                  <span className="text-[11px] text-amber-700 font-bold block">⚠️ At Risk</span>
+                  <span className="text-xl font-black text-amber-900 block mt-0.5">{analyticsData.segments.atRisk}</span>
+                  <span className="text-[10px] text-amber-600">No visit in 30-60d</span>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
+                  <span className="text-[11px] text-gray-700 font-bold block">Inactive</span>
+                  <span className="text-xl font-black text-gray-900 block mt-0.5">{analyticsData.segments.inactive}</span>
+                  <span className="text-[10px] text-gray-600">&gt;60 days dormant</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CUSTOMER PROFILE DRAWER / MODAL (Phase 19) */}
+      {selectedCustomer && createPortal(
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end">
+          <div className="bg-white w-full max-w-md h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+            {/* Header */}
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center font-bold text-base shadow-xs">
+                  {selectedCustomer.name.slice(0, 1)}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-slate-900">{selectedCustomer.name}</h3>
+                    {getStatusBadge(selectedCustomer.status)}
+                  </div>
+                  <p className="text-xs font-mono text-slate-500 mt-0.5">
+                    {selectedCustomer.phone.length === 10
+                      ? `${selectedCustomer.phone.slice(0, 2)}XXXXXX${selectedCustomer.phone.slice(-2)}`
+                      : selectedCustomer.phone}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Profile Content */}
+            <div className="flex-1 overflow-y-auto p-5 pb-8 space-y-5">
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase block">Orders</span>
+                  <span className="text-base font-black text-slate-900 block mt-0.5">{selectedCustomer.totalOrders}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase block">Total Spent</span>
+                  <span className="text-base font-black text-slate-900 block mt-0.5">{formatCurrency(selectedCustomer.totalSpent)}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase block">Avg Order</span>
+                  <span className="text-base font-black text-slate-900 block mt-0.5">{formatCurrency(selectedCustomer.avgOrderValue)}</span>
+                </div>
+              </div>
+
+              {/* Wallet Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-amber-800 font-medium block">Discount Coin Balance</span>
+                  <span className="text-2xl font-black text-amber-900 block mt-0.5">
+                    🪙 {selectedCustomer.coinBalance} <span className="text-xs font-bold text-amber-700">Coins</span>
+                  </span>
+                  <span className="text-[11px] text-amber-700 block mt-0.5">
+                    Total Earned: {selectedCustomer.totalCoinsEarned} • Redeemed: {selectedCustomer.totalCoinsRedeemed}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setAdjustCustomerId(selectedCustomer.id);
+                    setShowAdjustModal(true);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all"
+                >
+                  Adjust Coins
+                </button>
+              </div>
+
+              {/* Dates */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">FIRST VISIT</span>
+                  <span className="font-semibold text-slate-900">{new Date(selectedCustomer.firstVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-400 block text-[10px]">LAST VISIT</span>
+                  <span className="font-semibold text-slate-900">{new Date(selectedCustomer.lastVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                </div>
+              </div>
+
+              {/* Order History (Phase 19) */}
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2">Order History</h4>
+                {customerOrders.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-3">No orders recorded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerOrders.slice(0, 8).map(ord => (
+                      <div key={ord.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900">{ord.orderNumber}</span>
+                            <span className="text-[10px] text-slate-400">{ord.tableNumber}</span>
+                          </div>
+                          <span className="text-[11px] text-slate-500">
+                            {new Date(ord.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {ord.items?.length || 0} dishes
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-slate-900 block">{formatCurrency(ord.total)}</span>
+                          {ord.coinDiscount > 0 && (
+                            <span className="text-[10px] text-purple-700 font-semibold">-₹{ord.coinDiscount} (🪙 {ord.coinsUsed})</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Coin History (Phase 19) */}
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2">Coin History Ledger</h4>
+                {customerCoinHistory.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-3">No coin movements recorded.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerCoinHistory.slice(0, 10).map(tx => (
+                      <div key={tx.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                              tx.coins > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {tx.type}
+                            </span>
+                            <span className="text-[11px] text-slate-600 truncate max-w-[180px]">{tx.reason}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • Balance after: {tx.balanceAfter}
+                          </span>
+                        </div>
+                        <span className={`font-black text-xs ${tx.coins > 0 ? 'text-emerald-600' : 'text-purple-600'}`}>
+                          {tx.coins > 0 ? `+${tx.coins}` : tx.coins}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Drawer Bottom Action Footer */}
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+              <button
+                onClick={() => {
+                  setAdjustCustomerId(selectedCustomer.id);
+                  setShowAdjustModal(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Adjust Coins</span>
+              </button>
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-all cursor-pointer"
+              >
+                Close Profile
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MANUAL ADJUST COINS MODAL */}
+      {showAdjustModal && createPortal(
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🪙</span>
+                <h3 className="font-bold text-sm text-slate-900">Manual Coin Adjustment</h3>
+              </div>
+              <button
+                onClick={() => setShowAdjustModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Customer</label>
+                <select
+                  value={adjustCustomerId}
+                  onChange={(e) => setAdjustCustomerId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-orange-500"
+                >
+                  <option value="">-- Choose Diner --</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.phone.slice(-4)}) — Balance: {c.coinBalance} coins
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Coins to Adjust</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdjustCoins(prev => prev > 0 ? -Math.abs(prev) : Math.abs(prev))}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                      adjustCoins >= 0
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-purple-50 text-purple-800 border-purple-300'
+                    }`}
+                  >
+                    {adjustCoins >= 0 ? '+ Add' : '- Deduct'}
+                  </button>
+                  <input
+                    type="number"
+                    value={adjustCoins}
+                    onChange={(e) => setAdjustCoins(Number(e.target.value))}
+                    className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Reason for Adjustment <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Compensation for delay, VIP loyalty gift..."
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-orange-500"
+                />
+              </div>
+
+              {adjustError && (
+                <p className="text-xs text-red-600">{adjustError}</p>
+              )}
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdjustModal(false)}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePerformAdjustment}
+                  disabled={adjustSubmitting}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50"
+                >
+                  {adjustSubmitting ? 'Adjusting...' : 'Confirm Adjustment'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};

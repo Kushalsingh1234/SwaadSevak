@@ -14,6 +14,7 @@ import analyticsRoutes from './routes/analytics.js';
 import aggregatorsRoutes from './routes/aggregators.js';
 import webhooksRoutes from './routes/webhooks.js';
 import growthRoutes from './routes/growthEngine.js';
+import crmRoutes from './routes/crm.js';
 import { initializeSocket } from './realtime/socket.js';
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/aggregators', aggregatorsRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/growth', growthRoutes);
+app.use('/api/crm', crmRoutes);
 
 // Health check endpoints (for uptime monitors like cron-job.org / UptimeRobot and pre-warming)
 const handleHealth = (req: express.Request, res: express.Response) => {

@@ -70,7 +70,7 @@ export const ProductTabsSection: React.FC = () => {
   };
 
   return (
-    <section id="products" className="relative pt-16 sm:pt-24 pb-20 sm:pb-28 overflow-hidden font-sans">
+    <section id="products" className="relative pt-12 sm:pt-16 pb-14 sm:pb-20 overflow-hidden font-sans">
       {/* Split Background: Upper White, Lower Brown with Smooth Dramatic Curve */}
       <div className="absolute inset-0 pointer-events-none -z-0 bg-white">
         {/* Full-bleed SVG defining the smooth curved bottom espresso area */}
@@ -100,7 +100,7 @@ export const ProductTabsSection: React.FC = () => {
         />
       </div>
 
-      <div className="max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
         
         {/* Tab Selection Bar */}
         <div className="flex items-center justify-center">
@@ -112,7 +112,7 @@ export const ProductTabsSection: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabSelect(tab.id)}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 focus-ring cursor-pointer ${
+                  className={`flex items-center gap-2 px-3.5 sm:px-5 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all duration-200 focus-ring cursor-pointer ${
                     isActive
                       ? 'bg-espresso text-white shadow-soft'
                       : 'text-bodyText hover:text-espresso hover:bg-sand-100/50'
@@ -120,7 +120,7 @@ export const ProductTabsSection: React.FC = () => {
                   aria-selected={isActive}
                   role="tab"
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-orange-500' : 'text-bodyText'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-orange-500' : 'text-bodyText'}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -129,7 +129,7 @@ export const ProductTabsSection: React.FC = () => {
         </div>
 
         {/* Tab Headline & Details */}
-        <div className="text-center max-w-2xl mx-auto mt-8 mb-8 sm:mb-12">
+        <div className="text-center max-w-2xl mx-auto mt-6 mb-6 sm:mb-9">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab.id}
@@ -138,25 +138,25 @@ export const ProductTabsSection: React.FC = () => {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
             >
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-espresso tracking-tight mb-2">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-espresso tracking-tight mb-2">
                 {currentTab.headline}
               </h3>
-              <p className="text-sm sm:text-base text-bodyText leading-relaxed mb-4">
+              <p className="text-xs sm:text-sm text-bodyText leading-relaxed mb-3">
                 {currentTab.description}
               </p>
               <a
                 href={currentTab.exploreLink}
-                className="inline-flex items-center gap-1.5 font-bold text-sm text-orange-dark hover:text-orange-hover focus-ring rounded"
+                className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-orange-dark hover:text-orange-hover focus-ring rounded"
               >
                 <span>{currentTab.exploreText}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Dynamic Interactive Mockup with Smooth Crossfade */}
-        <div className="max-w-6xl mx-auto w-full">
+        <div className="max-w-5xl mx-auto w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab.id}

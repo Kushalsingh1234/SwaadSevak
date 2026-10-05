@@ -29,7 +29,7 @@
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 
-  /* Fluid typography clamp sizes */
+  /* Fluid typography clamp sizes (scaled to 80% proportion) */
   h1, .h1-fluid {
     font-size: clamp(2.35rem, 5vw + 0.5rem, 3.85rem);
     line-height: 1.1;
@@ -38,14 +38,14 @@
   }
 
   h2, .h2-fluid {
-    font-size: clamp(1.85rem, 3.2vw + 0.5rem, 2.75rem);
+    font-size: clamp(1.45rem, 2.2vw + 0.25rem, 2.15rem);
     line-height: 1.18;
     letter-spacing: -0.025em;
     font-weight: 700;
   }
 
   h3, .h3-fluid {
-    font-size: clamp(1.25rem, 2vw + 0.25rem, 1.75rem);
+    font-size: clamp(1.05rem, 1.4vw + 0.15rem, 1.35rem);
     line-height: 1.25;
     letter-spacing: -0.015em;
     font-weight: 700;

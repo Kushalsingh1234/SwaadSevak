@@ -11,48 +11,48 @@ export const MetricsBandSection: React.FC = () => {
 
   return (
     <section
-      className="py-16 sm:py-20 font-sans border-b border-walnut relative overflow-hidden"
+      className="py-10 sm:py-14 font-sans border-b border-walnut relative overflow-hidden"
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       <div className="max-w-container mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Heading (4 cols) */}
           <div className="lg:col-span-4 text-left">
             <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold shadow-soft mb-3"
+              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-soft mb-2.5"
               style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FAF4ED' }}
             >
-              <span className="w-2 h-2 rounded-full bg-orange-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
               <span>Verified Standards</span>
             </div>
-            <h2 className="h2-fluid font-extrabold tracking-tight mb-3" style={{ color: '#FFFFFF' }}>
+            <h2 className="h2-fluid font-extrabold tracking-tight mb-2.5" style={{ color: '#FFFFFF' }}>
               How We Build Trust
             </h2>
-            <p className="text-sm leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
+            <p className="text-xs sm:text-sm leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
               Transparent engineering benchmarks. We never make exaggerated claims—every number is grounded in real operational constraints.
             </p>
           </div>
 
           {/* Right Stats with Divider Lines (8 cols) */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-left">
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 text-left">
             {SITE_CONTENT.proofStats.map((stat, idx) => (
               <div
                 key={idx}
-                className="relative flex flex-col justify-between sm:pl-6 first:pl-0 sm:border-l"
+                className="relative flex flex-col justify-between sm:pl-5 first:pl-0 sm:border-l"
                 style={{ borderColor: '#5A3A28' }}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2.5">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      className="w-8.5 h-8.5 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28' }}
                     >
-                      {statIcons[idx]}
+                      {React.cloneElement(statIcons[idx], { className: 'w-4.5 h-4.5 text-orange-400' })}
                     </div>
                     {stat.isPlaceholder && (
                       <span
-                        className="text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-bold"
+                        className="text-[8px] font-mono px-1.5 py-0.5 rounded uppercase font-bold"
                         style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FAF4ED' }}
                       >
                         TODO: PLACEHOLDER
@@ -61,15 +61,15 @@ export const MetricsBandSection: React.FC = () => {
                   </div>
                   
                   <div
-                    className="font-mono font-extrabold text-3xl sm:text-4xl tracking-tight mb-1"
+                    className="font-mono font-extrabold text-2xl sm:text-3xl tracking-tight mb-1"
                     style={{ color: '#FFFFFF' }}
                   >
                     {stat.value}
                   </div>
-                  <h3 className="font-extrabold text-sm mb-1" style={{ color: '#FFFFFF' }}>
+                  <h3 className="font-extrabold text-xs sm:text-sm mb-0.5" style={{ color: '#FFFFFF' }}>
                     {stat.label}
                   </h3>
-                  <p className="text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
+                  <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
                     {stat.sub}
                   </p>
                 </div>

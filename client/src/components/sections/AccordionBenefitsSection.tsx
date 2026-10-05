@@ -62,28 +62,28 @@ export const AccordionBenefitsSection: React.FC = () => {
   const activeBenefit = BENEFITS.find((b) => b.id === openId) || BENEFITS[0];
 
   return (
-    <section className="py-20 sm:py-28 bg-cream text-espresso font-sans border-b border-sand-200">
+    <section className="py-12 sm:py-16 bg-cream text-espresso font-sans border-b border-sand-200">
       <div className="max-w-container mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-sand-200 text-xs font-semibold text-espresso shadow-soft mb-4">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-sand-200 text-xs font-semibold text-espresso shadow-soft mb-3">
             <span className="w-2 h-2 rounded-full bg-orange-500" />
             <span>Operational Outcomes</span>
           </div>
-          <h2 className="h2-fluid font-extrabold text-espresso tracking-tight mb-4">
+          <h2 className="h2-fluid font-extrabold text-espresso tracking-tight mb-3">
             What SwaadSevak Can Do For You
           </h2>
-          <p className="text-base sm:text-lg text-bodyText leading-relaxed">
+          <p className="text-sm sm:text-base text-bodyText leading-relaxed">
             Engineered specifically to solve day-to-day chaos for Indian restaurant owners, managers, and kitchen teams.
           </p>
         </div>
 
         {/* 2-Column Layout: Accordion Left (7 cols), Illustration Panel Right (5 cols) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
           
           {/* Accordion List (7 cols) */}
-          <div className="lg:col-span-7 space-y-4 text-left">
+          <div className="lg:col-span-7 space-y-3 text-left">
             {BENEFITS.map((item) => {
               const isOpen = item.id === openId;
               const Icon = item.icon;
@@ -91,7 +91,7 @@ export const AccordionBenefitsSection: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  className={`rounded-xl border transition-all duration-200 overflow-hidden ${
                     isOpen
                       ? 'bg-white border-orange-500 shadow-card'
                       : 'bg-white/60 border-sand-200 hover:bg-white hover:border-sand-300'
@@ -99,23 +99,23 @@ export const AccordionBenefitsSection: React.FC = () => {
                 >
                   <button
                     onClick={() => setOpenId(item.id)}
-                    className="w-full p-5 sm:p-6 flex items-center justify-between gap-4 text-left cursor-pointer focus-ring"
+                    className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left cursor-pointer focus-ring"
                     aria-expanded={isOpen}
                   >
-                    <div className="flex items-center gap-3.5">
+                    <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${
+                        className={`w-8.5 h-8.5 rounded-lg flex items-center justify-center font-bold transition-colors ${
                           isOpen ? 'bg-orange-500 text-espresso-950' : 'bg-sand-100 text-bodyText'
                         }`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4.5 h-4.5" />
                       </div>
-                      <h3 className="text-lg sm:text-xl font-bold text-espresso">
+                      <h3 className="text-base sm:text-lg font-bold text-espresso">
                         {item.title}
                       </h3>
                     </div>
                     <ChevronDown
-                      className={`w-5 h-5 text-bodyText transition-transform duration-200 shrink-0 ${
+                      className={`w-4 h-4 text-bodyText transition-transform duration-200 shrink-0 ${
                         isOpen ? 'rotate-180 text-orange-dark' : ''
                       }`}
                     />
@@ -134,16 +134,16 @@ export const AccordionBenefitsSection: React.FC = () => {
                         }}
                         transition={{ duration: 0.25, ease: 'easeOut' }}
                       >
-                        <div className="px-6 pb-6 pt-1 border-t border-sand-100">
-                          <p className="text-sm sm:text-base text-bodyText leading-relaxed mb-4">
+                        <div className="px-5 pb-5 pt-1 border-t border-sand-100">
+                          <p className="text-xs sm:text-sm text-bodyText leading-relaxed mb-3">
                             {item.description}
                           </p>
                           <a
                             href={item.exploreLink}
-                            className="inline-flex items-center gap-1.5 font-bold text-sm text-orange-dark hover:text-orange-hover focus-ring rounded"
+                            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-orange-dark hover:text-orange-hover focus-ring rounded"
                           >
                             <span>{item.exploreText}</span>
-                            <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-3.5 h-3.5" />
                           </a>
                         </div>
                       </motion.div>
@@ -156,7 +156,7 @@ export const AccordionBenefitsSection: React.FC = () => {
 
           {/* Crossfading Illustration Panel on Sand Card (5 cols) */}
           <div className="lg:col-span-5">
-            <div className="bg-sand-100 border border-sand-200 rounded-card-lg p-6 sm:p-8 flex flex-col items-center justify-center min-h-[360px] shadow-card">
+            <div className="bg-sand-100 border border-sand-200 rounded-card-lg p-5 sm:p-6 flex flex-col items-center justify-center min-h-[300px] shadow-card">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeBenefit.id}
@@ -166,16 +166,16 @@ export const AccordionBenefitsSection: React.FC = () => {
                   transition={{ duration: 0.25 }}
                   className="flex flex-col items-center text-center"
                 >
-                  {activeBenefit.illustration === 'team' && <TeamIllustration className="w-64 h-auto" />}
-                  {activeBenefit.illustration === 'staff' && <StaffIllustration className="w-56 h-auto" />}
-                  {activeBenefit.illustration === 'chef' && <ChefIllustration className="w-56 h-auto" />}
-                  {activeBenefit.illustration === 'owner' && <OwnerIllustration className="w-56 h-auto" />}
+                  {activeBenefit.illustration === 'team' && <TeamIllustration className="w-48 h-auto" />}
+                  {activeBenefit.illustration === 'staff' && <StaffIllustration className="w-44 h-auto" />}
+                  {activeBenefit.illustration === 'chef' && <ChefIllustration className="w-44 h-auto" />}
+                  {activeBenefit.illustration === 'owner' && <OwnerIllustration className="w-44 h-auto" />}
 
-                  <div className="mt-4">
-                    <span className="text-xs uppercase font-mono font-bold tracking-wider text-orange-dark block">
+                  <div className="mt-3">
+                    <span className="text-[11px] uppercase font-mono font-bold tracking-wider text-orange-dark block">
                       {activeBenefit.title}
                     </span>
-                    <span className="text-xs text-bodyText font-medium">
+                    <span className="text-[11px] text-bodyText font-medium">
                       Designed for Indian restaurant operations
                     </span>
                   </div>

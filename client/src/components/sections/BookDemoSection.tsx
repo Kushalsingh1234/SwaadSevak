@@ -180,7 +180,7 @@ export const BookDemoSection: React.FC = () => {
                         type="text"
                         {...register('ownerName')}
                         placeholder="e.g. Vikram Mehta"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-walnut/60 focus:border-orange-500 focus:outline-none"
                       />
                       {errors.ownerName && (
                         <span className="text-xs text-orange-dark mt-1 block">{errors.ownerName.message}</span>
@@ -195,7 +195,7 @@ export const BookDemoSection: React.FC = () => {
                         type="email"
                         {...register('email')}
                         placeholder="vikram@restaurant.com"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-walnut/60 focus:border-orange-500 focus:outline-none"
                       />
                       {errors.email && (
                         <span className="text-xs text-orange-dark mt-1 block">{errors.email.message}</span>
@@ -216,7 +216,7 @@ export const BookDemoSection: React.FC = () => {
                           {...register('whatsappNumber')}
                           placeholder="9876543210"
                           maxLength={10}
-                          className="w-full pl-12 pr-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-sand-300 focus:border-orange-500 focus:outline-none font-mono"
+                          className="w-full pl-12 pr-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-walnut/60 focus:border-orange-500 focus:outline-none font-mono"
                         />
                       </div>
                       {errors.whatsappNumber && (
@@ -232,7 +232,7 @@ export const BookDemoSection: React.FC = () => {
                         type="text"
                         {...register('businessName')}
                         placeholder="e.g. The Urban Bistro"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-walnut/60 focus:border-orange-500 focus:outline-none"
                       />
                       {errors.businessName && (
                         <span className="text-xs text-orange-dark mt-1 block">{errors.businessName.message}</span>
@@ -249,7 +249,7 @@ export const BookDemoSection: React.FC = () => {
                       type="text"
                       {...register('city')}
                       placeholder="e.g. Bengaluru, Karnataka"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-sm text-espresso placeholder:text-walnut/60 focus:border-orange-500 focus:outline-none"
                     />
                     {errors.city && (
                       <span className="text-xs text-orange-dark mt-1 block">{errors.city.message}</span>

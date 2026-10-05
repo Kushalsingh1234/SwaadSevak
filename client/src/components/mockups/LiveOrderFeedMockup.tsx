@@ -8,9 +8,7 @@ import {
   PhoneCall,
   Clock,
   Printer,
-  Flame,
   CheckCircle2,
-  TrendingUp,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -101,14 +99,14 @@ export const LiveOrderFeedMockup: React.FC = () => {
   const getSourceIcon = (source: OrderItem['source']) => {
     switch (source) {
       case 'QR Order':
-        return <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />;
+        return <QrCode className="w-3.5 h-3.5 text-orange-600" />;
       case 'Zomato':
       case 'Swiggy':
-        return <Smartphone className="w-3.5 h-3.5 text-ember-600" />;
+        return <Smartphone className="w-3.5 h-3.5 text-orange-500" />;
       case 'Phone':
-        return <PhoneCall className="w-3.5 h-3.5 text-success-600" />;
+        return <PhoneCall className="w-3.5 h-3.5 text-success" />;
       default:
-        return <ShoppingBag className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />;
+        return <ShoppingBag className="w-3.5 h-3.5 text-espresso" />;
     }
   };
 
@@ -116,20 +114,20 @@ export const LiveOrderFeedMockup: React.FC = () => {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative rounded-2xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 shadow-card p-5 sm:p-6 transition-all font-sans text-left"
+      className="relative rounded-2xl bg-white border border-sand-200 shadow-card p-5 sm:p-6 transition-all font-sans text-left"
     >
       {/* Feed Header */}
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-ink-100 dark:border-ink-800 text-xs">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-sand-200 text-xs">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-success-600" />
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
           </span>
-          <span className="font-bold text-ink-950 dark:text-ink-50 font-mono tracking-wide">
+          <span className="font-bold text-espresso font-mono tracking-wide">
             LIVE KITCHEN FEED
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-ink-500 font-mono text-[11px]">
+        <div className="flex items-center gap-1.5 text-walnut font-mono text-[11px]">
           <Clock className="w-3 h-3" />
           <span>{isPaused ? 'Paused' : 'Real-time'}</span>
         </div>
@@ -137,60 +135,55 @@ export const LiveOrderFeedMockup: React.FC = () => {
 
       {/* Dynamic Cards */}
       <div className="space-y-3 min-h-[250px]">
-        {orders.map((order, idx) => {
-          const isLatest = idx === 0 && !prefersReducedMotion;
-          return (
-            <div
-              key={order.id}
-              className={`p-3.5 rounded-xl border border-ink-200/80 dark:border-ink-800 bg-ink-50/50 dark:bg-ink-950/60 transition-all ${
-                isLatest ? 'animate-order-drop' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between text-xs mb-1.5 font-mono">
-                <div className="flex items-center gap-1.5 font-semibold text-ink-950 dark:text-ink-50">
-                  {getSourceIcon(order.source)}
-                  <span>{order.id}</span>
-                  <span className="text-ink-400 font-normal font-sans">({order.tableOrOrder})</span>
-                </div>
-                <span
-                  className={`text-[10px] font-sans font-bold px-2 py-0.5 rounded-md ${
-                    order.status === 'Ready'
-                      ? 'bg-success-50 dark:bg-success-950/60 text-success-600 dark:text-success-400 border border-success-500/20'
-                      : order.status === 'Cooking'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
-                      : 'bg-ember-50 dark:bg-ember-950/60 text-ember-600 dark:text-ember-400 border border-ember-500/20'
-                  }`}
-                >
-                  {order.status}
-                </span>
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className="p-3.5 rounded-xl border border-sand-200 bg-sand-50/70 transition-all hover:bg-sand-50"
+          >
+            <div className="flex items-center justify-between text-xs mb-1.5 font-mono">
+              <div className="flex items-center gap-1.5 font-bold text-espresso">
+                {getSourceIcon(order.source)}
+                <span>{order.id}</span>
+                <span className="text-walnut font-normal font-sans">({order.tableOrOrder})</span>
               </div>
-
-              <ul className="text-xs text-ink-600 dark:text-ink-300 font-sans space-y-0.5 pl-0.5">
-                {order.items.map((item, i) => (
-                  <li key={i} className="truncate">
-                    • {item}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex items-center justify-between pt-2 mt-2 border-t border-ink-200/60 dark:border-ink-800/60 text-xs font-mono">
-                <span className="text-ink-400 text-[10px]">{order.time}</span>
-                <span className="font-bold text-ink-950 dark:text-ink-50">{formatINR(order.amount)}</span>
-              </div>
+              <span
+                className={`text-[10px] font-sans font-extrabold px-2 py-0.5 rounded-md border ${
+                  order.status === 'Ready'
+                    ? 'bg-green-50 text-success border-success/30'
+                    : order.status === 'Cooking'
+                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                    : 'bg-orange-50 text-orange-dark border-orange-300'
+                }`}
+              >
+                {order.status}
+              </span>
             </div>
-          );
-        })}
+
+            <ul className="text-xs text-bodyText font-sans space-y-0.5 pl-0.5 font-medium">
+              {order.items.map((item, i) => (
+                <li key={i} className="truncate">
+                  • {item}
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex items-center justify-between pt-2 mt-2 border-t border-sand-200 text-xs font-mono">
+              <span className="text-walnut text-[10px]">{order.time}</span>
+              <span className="font-extrabold text-espresso">{formatINR(order.amount)}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Running Total Bar */}
-      <div className="flex items-center justify-between pt-4 mt-3 border-t border-ink-100 dark:border-ink-800 text-xs font-mono">
-        <div className="flex items-center gap-1.5 text-ink-600 dark:text-ink-400">
-          <Printer className="w-3.5 h-3.5 text-ember-500" />
-          <span className="font-sans font-medium text-[11px]">Shift Running Total:</span>
+      <div className="flex items-center justify-between pt-4 mt-3 border-t border-sand-200 text-xs font-mono">
+        <div className="flex items-center gap-1.5 text-walnut">
+          <Printer className="w-3.5 h-3.5 text-orange-500" />
+          <span className="font-sans font-bold text-[11px] text-espresso">Shift Running Total:</span>
         </div>
         <div className="text-right">
-          <span className="font-bold text-base text-ink-950 dark:text-ink-50">{formatINR(runningTotal)}</span>
-          <span className="block text-[10px] text-success-600 dark:text-success-400 font-sans">
+          <span className="font-extrabold text-base text-espresso font-mono">{formatINR(runningTotal)}</span>
+          <span className="block text-[10px] text-success font-sans font-bold">
             5% GST Auto Computed
           </span>
         </div>

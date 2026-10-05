@@ -199,20 +199,20 @@ export const SavingsCalculatorSection: React.FC = () => {
               </span>
               <div className="font-mono font-extrabold text-4xl sm:text-5xl text-white tracking-tight mb-2">
                 {formatINR(totalMonthlySavings)}
-                <span className="text-base text-sand-300 font-sans font-normal"> / mo</span>
+                <span className="text-base text-sand-100 font-sans font-medium"> / mo</span>
               </div>
-              <div className="font-mono text-sm text-sand-200 font-semibold mb-6">
+              <div className="font-mono text-sm text-sand-100 font-semibold mb-6">
                 ≈ {formatINR(totalAnnualSavings)} estimated per year
               </div>
 
               {/* Savings Breakdown */}
               <div className="space-y-3 pt-6 border-t border-walnut text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-sand-200">Direct ordering commission recovered:</span>
+                  <span className="text-sand-100 font-medium">Direct ordering commission recovered:</span>
                   <span className="font-mono font-bold text-orange-400">+{formatINR(Math.round(monthlyCommissionSavings))}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sand-200">Recipe deduction shrinkage prevented:</span>
+                  <span className="text-sand-100 font-medium">Recipe deduction shrinkage prevented:</span>
                   <span className="font-mono font-bold text-success">+{formatINR(Math.round(monthlyInventorySavings))}</span>
                 </div>
               </div>
@@ -220,8 +220,8 @@ export const SavingsCalculatorSection: React.FC = () => {
 
             {/* Visible Formula Explanation */}
             <div className="pt-6 mt-6 border-t border-walnut">
-              <div className="text-[11px] text-sand-300 leading-relaxed font-mono">
-                <span className="font-bold text-sand-100 block mb-1">Formula &amp; Assumptions:</span>
+              <div className="text-[11px] text-sand-100 leading-relaxed font-mono font-medium">
+                <span className="font-bold text-white block mb-1">Formula &amp; Assumptions:</span>
                 • Assumes 25% delivery volume shifted to direct 0% commission channels.
                 • Assumes 45% reduction in raw material shrinkage via auto recipe deduction.
               </div>

@@ -13,7 +13,7 @@
     --color-orange: #F97316;
     --color-orange-hover: #EA580C;
     --color-orange-dark: #C2410C;
-    --color-body-text: #3D2519;
+    --color-body-text: #2B1A12;
     --color-success: #16A34A;
   }
 
@@ -51,6 +51,41 @@
     font-weight: 700;
   }
 }
+
+/* Explicit color utility overrides ensuring reliable rendering */
+.bg-espresso { background-color: #2B1A12 !important; }
+.bg-espresso-900 { background-color: #2B1A12 !important; }
+.bg-espresso-950 { background-color: #1A0F0A !important; }
+.bg-cocoa { background-color: #3D2519 !important; }
+.bg-walnut { background-color: #5A3A28 !important; }
+.bg-cream { background-color: #FFF8F1 !important; }
+.bg-sand { background-color: #F5E9DD !important; }
+.bg-sand-50 { background-color: #FAF4ED !important; }
+.bg-sand-100 { background-color: #F5E9DD !important; }
+.bg-sand-200 { background-color: #E8D7C5 !important; }
+.bg-orange-500 { background-color: #F97316 !important; }
+.bg-orange-600 { background-color: #EA580C !important; }
+
+.text-espresso { color: #2B1A12 !important; }
+.text-espresso-950 { color: #1A0F0A !important; }
+.text-cocoa { color: #3D2519 !important; }
+.text-walnut { color: #5A3A28 !important; }
+.text-cream { color: #FFF8F1 !important; }
+.text-sand-50 { color: #FAF4ED !important; }
+.text-sand-100 { color: #F5E9DD !important; }
+.text-sand-200 { color: #E8D7C5 !important; }
+.text-sand-300 { color: #D5BEAA !important; }
+.text-orange-400 { color: #FB923C !important; }
+.text-orange-500 { color: #F97316 !important; }
+.text-orange-dark { color: #C2410C !important; }
+.text-bodyText { color: #2B1A12 !important; }
+.text-bodyMuted { color: #5A3A28 !important; }
+
+.border-walnut { border-color: #5A3A28 !important; }
+.border-sand-100 { border-color: #F5E9DD !important; }
+.border-sand-200 { border-color: #E8D7C5 !important; }
+.border-sand-300 { border-color: #D5BEAA !important; }
+.border-orange-500 { border-color: #F97316 !important; }
 
 @layer utilities {
   /* Subtle Device Frame Shadow & Gloss */

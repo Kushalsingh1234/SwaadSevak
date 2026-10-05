@@ -105,10 +105,10 @@ export const PricingSection: React.FC = () => {
                       </span>
                       <span className="text-xs text-bodyText font-medium">/ month</span>
                     </div>
-                    <span className="text-[11px] font-mono text-sand-300 block mt-1">
+                    <span className="text-[11px] font-mono text-walnut font-bold block mt-1">
                       {isAnnual ? 'Billed annually (20% discount applied)' : 'Billed month-to-month'}
                     </span>
-                    <span className="text-[10px] font-mono text-bodyText block mt-0.5">
+                    <span className="text-[10px] font-mono text-walnut/80 block mt-0.5 font-bold">
                       TODO: PLACEHOLDER PRICING
                     </span>
                   </div>

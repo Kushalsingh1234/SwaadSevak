@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { formatINR } from '../../lib/utils';
 import {
-  Layers,
-  Users,
   Clock,
   Printer,
   QrCode,
   CheckCircle2,
-  Sparkles,
-  Smartphone,
-  Flame,
-  Search,
 } from 'lucide-react';
 
 export const TableViewMockup: React.FC = () => {
@@ -31,7 +25,7 @@ export const TableViewMockup: React.FC = () => {
     <div className="relative w-full max-w-[1000px] mx-auto text-left font-sans select-none">
       
       {/* 1. Large Laptop Frame showing Table-View Floor Map POS */}
-      <div className="device-laptop-frame p-3 sm:p-4 bg-espresso text-espresso-50">
+      <div className="device-laptop-frame p-3 sm:p-4 bg-espresso text-white">
         
         {/* Laptop Camera dot */}
         <div className="w-2 h-2 rounded-full bg-walnut mx-auto mb-2.5" />
@@ -40,30 +34,34 @@ export const TableViewMockup: React.FC = () => {
         <div className="rounded-xl overflow-hidden bg-cream text-espresso min-h-[380px] sm:min-h-[440px] flex flex-col border border-sand-200">
           
           {/* POS Top Navbar */}
-          <div className="bg-espresso text-white p-3 px-4 flex items-center justify-between text-xs">
+          <div className="bg-espresso text-white p-3 px-4 flex items-center justify-between text-xs border-b border-walnut">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
-              <span className="font-bold tracking-wide">SwaadSevak POS</span>
-              <span className="text-sand-200 text-[10px] font-mono hidden sm:inline">• Live Floor: 5/8 Seated</span>
+              <span className="font-bold tracking-wide text-white">SwaadSevak POS</span>
+              <span className="text-sand-100 text-[10px] font-mono hidden sm:inline font-bold">• Live Floor: 5/8 Seated</span>
             </div>
             <div className="flex items-center gap-3 font-mono text-[11px]">
-              <span className="text-orange font-bold">Shift: Lunch Rush</span>
-              <span className="text-sand-300">Captain: Rajesh</span>
+              <span className="text-orange-400 font-extrabold">Shift: Lunch Rush</span>
+              <span className="text-sand-100 font-medium">Captain: Rajesh</span>
             </div>
           </div>
 
           {/* Main Floor Plan Grid */}
-          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 flex-1 bg-cream">
             
             {/* Tables Grid (8 Cols) */}
             <div className="md:col-span-8 space-y-3">
-              <div className="flex items-center justify-between text-xs text-bodyText">
-                <span className="font-bold text-espresso uppercase tracking-wider text-[10px] font-mono">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-espresso uppercase tracking-wider text-[11px] font-mono">
                   Ground Floor Tables
                 </span>
-                <div className="flex gap-2 text-[10px] font-medium">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" /> Free</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange" /> Seated</span>
+                <div className="flex gap-3 text-[11px] font-bold">
+                  <span className="flex items-center gap-1.5 text-espresso">
+                    <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" /> Free
+                  </span>
+                  <span className="flex items-center gap-1.5 text-espresso">
+                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" /> Seated
+                  </span>
                 </div>
               </div>
 
@@ -74,27 +72,27 @@ export const TableViewMockup: React.FC = () => {
                     onClick={() => setSelectedTable(tbl.id)}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       tbl.id === selectedTable
-                        ? 'bg-orange-50 border-orange ring-2 ring-orange/30 shadow-soft'
+                        ? 'bg-orange-100/90 border-orange-500 ring-2 ring-orange-500/40 shadow-soft'
                         : tbl.status === 'occupied'
-                        ? 'bg-white border-sand-200 shadow-soft'
-                        : 'bg-sand-50/60 border-sand-200 text-bodyText hover:bg-white'
+                        ? 'bg-white border-sand-300 shadow-soft hover:border-orange-400'
+                        : 'bg-sand-50 border-sand-200 text-espresso hover:bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-xs text-espresso">{tbl.name}</span>
-                      <span className="text-[10px] text-bodyText">{tbl.seats}P</span>
+                      <span className="font-extrabold text-xs text-espresso">{tbl.name}</span>
+                      <span className="text-[10px] font-bold text-walnut">{tbl.seats}P</span>
                     </div>
                     {tbl.status === 'occupied' || tbl.id === selectedTable ? (
                       <div>
-                        <span className="font-mono font-bold text-xs text-orange-dark block">
+                        <span className="font-mono font-extrabold text-xs text-orange-dark block">
                           {formatINR(tbl.bill)}
                         </span>
-                        <span className="text-[9px] text-bodyText flex items-center gap-0.5 mt-0.5">
+                        <span className="text-[10px] font-medium text-walnut flex items-center gap-1 mt-0.5">
                           <Clock className="w-2.5 h-2.5" /> {tbl.time}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-[10px] font-medium text-success block mt-2">Available</span>
+                      <span className="text-[10px] font-extrabold text-success block mt-2">Available</span>
                     )}
                   </button>
                 ))}
@@ -102,38 +100,38 @@ export const TableViewMockup: React.FC = () => {
             </div>
 
             {/* Selected Table Ticket Panel (4 Cols) */}
-            <div className="md:col-span-4 p-3.5 rounded-xl bg-sand-50 border border-sand-200 flex flex-col justify-between text-xs">
+            <div className="md:col-span-4 p-3.5 rounded-xl bg-white border border-sand-300 flex flex-col justify-between text-xs shadow-soft">
               <div className="space-y-2">
                 <div className="flex items-center justify-between pb-2 border-b border-sand-200">
-                  <span className="font-bold text-espresso">Table 04 Active KOT</span>
-                  <span className="text-[10px] font-mono bg-orange text-espresso px-1.5 py-0.5 rounded font-bold">
+                  <span className="font-extrabold text-espresso">Table 04 Active KOT</span>
+                  <span className="text-[10px] font-mono bg-orange-500 text-espresso px-2 py-0.5 rounded font-extrabold">
                     KOT #108
                   </span>
                 </div>
 
-                <div className="space-y-1.5 font-mono text-[11px] text-espresso">
+                <div className="space-y-1.5 font-mono text-[11px] text-espresso font-semibold">
                   <div className="flex justify-between">
                     <span>2x Dal Makhani</span>
-                    <span>₹460</span>
+                    <span className="font-bold">₹460</span>
                   </div>
                   <div className="flex justify-between">
                     <span>4x Butter Naan</span>
-                    <span>₹240</span>
+                    <span className="font-bold">₹240</span>
                   </div>
                   <div className="flex justify-between">
                     <span>1x Chicken Biryani</span>
-                    <span>₹380</span>
+                    <span className="font-bold">₹380</span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-dashed border-sand-300 flex justify-between font-bold text-xs text-espresso">
+                <div className="pt-2 border-t border-dashed border-sand-300 flex justify-between font-extrabold text-xs text-espresso">
                   <span>Total (incl. 5% GST):</span>
-                  <span className="text-orange-dark font-mono">₹1,134</span>
+                  <span className="text-orange-dark font-mono text-sm font-extrabold">₹1,134</span>
                 </div>
               </div>
 
               <div className="pt-3">
-                <button className="w-full py-2 rounded-lg bg-orange text-espresso font-bold text-xs flex items-center justify-center gap-1.5 shadow-soft hover:bg-orange-hover transition-colors">
+                <button className="w-full py-2.5 rounded-lg bg-orange-500 text-espresso font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-soft hover:bg-orange-600 transition-colors cursor-pointer">
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print Final Bill</span>
                 </button>
@@ -152,35 +150,41 @@ export const TableViewMockup: React.FC = () => {
       <div className="hidden sm:block absolute -bottom-8 -right-4 w-[240px] device-phone-frame p-2.5 bg-espresso shadow-elevated z-20">
         <div className="w-16 h-3 bg-cocoa rounded-full mx-auto mb-2" />
         <div className="rounded-[24px] bg-white p-3 text-xs text-left space-y-2.5 border border-sand-200">
-          <div className="flex items-center justify-between border-b pb-1.5 font-mono text-[10px]">
-            <span className="font-bold text-espresso">FAST BILLING</span>
-            <span className="text-success font-bold">UPI QR</span>
+          <div className="flex items-center justify-between border-b border-sand-200 pb-1.5 font-mono text-[10px]">
+            <span className="font-extrabold text-espresso">FAST BILLING</span>
+            <span className="text-success font-extrabold">UPI QR</span>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-sand-50 text-center space-y-1">
+          <div className="p-2.5 rounded-xl bg-sand-50 text-center space-y-1 border border-sand-200">
             <QrCode className="w-12 h-12 mx-auto text-espresso" />
-            <span className="block font-mono font-bold text-xs text-orange-dark">₹1,134.00</span>
-            <span className="text-[9px] text-bodyText block">Scan via GPay / PhonePe / Paytm</span>
+            <span className="block font-mono font-extrabold text-xs text-orange-dark">₹1,134.00</span>
+            <span className="text-[9px] text-walnut font-bold block">Scan via GPay / PhonePe / Paytm</span>
           </div>
 
-          <button className="w-full py-2 rounded-lg bg-espresso text-white font-bold text-[10px] flex items-center justify-center gap-1">
+          <button className="w-full py-2 rounded-lg bg-espresso text-white font-extrabold text-[10px] flex items-center justify-center gap-1 hover:bg-cocoa transition-colors cursor-pointer">
             <CheckCircle2 className="w-3 h-3 text-success" />
-            <span>Settle & Send WhatsApp Bill</span>
+            <span>Settle &amp; Send WhatsApp Bill</span>
           </button>
         </div>
       </div>
 
       {/* 3. Floating Order Notification Chips */}
-      <div className="hidden md:flex absolute -top-5 left-8 p-3 rounded-xl bg-cocoa border border-walnut shadow-elevated text-white text-xs items-center gap-2.5 z-20 animate-float-slow">
+      <div
+        className="hidden md:flex absolute -top-5 left-8 p-3 rounded-xl shadow-elevated text-xs items-center gap-2.5 z-20 animate-float-slow"
+        style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
+      >
         <span className="w-2.5 h-2.5 rounded-full bg-success" />
-        <span className="font-mono font-bold text-orange">Zomato #492</span>
-        <span className="text-sand-200 text-[11px]">1x Dum Biryani • Auto-Accepted</span>
+        <span className="font-mono font-extrabold text-orange-400">Zomato #492</span>
+        <span className="text-sand-100 text-[11px] font-medium">1x Dum Biryani • Auto-Accepted</span>
       </div>
 
-      <div className="hidden md:flex absolute bottom-12 -left-6 p-3 rounded-xl bg-cocoa border border-walnut shadow-elevated text-white text-xs items-center gap-2.5 z-20 animate-float-slow" style={{ animationDelay: '2s' }}>
-        <span className="w-2.5 h-2.5 rounded-full bg-orange" />
-        <span className="font-mono font-bold text-white">Table 09</span>
-        <span className="text-sand-200 text-[11px]">QR Order Dispatched to Barista</span>
+      <div
+        className="hidden md:flex absolute bottom-12 -left-6 p-3 rounded-xl shadow-elevated text-xs items-center gap-2.5 z-20 animate-float-slow"
+        style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '2s' }}
+      >
+        <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+        <span className="font-mono font-extrabold text-white">Table 09</span>
+        <span className="text-sand-100 text-[11px] font-medium">QR Order Dispatched to Barista</span>
       </div>
 
     </div>

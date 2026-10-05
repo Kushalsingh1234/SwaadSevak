@@ -9,51 +9,38 @@ export default {
     extend: {
       colors: {
         // Espresso & Saffron System Tokens
-        espresso: {
-          DEFAULT: '#2B1A12', // Dark sections & headings
-          50: '#FAF6F0',
-          100: '#F5E9DD', // Sand
-          800: '#3D2519', // Cocoa
-          900: '#2B1A12', // Espresso main
-          950: '#1A0F0A', // Darkest espresso
-        },
-        cocoa: {
-          DEFAULT: '#3D2519', // Cards on dark
-          light: '#4A2F21',
-          dark: '#2A180F',
-        },
-        walnut: {
-          DEFAULT: '#5A3A28', // Borders on dark
-          light: '#6E4833',
-        },
-        cream: {
-          DEFAULT: '#FFF8F1', // Light sections
-          50: '#FFFAF5',
-          100: '#FFF8F1',
-          200: '#FDEEE0',
-        },
-        sand: {
-          DEFAULT: '#F5E9DD',
-          50: '#FAF4ED',
-          100: '#F5E9DD',
-          200: '#E8D7C5',
-          300: '#D5BEAA',
-        },
-        orange: {
-          DEFAULT: '#F97316', // Primary Action
-          hover: '#EA580C',
-          darkText: '#C2410C', // High-contrast orange text on white
-          50: '#FFF7ED',
-          100: '#FFEDD5',
-          200: '#FED7AA',
-          300: '#FDBA74',
-          400: '#FB923C',
-          500: '#F97316',
-          600: '#EA580C',
-          700: '#C2410C',
-        },
-        bodyText: '#3D2519', // Rich dark brown for maximum contrast & crisp readability on light
-        bodyMuted: '#6B5444', // Secondary muted text on light
+        espresso: '#2B1A12',
+        'espresso-50': '#FAF6F0',
+        'espresso-100': '#F5E9DD',
+        'espresso-800': '#3D2519',
+        'espresso-900': '#2B1A12',
+        'espresso-950': '#1A0F0A',
+        cocoa: '#3D2519',
+        'cocoa-light': '#4A2F21',
+        'cocoa-dark': '#2A180F',
+        walnut: '#5A3A28',
+        'walnut-light': '#6E4833',
+        cream: '#FFF8F1',
+        'cream-50': '#FFFAF5',
+        'cream-100': '#FFF8F1',
+        'cream-200': '#FDEEE0',
+        sand: '#F5E9DD',
+        'sand-50': '#FAF4ED',
+        'sand-100': '#F5E9DD',
+        'sand-200': '#E8D7C5',
+        'sand-300': '#D5BEAA',
+        orange: '#F97316',
+        'orange-50': '#FFF7ED',
+        'orange-100': '#FFEDD5',
+        'orange-200': '#FED7AA',
+        'orange-300': '#FDBA74',
+        'orange-400': '#FB923C',
+        'orange-500': '#F97316',
+        'orange-600': '#EA580C',
+        'orange-700': '#C2410C',
+        'orange-dark': '#C2410C',
+        bodyText: '#2B1A12',
+        bodyMuted: '#5A3A28',
         success: '#16A34A',
       },
       fontFamily: {
@@ -69,8 +56,8 @@ export default {
       boxShadow: {
         'soft': '0 2px 8px -2px rgba(43, 26, 18, 0.08), 0 1px 4px -1px rgba(43, 26, 18, 0.04)',
         'card': '0 8px 24px -4px rgba(43, 26, 18, 0.1), 0 2px 8px -2px rgba(43, 26, 18, 0.05)',
-        'elevated': '0 16px 40px -6px rgba(43, 26, 18, 0.2), 0 4px 14px -2px rgba(43, 26, 18, 0.08)',
-        'glow-orange': '0 0 32px -4px rgba(249, 115, 22, 0.4)',
+        'elevated': '0 16px 40px -6px rgba(43, 26, 18, 0.25), 0 4px 14px -2px rgba(43, 26, 18, 0.1)',
+        'glow-orange': '0 0 32px -4px rgba(249, 115, 22, 0.45)',
         'glow-hero': '0 0 80px -10px rgba(249, 115, 22, 0.25)',
       },
       maxWidth: {

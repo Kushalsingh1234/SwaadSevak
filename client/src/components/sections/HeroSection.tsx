@@ -50,9 +50,9 @@ export const HeroSection: React.FC = () => {
               style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FAF4ED' }}
             >
               <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
-              <span>Restaurant Website Services</span>
+              <span>Every order. Every table. Every rupee.</span>
               <span style={{ color: '#D5BEAA' }}>•</span>
-              <span className="font-mono font-extrabold text-orange-400">Built for Indian Restaurants</span>
+              <span className="font-mono font-extrabold text-orange-400">One calm system for your whole food business</span>
             </div>
 
             {/* Big Bold High-Impact Headline */}
@@ -60,11 +60,10 @@ export const HeroSection: React.FC = () => {
               className="text-4xl sm:text-6xl lg:text-6xl xl:text-7xl 2xl:text-[5.25rem] font-black tracking-tight leading-[1.06]"
               style={{ color: '#FFFFFF' }}
             >
-              We Build Stunning{' '}
+              Run your Restaurant{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 inline-block drop-shadow-sm">
-                Websites
-              </span>{' '}
-              for Cafes &amp; Restaurants
+                without the chaos.
+              </span>
             </h1>
 
             {/* Subtitle */}
@@ -72,7 +71,7 @@ export const HeroSection: React.FC = () => {
               className="text-lg sm:text-xl lg:text-2xl leading-relaxed font-normal max-w-2xl"
               style={{ color: '#F5E9DD' }}
             >
-              Get a modern, mobile-friendly website for your restaurant with online ordering, menu, table booking and more — so you can focus on what you do best, great food.
+              Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy &amp; Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.
             </p>
 
             {/* CTA Buttons */}

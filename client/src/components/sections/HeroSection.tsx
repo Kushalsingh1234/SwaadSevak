@@ -1,205 +1,264 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
-import { ArrowRight, MessageSquare, ChevronDown, Zap, QrCode, ShoppingBag, Globe } from 'lucide-react';
+import {
+  ArrowRight,
+  Play,
+  CheckCircle2,
+  Monitor,
+  FileText,
+  ShoppingBag,
+  Calendar,
+  TrendingUp,
+  Sparkles,
+  UtensilsCrossed,
+  ChefHat,
+  Smartphone,
+} from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const HeroSection: React.FC = () => {
   return (
     <section
-      className="relative min-h-[calc(100vh-73px)] flex flex-col justify-between items-center text-center font-sans overflow-hidden px-4 sm:px-6 pt-8 sm:pt-14 pb-6"
-      style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
+      className="relative min-h-[calc(100vh-73px)] flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6 text-left"
+      style={{ backgroundColor: '#1A0F0A', color: '#FFFFFF' }}
     >
-      {/* Dynamic Ambient Lighting */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[650px] bg-orange-500/25 rounded-full blur-[150px] pointer-events-none -z-0" />
-      <div className="absolute top-1/2 left-1/4 w-[450px] h-[450px] bg-orange-600/15 rounded-full blur-[120px] pointer-events-none -z-0" />
+      {/* Ambient Lighting & Glows */}
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-orange-500/20 rounded-full blur-[140px] pointer-events-none -z-0" />
+      <div className="absolute top-1/3 right-1/4 w-[600px] h-[500px] bg-orange-600/15 rounded-full blur-[140px] pointer-events-none -z-0" />
       
       {/* High-Visibility Warm Sand Dot Grid */}
       <div
         className="absolute inset-0 pointer-events-none -z-0"
         style={{
-          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.28) 1.5px, transparent 1.5px)',
+          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.22) 1.5px, transparent 1.5px)',
           backgroundSize: '24px 24px',
         }}
       />
 
-      {/* Signature SwaadSevak Logo Mark Silhouette Glimpse in Background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[48%] w-[520px] sm:w-[680px] h-[520px] sm:h-[680px] pointer-events-none -z-0 opacity-20 select-none">
-        <svg
-          viewBox="0 0 100 100"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-          aria-hidden="true"
-        >
-          {/* 3 Rising Saffron Steam Waves */}
-          <path
-            d="M 33 38 C 29 27 41 20 35 10"
-            stroke="#F97316"
-            strokeWidth="5.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 50 38 C 46 27 58 20 52 10"
-            stroke="#FB923C"
-            strokeWidth="6"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 67 38 C 63 27 75 20 69 10"
-            stroke="#F97316"
-            strokeWidth="5.5"
-            strokeLinecap="round"
-          />
-
-          {/* Saffron Bowl Rim */}
-          <rect x="16" y="47" width="68" height="7.5" rx="3.75" fill="#F97316" />
-
-          {/* Translucent Glowing Bowl Body */}
-          <path
-            d="M 19 54.5 C 21 75 35 86 50 86 C 65 86 79 75 81 54.5 Z"
-            fill="url(#hero-logo-glow)"
-            stroke="#FAF4ED"
-            strokeWidth="1.5"
-          />
-
-          {/* Bowl Pedestal Stand */}
-          <rect x="36" y="86" width="28" height="4.5" rx="2.25" fill="#FAF4ED" opacity="0.8" />
-
-          <defs>
-            <linearGradient id="hero-logo-glow" x1="50" y1="54.5" x2="50" y2="86" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#F97316" stopOpacity="0.4" />
-              <stop stopColor="#FAF4ED" stopOpacity="0.08" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      {/* Main Big Content Container */}
-      <div className="max-w-5xl mx-auto relative z-10 flex-1 flex flex-col justify-center items-center py-4">
+      <div className="max-w-7xl mx-auto w-full relative z-10 flex-1 flex flex-col justify-center">
         
-        {/* Top Pill Label */}
-        <div
-          className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-soft mb-8 transition-transform hover:scale-105 cursor-default"
-          style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FAF4ED' }}
-        >
-          <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
-          <span className="tracking-wide">Restaurant POS &amp; Management Platform</span>
-          <span style={{ color: '#D5BEAA' }}>•</span>
-          <span className="font-mono font-extrabold" style={{ color: '#FB923C' }}>Indian Context (GST &amp; UPI)</span>
+        {/* 2-Column Main Hero Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center py-4 sm:py-8">
+          
+          {/* Left Column: Copy & Actions (6 Cols) */}
+          <div className="lg:col-span-6 space-y-6 text-left">
+            
+            {/* Top Pill Label */}
+            <div
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-bold shadow-soft mb-2"
+              style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FAF4ED' }}
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+              <span>Restaurant Website Services</span>
+              <span style={{ color: '#D5BEAA' }}>•</span>
+              <span className="font-mono font-extrabold text-orange-400">Built for Indian Restaurants</span>
+            </div>
+
+            {/* Big Bold Headline */}
+            <h1
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-black tracking-tight leading-[1.08]"
+              style={{ color: '#FFFFFF' }}
+            >
+              We Build Stunning{' '}
+              <span className="text-orange-500 inline-block">Websites</span>{' '}
+              for Cafes &amp; Restaurants
+            </h1>
+
+            {/* Subtitle */}
+            <p
+              className="text-base sm:text-lg lg:text-xl leading-relaxed font-normal max-w-xl"
+              style={{ color: '#F5E9DD' }}
+            >
+              Get a modern, mobile-friendly website for your restaurant with online ordering, menu, table booking and more — so you can focus on what you do best, great food.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+              <a
+                href={SITE_CONTENT.links.websiteInquiry}
+                data-event="hero_get_website_click"
+                onClick={() => trackEvent('hero_get_website_click')}
+                className="btn-shine inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-extrabold text-base bg-orange-500 text-espresso shadow-glow-orange hover:bg-orange-600 transition-all cursor-pointer"
+                style={{ color: '#1A0F0A' }}
+              >
+                <span>Get Your Website Now</span>
+                <ArrowRight className="w-5 h-5" />
+              </a>
+
+              <a
+                href={SITE_CONTENT.links.demo}
+                data-event="hero_see_how_it_works_click"
+                onClick={() => trackEvent('hero_see_how_it_works_click')}
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-xl font-bold text-base transition-all border border-walnut hover:border-orange-500 hover:bg-cocoa cursor-pointer"
+                style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
+              >
+                <div className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <Play className="w-3 h-3 fill-current ml-0.5" />
+                </div>
+                <span>See How It Works</span>
+              </a>
+            </div>
+
+            {/* 3 Trust Points Row */}
+            <div className="pt-3 flex flex-wrap items-center gap-5 sm:gap-7 text-xs font-semibold" style={{ color: '#FAF4ED' }}>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
+                <span>Fast Delivery</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
+                <span>Affordable Pricing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
+                <span>No Technical Skills Needed</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column: Visual Showcase Collage (6 Cols) */}
+          <div className="lg:col-span-6 relative flex justify-center items-center">
+            
+            {/* Visual Container Card */}
+            <div className="relative w-full rounded-3xl overflow-hidden border border-walnut/60 shadow-2xl bg-[#2B1A12]/80 backdrop-blur-sm p-3 sm:p-4">
+              
+              {/* Main Illustration Graphic */}
+              <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-espresso">
+                <img
+                  src="/brand/hero-showcase.jpg"
+                  alt="SwaadSevak Restaurant Website & POS Showcase"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A0F0A]/90 via-transparent to-black/20" />
+              </div>
+
+              {/* Floating Feature Badge 1: Custom Website Design (Top-Left) */}
+              <div
+                className="hidden sm:flex absolute top-6 left-6 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
+                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF' }}
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <Monitor className="w-4 h-4" />
+                </div>
+                <div className="text-left text-xs pr-2">
+                  <span className="font-extrabold text-white block">Custom</span>
+                  <span className="text-[10px] text-sand-100">Website Design</span>
+                </div>
+              </div>
+
+              {/* Floating Feature Badge 2: Online Ordering (Top-Right) */}
+              <div
+                className="hidden sm:flex absolute top-6 right-6 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
+                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '1.5s' }}
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4" />
+                </div>
+                <div className="text-left text-xs pr-2">
+                  <span className="font-extrabold text-white block">Online</span>
+                  <span className="text-[10px] text-sand-100">Ordering</span>
+                </div>
+              </div>
+
+              {/* Floating Feature Badge 3: Digital Menu (Middle-Left) */}
+              <div
+                className="hidden md:flex absolute top-1/2 -left-2 -translate-y-1/2 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
+                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '2.5s' }}
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div className="text-left text-xs pr-2">
+                  <span className="font-extrabold text-white block">Digital</span>
+                  <span className="text-[10px] text-sand-100">Menu</span>
+                </div>
+              </div>
+
+              {/* Floating Feature Badge 4: Table Reservation (Middle-Right) */}
+              <div
+                className="hidden md:flex absolute top-1/2 -right-2 -translate-y-1/2 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
+                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '3s' }}
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div className="text-left text-xs pr-2">
+                  <span className="font-extrabold text-white block">Table</span>
+                  <span className="text-[10px] text-sand-100">Reservation</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Big Impactful Headline */}
-        <h1
-          className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-black tracking-tight leading-[1.08] mb-6 max-w-5xl mx-auto"
-          style={{ color: '#FFFFFF' }}
-        >
-          Billing, orders and stock for your restaurant.{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-300 block sm:inline">
-            One calm screen.
-          </span>
-        </h1>
-
-        {/* Large Readable Subtitle */}
-        <p
-          className="text-base sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed mb-10 font-medium"
-          style={{ color: '#F5E9DD' }}
-        >
-          Everything an Indian restaurant owner needs: 3-click POS billing, instant thermal KOT, aggregator sync, automated recipe inventory, and rapid restaurant website advisory.
-        </p>
-
-        {/* Action CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 w-full sm:w-auto mb-12">
-          <a
-            href={SITE_CONTENT.links.demo}
-            data-event="hero_primary_demo_click"
-            onClick={() => trackEvent('hero_primary_demo_click')}
-            className="btn-shine inline-flex items-center justify-center gap-3 px-9 py-4 rounded-2xl font-black text-base sm:text-lg transition-all duration-200 shadow-glow-orange focus-ring w-full sm:w-auto cursor-pointer hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#F97316', color: '#1A0F0A' }}
-          >
-            <span>Book a 10-Minute Demo</span>
-            <ArrowRight className="w-5 h-5" />
-          </a>
-
-          <a
-            href={SITE_CONTENT.links.websiteInquiry}
-            data-event="hero_secondary_website_click"
-            onClick={() => trackEvent('hero_secondary_website_click')}
-            className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl font-bold text-base sm:text-lg transition-all focus-ring group cursor-pointer hover:bg-white/5 border border-sand-100/20 w-full sm:w-auto hover:border-orange-500/50"
-            style={{ color: '#FAF4ED', backgroundColor: '#3D2519' }}
-          >
-            <MessageSquare className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform" />
-            <span>Get a Website Quote</span>
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
-          </a>
-        </div>
-
-        {/* 4 Pillars Feature Badges filling lower hero area */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl">
+        {/* Bottom 5-Card Feature Bar Across Full Width */}
+        <div className="mt-8 pt-4 border-t border-walnut/60">
           <div
-            className="p-3.5 rounded-2xl text-left flex items-center gap-3 shadow-card border border-walnut/70 transition-all hover:-translate-y-1"
-            style={{ backgroundColor: '#3D2519' }}
+            className="grid grid-cols-2 md:grid-cols-5 gap-3 p-3 sm:p-4 rounded-2xl shadow-card"
+            style={{ backgroundColor: '#2B1A12', border: '1px solid #3D2519' }}
           >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4" />
+            {/* Card 1 */}
+            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-cocoa/60 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+                <Monitor className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white">Custom Website Design</h4>
+                <p className="text-[11px] text-sand-100 font-medium">Modern &amp; Mobile Friendly</p>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-xs sm:text-sm text-white block">3-Click Billing</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Fast Counter POS</span>
-            </div>
-          </div>
 
-          <div
-            className="p-3.5 rounded-2xl text-left flex items-center gap-3 shadow-card border border-walnut/70 transition-all hover:-translate-y-1"
-            style={{ backgroundColor: '#3D2519' }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-              <QrCode className="w-4 h-4" />
+            {/* Card 2 */}
+            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-cocoa/60 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white">Digital Menu</h4>
+                <p className="text-[11px] text-sand-100 font-medium">Beautiful Menu Showcase</p>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-xs sm:text-sm text-white block">Dynamic UPI QR</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Instant Settlement</span>
-            </div>
-          </div>
 
-          <div
-            className="p-3.5 rounded-2xl text-left flex items-center gap-3 shadow-card border border-walnut/70 transition-all hover:-translate-y-1"
-            style={{ backgroundColor: '#3D2519' }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-              <ShoppingBag className="w-4 h-4" />
+            {/* Card 3 */}
+            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-cocoa/60 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white">Online Ordering</h4>
+                <p className="text-[11px] text-sand-100 font-medium">Swiggy / Zomato Integration</p>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-xs sm:text-sm text-white block">Zomato / Swiggy</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Auto-Accept Hub</span>
-            </div>
-          </div>
 
-          <div
-            className="p-3.5 rounded-2xl text-left flex items-center gap-3 shadow-card border border-walnut/70 transition-all hover:-translate-y-1"
-            style={{ backgroundColor: '#3D2519' }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Globe className="w-4 h-4" />
+            {/* Card 4 */}
+            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-cocoa/60 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white">Table Booking</h4>
+                <p className="text-[11px] text-sand-100 font-medium">Let Customers Reserve</p>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-xs sm:text-sm text-white block">24h Website Quote</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>0% Commission Menu</span>
+
+            {/* Card 5 */}
+            <div className="col-span-2 md:col-span-1 flex items-center gap-3 p-2.5 rounded-xl hover:bg-cocoa/60 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white">More Customers</h4>
+                <p className="text-[11px] text-sand-100 font-medium">Grow Your Business</p>
+              </div>
             </div>
+
           </div>
         </div>
 
-      </div>
-
-      {/* Subtle Scroll Down Prompt at the bottom */}
-      <div className="relative z-10 pt-4 pb-1">
-        <a
-          href="#products"
-          aria-label="Scroll to explore features"
-          className="inline-flex flex-col items-center gap-1 text-[11px] font-mono uppercase tracking-widest text-sand-100/70 hover:text-orange-400 transition-colors group cursor-pointer"
-        >
-          <span className="font-bold tracking-widest text-[10px]">EXPLORE PRODUCTS &amp; DEMO</span>
-          <ChevronDown className="w-4 h-4 animate-bounce text-orange-400 group-hover:translate-y-0.5 transition-transform" />
-        </a>
       </div>
     </section>
   );

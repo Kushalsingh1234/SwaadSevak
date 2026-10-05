@@ -127,7 +127,7 @@ export const ProductTabsSection: React.FC = () => {
         </div>
 
         {/* Dynamic Interactive Mockup with Smooth Crossfade */}
-        <div className="max-w-[1400px] mx-auto w-full">
+        <div className="max-w-6xl mx-auto w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab.id}

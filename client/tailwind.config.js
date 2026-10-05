@@ -8,101 +8,106 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Design Token mappings (Saffron Cream default with CSS variable support)
-        theme: {
-          bg: 'var(--bg)',
-          'bg-alt': 'var(--bg-alt)',
-          surface: 'var(--surface)',
-          ink: 'var(--ink)',
-          muted: 'var(--muted)',
-          brand: 'var(--brand)',
-          'brand-deep': 'var(--brand-deep)',
-          turmeric: 'var(--turmeric)',
-          cardamom: 'var(--cardamom)',
-          masala: 'var(--masala)',
-          line: 'var(--line)',
+        // Saffron / Turmeric Action Palette
+        saffron: {
+          50: '#FFF7ED',
+          100: '#FFEDD5',
+          200: '#FED7AA',
+          300: '#FDBA74',
+          400: '#FB923C',
+          500: '#E57A1F', // Primary Saffron Action
+          600: '#D46714',
+          700: '#B8500D',
+          800: '#943E0E',
+          900: '#78330F',
+          DEFAULT: '#E57A1F',
         },
-        brand: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f25c05', // Core Swaad Sevak Warm Saffron
-          600: '#ea580c',
-          700: '#c2410c', // Brand Deep
-          800: '#9a3412',
-          900: '#7c2d12',
-          DEFAULT: '#f25c05',
+        // Deep Masala Maroon Headings and Dark Sections
+        maroon: {
+          50: '#FDF2F4',
+          100: '#FCE7EB',
+          200: '#F9D1D9',
+          300: '#F3AAB8',
+          400: '#E8758D',
+          500: '#D54466',
+          600: '#BC2C4E',
+          700: '#971F3B',
+          800: '#681729',
+          900: '#4A151B', // Deep Masala
+          950: '#2E0A0E', // Darkest Masala Ink
+          DEFAULT: '#4A151B',
         },
-        masala: {
-          DEFAULT: '#1B1226',
-          950: '#140c1d',
-          900: '#1B1226', // Deep aubergine-black
-          800: '#261b36',
-          700: '#38284f',
+        // Warm Cream Backgrounds
+        cream: {
+          50: '#FDFBF7',
+          100: '#F8F4EC',
+          200: '#F1E9DB',
+          300: '#E8DCB7',
+          DEFAULT: '#F8F4EC',
         },
-        cardamom: {
-          DEFAULT: '#1F7A5C',
-          50: '#e8f5f0',
-          100: '#cbe7dd',
-          500: '#1F7A5C',
-          600: '#19634a',
-          700: '#124c39',
+        // Soft Paper White Cards
+        paper: {
+          light: '#FFFFFF',
+          DEFAULT: '#FCFBF9',
+          muted: '#F6F3ED',
+          dark: '#1C1518',
         },
-        turmeric: {
-          DEFAULT: '#F5B83D',
-          50: '#fef9ee',
-          100: '#fdf1d3',
-          500: '#F5B83D',
-          600: '#e09e24',
+        // Curry Leaf Green Success / Live status
+        curry: {
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          500: '#1E7B4D', // Curry-leaf green
+          600: '#15803D',
+          700: '#166534',
+          800: '#14532D',
+          DEFAULT: '#1E7B4D',
         },
-        status: {
-          incoming: {
-            bg: '#fef3c7',
-            text: '#92400e',
-            border: '#fde68a',
-            dot: '#f5b83d', // Turmeric dot
-          },
-          cooking: {
-            bg: '#eef2ff',
-            text: '#3730a3',
-            border: '#c7d2fe',
-            dot: '#4f46e5',
-          },
-          ready: {
-            bg: '#e8f5f0',
-            text: '#1f7a5c', // Cardamom text
-            border: '#b7e2d3',
-            dot: '#1f7a5c',
-          },
-          settled: {
-            bg: '#f5f2ef',
-            text: '#6b5b52', // Muted warm
-            border: '#e8e1dc',
-            dot: '#9e9087',
-          },
-          alert: {
-            bg: '#fee2e2',
-            text: '#991b1b',
-            border: '#fecaca',
-            dot: '#dc2626',
-          }
+        // Thermal / Receipt Ink
+        receipt: {
+          ink: '#1A1817',
+          faint: '#7A736E',
+          divider: '#E4DDD3',
+          yellow: '#FEF9C3',
+          pink: '#FFE4E6',
+          blue: '#E0F2FE',
         },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Instrument Serif', 'Georgia', 'serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        hindi: ['Hind', 'Noto Sans Devanagari', 'sans-serif'],
+        mono: ['Courier Prime', 'Space Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        'subtle': '0 1px 2px 0 rgba(30, 20, 16, 0.04)',
-        'card': '0 2px 8px -2px rgba(30, 20, 16, 0.06), 0 1px 4px -1px rgba(30, 20, 16, 0.04)',
-        'elevated': '0 8px 24px -4px rgba(30, 20, 16, 0.08), 0 4px 12px -2px rgba(30, 20, 16, 0.05)',
-        'dropdown': '0 12px 32px -4px rgba(30, 20, 16, 0.12)',
-        'glow-brand': '0 0 24px -4px rgba(242, 92, 5, 0.28)',
+        'receipt': '0 4px 20px -2px rgba(46, 10, 14, 0.08), 0 2px 6px -1px rgba(46, 10, 14, 0.04)',
+        'receipt-lg': '0 12px 36px -4px rgba(46, 10, 14, 0.12), 0 4px 14px -2px rgba(46, 10, 14, 0.06)',
+        'saffron-glow': '0 0 24px -2px rgba(229, 122, 31, 0.35)',
+      },
+      maxWidth: {
+        'container': '1200px',
       },
       borderRadius: {
-        'card': '14px',
-      }
+        'card': '18px',
+      },
+      keyframes: {
+        'ticket-drop': {
+          '0%': { transform: 'translateY(-30px) scale(0.96)', opacity: '0' },
+          '100%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+        },
+        'pulse-subtle': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.6' },
+        },
+        'scroll-left': {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        }
+      },
+      animation: {
+        'ticket-drop': 'ticket-drop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+        'scroll-left': 'scroll-left 25s linear infinite',
+      },
     },
   },
   plugins: [],

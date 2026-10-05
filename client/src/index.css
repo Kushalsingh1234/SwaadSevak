@@ -4,183 +4,120 @@
 
 @layer base {
   :root {
-    /* Core Saffron Cream Palette (Default) */
-    --bg: #FFF6EA;          /* Warm cream */
-    --bg-alt: #FDEBD6;      /* Alternating sections: soft peach/sand */
-    --surface: #FFFFFF;     /* Cards, inputs - pops against cream */
-    --ink: #1E1410;         /* Headlines & body: warm near-black */
-    --muted: #6B5B52;       /* Secondary text */
-    --brand: #F25C05;       /* Primary buttons, key highlights */
-    --brand-deep: #C2410C;  /* Hover/pressed, text accents */
-    --turmeric: #F5B83D;    /* Small highlights, stars, badges */
-    --cardamom: #1F7A5C;    /* Success/Ready states, checkmarks, savings */
-    --masala: #1B1226;      /* Dark sections, sidebar */
-    --line: rgba(30, 20, 16, 0.08); /* Hairline borders */
-
-    /* Rich Roasted Brown Landing Page Palette */
-    --landing-brown: #1B120C;       /* Deep roasted coffee/spice brown */
-    --landing-brown-alt: #251A12;   /* Warm roasted cacao / mocha */
-    --landing-brown-dark: #130D08;  /* Deep dark espresso roast */
-    --landing-cream: #FFF7ED;       /* Warm ivory cream */
-    --landing-latte: #E5D7CA;       /* Frothy latte text */
-    --landing-sand: #B8A796;        /* Warm sand microcopy */
-
-    /* Legacy compatibility aliases */
-    --bg-app: var(--bg);
-    --surface-white: var(--surface);
-    --border-subtle: var(--line);
-    --text-ink: var(--ink);
-    --text-muted: var(--muted);
+    --color-cream-bg: #FDFBF7;
+    --color-cream-alt: #F8F4EC;
+    --color-paper-card: #FCFBF9;
+    --color-saffron-action: #E57A1F;
+    --color-saffron-hover: #D46714;
+    --color-maroon-head: #4A151B;
+    --color-maroon-ink: #2E0A0E;
+    --color-curry-leaf: #1E7B4D;
+    --color-receipt-border: #E8E2D7;
+    --color-tear-line: #D0C6B8;
   }
 
-  /* Alternative Drop-in Palette: Cardamom Calm */
-  [data-theme="cardamom-calm"] {
-    --bg: #EEF4EE;
-    --bg-alt: #DEEADE;
-    --surface: #FFFFFF;
-    --ink: #0F2A21;
-    --muted: #4A635A;
-    --brand: #F25C05;
-    --brand-deep: #C2410C;
-    --turmeric: #E5A835;
-    --cardamom: #1F7A5C;
-    --masala: #0F3D2E;
-    --line: rgba(15, 42, 33, 0.08);
+  .dark {
+    --color-cream-bg: #160D10;
+    --color-cream-alt: #1F1418;
+    --color-paper-card: #25191E;
+    --color-saffron-action: #F28C32;
+    --color-saffron-hover: #E57A1F;
+    --color-maroon-head: #FCE7EB;
+    --color-maroon-ink: #F8F4EC;
+    --color-curry-leaf: #279B62;
+    --color-receipt-border: #3D2930;
+    --color-tear-line: #523842;
   }
 
-  /* Alternative Drop-in Palette: Beetroot & Blush */
-  [data-theme="beetroot-blush"] {
-    --bg: #FFF0F1;
-    --bg-alt: #FCE1E4;
-    --surface: #FFFFFF;
-    --ink: #2A1020;
-    --muted: #6B4D60;
-    --brand: #E8590C;
-    --brand-deep: #B0245A;
-    --turmeric: #E8A838;
-    --cardamom: #1F7A5C;
-    --masala: #2B0F24;
-    --line: rgba(42, 16, 32, 0.08);
-  }
-
-  /* Alternative Drop-in Palette: Midnight Spice */
-  [data-theme="midnight-spice"] {
-    --bg: #14101C;
-    --bg-alt: #1E1829;
-    --surface: #241D32;
-    --ink: #F7F5F9;
-    --muted: #A39BB0;
-    --brand: #FF7A1A;
-    --brand-deep: #E06509;
-    --turmeric: #F5B83D;
-    --cardamom: #28A77B;
-    --masala: #0D0914;
-    --line: rgba(255, 255, 255, 0.08);
-  }
-
-  * {
-    border-color: var(--line);
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   body {
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.01em;
+    background-color: var(--color-cream-bg);
+    color: var(--color-maroon-ink);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  /* Fluid typography clamp rules */
+  h1, .h1-fluid {
+    font-size: clamp(2.25rem, 4vw + 1rem, 3.85rem);
+    line-height: 1.1;
     letter-spacing: -0.025em;
-    color: var(--ink);
+  }
+
+  h2, .h2-fluid {
+    font-size: clamp(1.85rem, 3vw + 0.5rem, 2.75rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  h3, .h3-fluid {
+    font-size: clamp(1.35rem, 2vw + 0.25rem, 1.85rem);
+    line-height: 1.3;
   }
 }
 
-/* Subtle dot-grid pattern (<= 4% opacity) for hero */
-.hero-dot-grid {
-  background-image: radial-gradient(rgba(30, 20, 16, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Tabular Numerals for Indian Currency & Counts */
-.tnum, .tabular-nums {
-  font-feature-settings: 'tnum';
-  font-variant-numeric: tabular-nums;
-}
-
-/* Custom Sleek Scrollbars */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Hide scrollbars for horizontal tag sliders */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Micro-animations */
-@keyframes ring-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(242, 92, 5, 0.4);
+@layer utilities {
+  /* Receipt Perforated Tear Line */
+  .receipt-tear-line {
+    background-image: linear-gradient(to right, var(--color-tear-line) 50%, transparent 50%);
+    background-position: top;
+    background-size: 14px 2px;
+    background-repeat: repeat-x;
+    height: 2px;
   }
-  70% {
-    box-shadow: 0 0 0 8px rgba(242, 92, 5, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(242, 92, 5, 0);
-  }
-}
 
-.animate-ring-pulse {
-  animation: ring-pulse 1.8s infinite;
-}
-
-/* Subtle card hover lift */
-.card-hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.card-hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
-}
-
-/* Print Styles for Thermal Receipts */
-@media print {
-  body * {
-    visibility: hidden;
+  /* Receipt Sawtooth Serrated Top & Bottom Edges */
+  .receipt-sawtooth-top {
+    position: relative;
   }
-  #thermal-print-area, #thermal-print-area * {
-    visibility: visible;
-  }
-  #thermal-print-area {
+  .receipt-sawtooth-top::before {
+    content: '';
     position: absolute;
+    top: -8px;
     left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    background: white;
-    color: black;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    line-height: 1.25;
+    right: 0;
+    height: 8px;
+    background-repeat: repeat-x;
+    background-size: 16px 8px;
+    background-image: radial-gradient(circle at 8px 8px, transparent 8px, var(--color-paper-card) 9px);
   }
-  @page {
-    margin: 0;
+
+  .receipt-sawtooth-bottom {
+    position: relative;
+  }
+  .receipt-sawtooth-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background-repeat: repeat-x;
+    background-size: 16px 8px;
+    background-image: radial-gradient(circle at 8px 0, transparent 8px, var(--color-paper-card) 9px);
+  }
+
+  /* Subtle ticket stitch border */
+  .border-stitch {
+    border: 1.5px dashed var(--color-tear-line);
+  }
+
+  /* Focus ring for WCAG AA compliance */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500 focus-visible:ring-offset-2;
+  }
+}
+
+/* Reduced motion adjustments */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

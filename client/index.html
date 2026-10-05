@@ -1,27 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-    <link rel="alternate icon" href="/brand/favicon.ico" />
-    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Swaad Sevak: Restaurant & Café Management Software for India</title>
-    <meta name="description" content="Production-grade operating system for Indian restaurants, cafés, cloud kitchens & food businesses. Table QR ordering, kitchen display, 5% GST billing, thermal KOT & live manager dashboard." />
-    <meta name="keywords" content="restaurant management software india, cafe pos, cloud kitchen kds, qr table ordering, thermal kot printing, gst billing restaurant" />
-    <meta property="og:title" content="Swaad Sevak: Restaurant & Café Management Software for India" />
-    <meta property="og:description" content="Run your restaurant without the chaos. QR ordering, kitchen display, 5% GST billing, and live revenue reporting for Indian food businesses." />
-    <meta property="og:image" content="/brand/og-image.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwaadSevak — Restaurant POS & Management Platform for India</title>
+    <meta name="description" content="Billing, live KOT, aggregator sync, inventory and a custom restaurant website in 24 hours. Built specifically for Indian restaurants, cafes, cloud kitchens and food chains." />
+    <meta name="theme-color" content="#E57A1F" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://swaadsevak.vercel.app/" />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Swaad Sevak: Restaurant & Café Management Software for India" />
-    <meta name="twitter:description" content="Run your restaurant without the chaos. QR ordering, kitchen display, 5% GST billing, and live revenue reporting." />
-    <meta name="twitter:image" content="/brand/og-image.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta property="og:url" content="https://swaadsevak.vercel.app/" />
+    <meta property="og:title" content="SwaadSevak — Restaurant POS & Management Platform" />
+    <meta property="og:description" content="Billing, live KOT, aggregator sync, inventory and your restaurant website in 24 hours. Built for Indian restaurants and cloud kitchens." />
+    <meta property="og:image" content="https://swaadsevak.vercel.app/brand/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://swaadsevak.vercel.app/" />
+    <meta property="twitter:title" content="SwaadSevak — Restaurant POS & Management Platform" />
+    <meta property="twitter:description" content="Billing, live KOT, aggregator sync, inventory and your restaurant website in 24 hours." />
+    <meta property="twitter:image" content="https://swaadsevak.vercel.app/brand/og-image.png" />
+
+    <!-- Google Fonts: Fraunces (Serif), Plus Jakarta Sans (Body), Hind & Noto Sans Devanagari (Hindi), Courier Prime (Receipt) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=Hind:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data for Organization, SoftwareApplication & FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://swaadsevak.vercel.app/#organization",
+          "name": "SwaadSevak",
+          "url": "https://swaadsevak.vercel.app/",
+          "logo": "https://swaadsevak.vercel.app/brand/logo.svg",
+          "description": "Restaurant POS, Kitchen Ticket OS and 24-hour website platform for Indian food businesses.",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+91-98765-43210",
+            "contactType": "sales",
+            "areaServed": "IN",
+            "availableLanguage": ["English", "Hindi"]
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://swaadsevak.vercel.app/#software",
+          "name": "SwaadSevak Restaurant POS",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web, Android, iOS, Windows, macOS",
+          "offers": {
+            "@type": "Offer",
+            "price": "1499",
+            "priceCurrency": "INR"
+          },
+          "description": "All-in-one restaurant management platform with 3-click billing, KOT printing, real-time inventory, Zomato/Swiggy aggregator sync, and 24-hour restaurant website deployment."
+        }
+      ]
+    }
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-orange-100 selection:text-orange-900">
+  <body class="bg-cream-50 text-maroon-950 font-sans antialiased selection:bg-saffron-100 selection:text-maroon-900 overflow-x-hidden min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

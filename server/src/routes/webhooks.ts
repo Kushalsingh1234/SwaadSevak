@@ -53,7 +53,7 @@ router.post('/swiggy/orders', (req: Request, res: Response) => {
     const order = db.createOrder({
       restaurantId: restId,
       tableId,
-      tableNumber: 'Swiggy Delivery',
+      tableNumber: 'Swiggy',
       source: 'SWIGGY',
       status: 'PENDING',
       customerNotes: `Swiggy #${extId}. Cust: ${customer?.name || 'Customer'}. Packaging: ₹${packagingCharge}`,
@@ -128,7 +128,7 @@ router.post('/zomato/orders', (req: Request, res: Response) => {
     const order = db.createOrder({
       restaurantId: restId,
       tableId,
-      tableNumber: 'Zomato Delivery',
+      tableNumber: 'Zomato',
       source: 'ZOMATO',
       status: 'PENDING',
       customerNotes: `Zomato #${extId}. Cust: ${customer?.name || 'Customer'}. Packaging: ₹${packagingCharge}`,

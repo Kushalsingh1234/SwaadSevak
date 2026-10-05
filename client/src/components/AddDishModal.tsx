@@ -28,6 +28,9 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
   const [portion, setPortion] = useState('Standard');
   const [isVeg, setIsVeg] = useState(true);
   const [selectedTag, setSelectedTag] = useState('Bestseller');
+  const [publishSwaadSevak, setPublishSwaadSevak] = useState(true);
+  const [publishSwiggy, setPublishSwiggy] = useState(true);
+  const [publishZomato, setPublishZomato] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -43,6 +46,9 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
       setSelectedTag(dishToEdit.tags?.[0] || 'None');
       setIsNewCategoryMode(false);
       setNewCategoryName('');
+      setPublishSwaadSevak(true);
+      setPublishSwiggy(true);
+      setPublishZomato(true);
     } else {
       setName('');
       setDescription('');
@@ -53,6 +59,9 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
       setSelectedTag('Bestseller');
       setIsNewCategoryMode(categories.length === 0);
       setNewCategoryName('');
+      setPublishSwaadSevak(true);
+      setPublishSwiggy(true);
+      setPublishZomato(true);
     }
     setErrorMsg('');
   }, [dishToEdit, isOpen, categories]);
@@ -94,7 +103,15 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
         newCategoryName: isNewCategoryMode ? newCategoryName.trim() : undefined,
         portion,
         isVeg,
-        tags: selectedTag !== 'None' ? [selectedTag] : []
+        tags: selectedTag !== 'None' ? [selectedTag] : [],
+        channels: [
+          ...(publishSwaadSevak ? ['SWAAD_SEVAK'] : []),
+          ...(publishSwiggy ? ['SWIGGY'] : []),
+          ...(publishZomato ? ['ZOMATO'] : [])
+        ],
+        publishSwiggy,
+        publishZomato,
+        syncPriceToAggregators: publishSwiggy || publishZomato
       });
       onClose();
     } catch (err: any) {
@@ -279,22 +296,45 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
           </div>
 
           {/* Aggregator Channel Publishing */}
-          <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100">
-            <span className="block text-[11px] font-bold text-gray-800 mb-1.5">Publish to Channels:</span>
+          <div className="p-3.5 bg-orange-50/70 rounded-xl border border-orange-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="block text-xs font-bold text-gray-900">Publish Price & Availability To:</span>
+              <span className="text-[10px] text-orange-700 font-bold bg-orange-100/80 px-2 py-0.5 rounded-full border border-orange-200">
+                Auto-syncs ₹{price ? parseFloat(price) || 0 : 0}
+              </span>
+            </div>
             <div className="flex flex-wrap gap-4 text-xs">
               <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <input
+                  type="checkbox"
+                  checked={publishSwaadSevak}
+                  onChange={(e) => setPublishSwaadSevak(e.target.checked)}
+                  className="rounded text-orange-600 focus:ring-orange-500"
+                />
                 <span>Swaad Sevak (Dine-In QR)</span>
               </label>
               <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <input
+                  type="checkbox"
+                  checked={publishSwiggy}
+                  onChange={(e) => setPublishSwiggy(e.target.checked)}
+                  className="rounded text-orange-600 focus:ring-orange-500"
+                />
                 <span className="text-[#FC8019] font-bold">Swiggy</span>
               </label>
               <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded text-orange-600" />
+                <input
+                  type="checkbox"
+                  checked={publishZomato}
+                  onChange={(e) => setPublishZomato(e.target.checked)}
+                  className="rounded text-orange-600 focus:ring-orange-500"
+                />
                 <span className="text-[#E23744] font-bold">Zomato</span>
               </label>
             </div>
+            <p className="text-[10px] text-gray-500 mt-2">
+              Selected channels will immediately update their item pricing to ₹{price || 0} upon saving.
+            </p>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-3">

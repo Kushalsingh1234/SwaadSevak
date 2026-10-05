@@ -10,7 +10,8 @@ import {
   X,
   Store,
   TrendingUp,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
@@ -63,6 +64,12 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const businessItems = [
     {
+      id: 'growth',
+      label: 'Growth Engine',
+      icon: Sparkles,
+      badge: 'AI'
+    },
+    {
       id: 'dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard
@@ -87,10 +94,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   // Mobile Bottom Bar (5 quick touch items)
   const mobileBottomItems = [
     { id: 'orders', label: 'Orders', icon: UtensilsCrossed, badge: pendingOrdersCount > 0 ? pendingOrdersCount : null },
+    { id: 'growth', label: 'Growth', icon: Sparkles, badge: 'AI' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'menu', label: 'Menu', icon: Store },
-    { id: 'bills', label: 'Bills', icon: Receipt },
   ];
 
   return (
@@ -188,6 +195,12 @@ export const Navigation: React.FC<NavigationProps> = ({
                       }`} />
                       <span>{item.label}</span>
                     </div>
+
+                    {(item as any).badge && (
+                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-linear-to-r from-violet-500 to-indigo-500 text-white shadow-xs">
+                        {(item as any).badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}

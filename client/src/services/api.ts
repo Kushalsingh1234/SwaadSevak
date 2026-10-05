@@ -93,7 +93,8 @@ export const api = {
     const query = new URLSearchParams(params as any).toString();
     return request<any>(`/orders${query ? `?${query}` : ''}`);
   },
-  updateOrderStatus: (id: string, status: string, rejectionReason?: string) => request<any>(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, rejectionReason }) }),
+  updateOrderStatus: (id: string, status: string, rejectionReason?: string, estimatedPrepTime?: number) =>
+    request<any>(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, rejectionReason, estimatedPrepTime }) }),
   getOrderKot: (id: string) => request<any>(`/orders/${id}/kot`),
   acceptOrderAddition: (orderId: string, additionId: string) => request<any>(`/orders/${orderId}/additions/${additionId}/accept`, { method: 'PATCH' }),
   rejectOrderAddition: (orderId: string, additionId: string, reason?: string) => request<any>(`/orders/${orderId}/additions/${additionId}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
@@ -106,6 +107,11 @@ export const api = {
   // Printer
   getPrinterConfig: () => request<any>('/printer/config'),
   updatePrinterConfig: (config: any) => request<any>('/printer/config', { method: 'PUT', body: JSON.stringify(config) }),
+  printKotNetwork: (orderId: string, isAddition?: boolean, additionId?: string) =>
+    request<any>('/printer/print-kot', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, isAddition, additionId })
+    }),
 
   // Stats & Analytics
   getTodayStats: () => request<any>('/stats/today'),
@@ -197,6 +203,73 @@ export const api = {
     request(`/aggregators/reconciliation${period ? `?period=${encodeURIComponent(period)}` : ''}`),
   getAggregatorLogs: () => request('/aggregators/logs'),
   simulateAggregatorOrder: (provider: 'SWIGGY' | 'ZOMATO') =>
-    request('/aggregators/simulate-order', { method: 'POST', body: JSON.stringify({ provider }) })
+    request('/aggregators/simulate-order', { method: 'POST', body: JSON.stringify({ provider }) }),
+
+  // Growth Engine APIs
+  getGrowthData: (params?: { dataMode?: string; reportId?: string; businessType?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    return request<{ success: boolean; growth: import('../types').GrowthEngineData }>(`/growth${query ? `?${query}` : ''}`);
+  },
+  uploadPosReport: async (file: File, providerHint?: string) => {
+    const formData = new FormData();
+    formData.append('posFile', file);
+    if (providerHint) formData.append('providerHint', providerHint);
+
+    const token = localStorage.getItem('swaad_token');
+    const response = await fetch(`${API_BASE}/growth/upload-pos`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Report upload failed');
+    return data;
+  },
+  confirmPosReport: (report: any, setAsActive = true, dataMode = 'combined') =>
+    request<{ success: boolean; message: string; reportId: string }>('/growth/confirm-pos', {
+      method: 'POST',
+      body: JSON.stringify({ report, setAsActive, dataMode })
+    }),
+  deletePosReport: (id: string) =>
+    request<{ success: boolean; message: string }>(`/growth/reports/${id}`, { method: 'DELETE' }),
+  setGrowthDataMode: (dataMode: string, reportId?: string) =>
+    request<{ success: boolean; mode: string; reportId?: string }>('/growth/mode', {
+      method: 'POST',
+      body: JSON.stringify({ dataMode, reportId })
+    }),
+  setGrowthBusinessType: (businessType: string) =>
+    request<{ success: boolean; businessType: string }>('/growth/business-type', {
+      method: 'POST',
+      body: JSON.stringify({ businessType })
+    }),
+  setGrowthItemCost: (itemName: string, cost: number) =>
+    request<{ success: boolean; itemName: string; cost: number }>('/growth/item-cost', {
+      method: 'POST',
+      body: JSON.stringify({ itemName, cost })
+    }),
+  toggleGrowthRecommendation: (id: string) =>
+    request<{ success: boolean; recommendationId: string; implemented: boolean }>(`/growth/recommendations/${id}/action`, {
+      method: 'POST'
+    }),
+  downloadSamplePosReport: async (format: 'csv' | 'xlsx' = 'xlsx') => {
+    const token = localStorage.getItem('swaad_token');
+    const res = await fetch(`${API_BASE}/growth/sample-pos-report?format=${format}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
+    if (!res.ok) throw new Error('Failed to download sample file');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Petpooja_Sample_Sales_Report.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
 };
 

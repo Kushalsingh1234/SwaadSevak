@@ -13,7 +13,10 @@ import {
   PrinterConfig,
   OrderStatus,
   OrderSource,
-  OrderAddition
+  OrderAddition,
+  PosReport,
+  BusinessType,
+  GrowthDataMode
 } from '../types/index.js';
 
 class DatabaseStore {
@@ -25,6 +28,13 @@ class DatabaseStore {
   orders: Map<string, Order> = new Map();
   bills: Map<string, Bill> = new Map();
   printerConfigs: Map<string, PrinterConfig> = new Map();
+
+  // Growth Engine Maps
+  posReports: Map<string, PosReport> = new Map();
+  itemCostOverrides: Map<string, Map<string, number>> = new Map();
+  implementedRecommendations: Map<string, Set<string>> = new Map();
+  businessTypes: Map<string, BusinessType> = new Map();
+  growthDataModes: Map<string, { mode: GrowthDataMode; reportId?: string }> = new Map();
 
   private kotCounter = 1000;
   private billCounter = 5000;
@@ -218,6 +228,50 @@ class DatabaseStore {
           items: matchingOrder?.items || []
         });
       }
+
+      // Seed initial Petpooja POS Report for seamless demo and combined data experience
+      const now = new Date();
+      const sepStart = new Date(now);
+      sepStart.setDate(sepStart.getDate() - 35);
+      const sepEnd = new Date(now);
+      sepEnd.setDate(sepEnd.getDate() - 5);
+
+      const repId = `pos_rep_${r.id}`;
+      this.posReports.set(repId, {
+        id: repId,
+        restaurantId: r.id,
+        fileName: 'Petpooja_Sales_Report_September.xlsx',
+        posProvider: 'Petpooja',
+        fileType: 'xlsx',
+        uploadedAt: new Date(now.getTime() - 4 * 86400000),
+        periodStart: sepStart,
+        periodEnd: sepEnd,
+        periodLabel: '1 Sep – 30 Sep 2026',
+        totalOrders: 1248,
+        totalSales: 284500,
+        totalProducts: 42,
+        items: [
+          { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
+          { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
+          { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
+          { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
+          { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
+          { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
+          { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
+          { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
+        ],
+        hourlyDistribution: {
+          12: 24000, 13: 38000, 14: 29000,
+          15: 12000, 16: 14000, 17: 15500,
+          18: 26000, 19: 42000, 20: 51000, 21: 33000
+        },
+        dowDistribution: {
+          0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
+        }
+      });
+
+      this.businessTypes.set(r.id, 'Café');
+      this.growthDataModes.set(r.id, { mode: 'swaad', reportId: repId });
     }
   }
 
@@ -406,6 +460,62 @@ class DatabaseStore {
         tags: ["Chef's Special"],
         createdAt: new Date(),
         updatedAt: new Date()
+      },
+      {
+        id: 'item_10',
+        restaurantId,
+        categoryId: catBeveragesId,
+        name: 'Cold Coffee',
+        description: 'Rich creamy brewed espresso blended with chilled milk and chocolate drizzle.',
+        price: 129,
+        portion: '350 ml Glass',
+        isVeg: true,
+        isAvailable: true,
+        tags: ['Bestseller'],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'item_11',
+        restaurantId,
+        categoryId: catDessertsId,
+        name: 'Chocolate Brownie',
+        description: 'Fudge dark chocolate walnut brownie with warm Belgian ganache center.',
+        price: 149,
+        portion: '1 Pc',
+        isVeg: true,
+        isAvailable: true,
+        tags: ['Popular'],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'item_12',
+        restaurantId,
+        categoryId: catStartersId,
+        name: 'Paneer Sandwich',
+        description: 'Grilled multi-grain sandwich layered with spiced cottage cheese cubes, mint chutney, and cheese.',
+        price: 129,
+        portion: '2 Halves with Chips',
+        isVeg: true,
+        isAvailable: true,
+        tags: ['Bestseller'],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'item_13',
+        restaurantId,
+        categoryId: catDessertsId,
+        name: 'Butter Croissant',
+        description: 'Flaky golden French butter croissant baked fresh daily.',
+        price: 119,
+        portion: '1 Pc',
+        isVeg: true,
+        isAvailable: true,
+        tags: ['Breakfast Special'],
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ];
 
@@ -504,12 +614,18 @@ class DatabaseStore {
         [dishList[1], dishList[4], dishList[6], dishList[7]], // Paneer Tikka + Paneer Butter Masala + Naan + Chai
         [dishList[0], dishList[3], dishList[6]], // Dahi Ke Kebab + Dal Makhani + Naan
         [dishList[2], dishList[5], dishList[6], dishList[6]], // Chicken Malai Tikka + Butter Chicken + 2 Naans
-        [dishList[7], dishList[8]] // Masala Chai + Gulab Jamun
+        [dishList[7], dishList[8]], // Masala Chai + Gulab Jamun
+        [dishList[9], dishList[11]], // Cold Coffee + Paneer Sandwich
+        [dishList[9], dishList[10]], // Cold Coffee + Chocolate Brownie
+        [dishList[7], dishList[12]], // Kulhad Masala Chai + Butter Croissant
+        [dishList[9]], // Cold Coffee standalone
+        [dishList[11]], // Paneer Sandwich standalone
+        [dishList[12]] // Butter Croissant standalone
       ];
 
       const combo = itemCombinations[orderIndex % itemCombinations.length];
       const orderItems: OrderItem[] = combo.map((dish, i) => {
-        const qty = (dish.id === 'item_07' || dish.id === 'item_08') && Math.random() > 0.5 ? 2 : 1;
+        const qty = (dish.id === 'item_07' || dish.id === 'item_08' || dish.id === 'item_10') && Math.random() > 0.6 ? 2 : 1;
         return {
           id: `item_ord_${orderNum}_${i}`,
           orderId,
@@ -573,6 +689,48 @@ class DatabaseStore {
     this.orderCounter = 100 + orderIndex;
     this.kotCounter = 1000 + orderIndex;
     this.billCounter = 5000 + orderIndex;
+
+    // Seed initial Petpooja POS Report for seamless demo and combined data experience
+    const sepStart = new Date(now);
+    sepStart.setDate(sepStart.getDate() - 35);
+    const sepEnd = new Date(now);
+    sepEnd.setDate(sepEnd.getDate() - 5);
+
+    this.posReports.set('pos_rep_demo_01', {
+      id: 'pos_rep_demo_01',
+      restaurantId,
+      fileName: 'Petpooja_Sales_Report_September.xlsx',
+      posProvider: 'Petpooja',
+      fileType: 'xlsx',
+      uploadedAt: new Date(now.getTime() - 4 * 86400000),
+      periodStart: sepStart,
+      periodEnd: sepEnd,
+      periodLabel: '1 Sep – 30 Sep 2026',
+      totalOrders: 1248,
+      totalSales: 284500,
+      totalProducts: 42,
+      items: [
+        { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
+        { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
+        { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
+        { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
+        { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
+        { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
+        { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
+        { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
+      ],
+      hourlyDistribution: {
+        12: 24000, 13: 38000, 14: 29000,
+        15: 12000, 16: 14000, 17: 15500,
+        18: 26000, 19: 42000, 20: 51000, 21: 33000
+      },
+      dowDistribution: {
+        0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
+      }
+    });
+
+    this.businessTypes.set(restaurantId, 'Café');
+    this.growthDataModes.set(restaurantId, { mode: 'swaad', reportId: 'pos_rep_demo_01' });
   }
 
   // Next identifiers
@@ -1161,12 +1319,15 @@ class DatabaseStore {
     return order;
   }
 
-  updateOrderStatus(restaurantId: string, orderId: string, status: OrderStatus, rejectionReason?: string): Order | null {
+  updateOrderStatus(restaurantId: string, orderId: string, status: OrderStatus, rejectionReason?: string, estimatedPrepTime?: number): Order | null {
     const order = this.orders.get(orderId);
     if (!order || order.restaurantId !== restaurantId) return null;
     order.status = status;
     if (rejectionReason) {
       order.rejectionReason = rejectionReason;
+    }
+    if (estimatedPrepTime !== undefined && estimatedPrepTime > 0) {
+      order.estimatedPrepTime = estimatedPrepTime;
     }
     order.updatedAt = new Date();
 
@@ -1175,10 +1336,36 @@ class DatabaseStore {
       order.kotNumber = this.getNextKotNumber();
     }
 
-    if (status === 'COMPLETED') {
+    if (status === 'COMPLETED' || status === 'DELIVERED') {
       const table = this.tables.get(order.tableId);
       if (table) {
         table.status = 'AVAILABLE';
+      }
+    }
+
+    // For online aggregator orders, marking delivered also marks settled
+    if (status === 'DELIVERED') {
+      order.settled = true;
+      const existingBill = Array.from(this.bills.values()).find(b => b.orderId === orderId);
+      if (!existingBill) {
+        const billId = `bill_${crypto.randomUUID()}`;
+        this.bills.set(billId, {
+          id: billId,
+          restaurantId: order.restaurantId,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          tableNumber: order.tableNumber,
+          billNumber: this.getNextBillNumber(),
+          subtotal: order.subtotal,
+          tax: order.tax,
+          discount: 0,
+          grandTotal: order.total,
+          paymentStatus: 'PAID_UPI',
+          createdAt: new Date(),
+          items: order.items
+        });
+      } else {
+        existingBill.paymentStatus = 'PAID_UPI';
       }
     }
 
@@ -1413,6 +1600,81 @@ class DatabaseStore {
         zomato: { count: zomatoOrdersCount, sales: Math.round(zomatoSales) }
       }
     };
+  }
+
+  // ==========================================
+  // GROWTH ENGINE METHODS
+  // ==========================================
+
+  savePosReport(report: PosReport): PosReport {
+    this.posReports.set(report.id, report);
+    return report;
+  }
+
+  getPosReports(restaurantId: string): PosReport[] {
+    return Array.from(this.posReports.values())
+      .filter(r => r.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+  }
+
+  getPosReport(id: string): PosReport | undefined {
+    return this.posReports.get(id);
+  }
+
+  deletePosReport(id: string): boolean {
+    return this.posReports.delete(id);
+  }
+
+  setItemCost(restaurantId: string, itemName: string, cost: number) {
+    if (!this.itemCostOverrides.has(restaurantId)) {
+      this.itemCostOverrides.set(restaurantId, new Map());
+    }
+    this.itemCostOverrides.get(restaurantId)!.set(itemName.toLowerCase().trim(), cost);
+  }
+
+  getItemCosts(restaurantId: string): Record<string, number> {
+    const map = this.itemCostOverrides.get(restaurantId);
+    if (!map) return {};
+    const obj: Record<string, number> = {};
+    for (const [k, v] of map.entries()) {
+      obj[k] = v;
+    }
+    return obj;
+  }
+
+  setBusinessType(restaurantId: string, type: BusinessType) {
+    this.businessTypes.set(restaurantId, type);
+  }
+
+  getBusinessType(restaurantId: string): BusinessType {
+    return this.businessTypes.get(restaurantId) || 'Café';
+  }
+
+  setGrowthDataMode(restaurantId: string, mode: GrowthDataMode, reportId?: string) {
+    this.growthDataModes.set(restaurantId, { mode, reportId });
+  }
+
+  getGrowthDataMode(restaurantId: string): { mode: GrowthDataMode; reportId?: string } {
+    return this.growthDataModes.get(restaurantId) || { mode: 'swaad' };
+  }
+
+  toggleRecommendationAction(restaurantId: string, recId: string): boolean {
+    if (!this.implementedRecommendations.has(restaurantId)) {
+      this.implementedRecommendations.set(restaurantId, new Set());
+    }
+    const set = this.implementedRecommendations.get(restaurantId)!;
+    if (set.has(recId)) {
+      set.delete(recId);
+      return false;
+    } else {
+      set.add(recId);
+      return true;
+    }
+  }
+
+  getImplementedRecommendations(restaurantId: string): string[] {
+    const set = this.implementedRecommendations.get(restaurantId);
+    return set ? Array.from(set) : [];
   }
 }
 

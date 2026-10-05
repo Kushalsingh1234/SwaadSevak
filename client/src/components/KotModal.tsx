@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Printer, Check, Copy, Sparkles, Bell } from 'lucide-react';
 import { Order, Restaurant, PrinterConfig, OrderAddition } from '../types';
 import { Logo } from './Logo';
-import { kotPrinter } from '../utils/kotPrinter';
+import { kotPrinter, getOrderDisplayTitle } from '../utils/kotPrinter';
 
 interface KotModalProps {
   order: Order | null;
@@ -36,23 +36,43 @@ export const KotModal: React.FC<KotModalProps> = ({
     hour12: true
   });
 
+  const isOnline =
+    order.source === 'SWIGGY' ||
+    order.source === 'ZOMATO' ||
+    order.source === 'OTHER' ||
+    order.tableNumber?.toLowerCase().includes('swiggy') ||
+    order.tableNumber?.toLowerCase().includes('zomato');
+
+  const channelTitle = getOrderDisplayTitle(order);
+
   const handlePrint = () => {
     if (isAddition && addition) {
-      kotPrinter.printAdditionKot(restaurant, order, addition, {
-        id: printerConfig?.id || 'cfg',
-        printerName: printerConfig?.printerName || 'Thermal',
-        paperWidth,
-        autoPrintKot: true,
-        printerType: printerConfig?.printerType || 'BROWSER'
-      });
+      kotPrinter.printAdditionKot(
+        restaurant,
+        order,
+        addition,
+        {
+          id: printerConfig?.id || 'cfg',
+          printerName: printerConfig?.printerName || 'Thermal',
+          paperWidth,
+          autoPrintKot: true,
+          printerType: printerConfig?.printerType || 'BROWSER'
+        },
+        { interactiveModal: true }
+      );
     } else {
-      kotPrinter.printOrderKot(restaurant, order, {
-        id: printerConfig?.id || 'cfg',
-        printerName: printerConfig?.printerName || 'Thermal',
-        paperWidth,
-        autoPrintKot: true,
-        printerType: printerConfig?.printerType || 'BROWSER'
-      });
+      kotPrinter.printOrderKot(
+        restaurant,
+        order,
+        {
+          id: printerConfig?.id || 'cfg',
+          printerName: printerConfig?.printerName || 'Thermal',
+          paperWidth,
+          autoPrintKot: true,
+          printerType: printerConfig?.printerType || 'BROWSER'
+        },
+        { interactiveModal: true }
+      );
     }
   };
 
@@ -74,7 +94,9 @@ export const KotModal: React.FC<KotModalProps> = ({
               <span>{isAddition ? 'Table Add-on KOT (New Addition)' : 'Kitchen Order Ticket (KOT)'}</span>
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              {isAddition ? `${addition?.additionNumber} • ${order.tableNumber}` : `${order.kotNumber || 'KOT Generated'} • ${order.tableNumber}`}
+              {isAddition
+                ? `${addition?.additionNumber} • ${channelTitle}`
+                : `${order.kotNumber || 'KOT Generated'} • ${channelTitle}`}
             </p>
           </div>
 
@@ -149,11 +171,12 @@ export const KotModal: React.FC<KotModalProps> = ({
             )}
 
             <div className="w-full flex justify-between py-1 text-[11px] font-semibold">
-              <span>TABLE: {order.tableNumber}</span>
+              <span>{isOnline ? channelTitle.toUpperCase() : `TABLE: ${channelTitle}`}</span>
               <span>{orderTime}</span>
             </div>
             <div className="w-full text-[11px] text-gray-600 mb-1">
-              TYPE: {order.source || 'DINE_IN'} {isAddition ? '• (NEW TABLE ADDITION)' : ''}
+              TYPE: {isOnline ? `${order.source} ONLINE DELIVERY` : (order.source || 'DINE_IN')} {isAddition ? '• (NEW TABLE ADDITION)' : ''}
+              {order.estimatedPrepTime ? ` • PREP: ${order.estimatedPrepTime}m` : ''}
             </div>
 
             <div className="w-full border-t border-gray-400 my-1"></div>

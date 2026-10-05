@@ -32,13 +32,29 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
   const { status } = req.body as { status: OrderStatus };
 
-  const validStatuses: OrderStatus[] = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'SERVED', 'COMPLETED', 'REJECTED'];
+  const validStatuses: OrderStatus[] = [
+    'PENDING',
+    'ACCEPTED',
+    'PREPARING',
+    'READY',
+    'SERVED',
+    'COMPLETED',
+    'REJECTED',
+    'OUT_FOR_DELIVERY',
+    'DELIVERED'
+  ];
   if (!status || !validStatuses.includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid order status specified.' });
   }
 
-  const { rejectionReason } = req.body as { rejectionReason?: string };
-  const updatedOrder = db.updateOrderStatus(restaurantId, req.params.id as string, status, rejectionReason);
+  const { rejectionReason, estimatedPrepTime, prepTimeMinutes } = req.body as {
+    rejectionReason?: string;
+    estimatedPrepTime?: number;
+    prepTimeMinutes?: number;
+  };
+  const chosenPrepTime = Number(estimatedPrepTime || prepTimeMinutes) || undefined;
+
+  const updatedOrder = db.updateOrderStatus(restaurantId, req.params.id as string, status, rejectionReason, chosenPrepTime);
   if (!updatedOrder) {
     return res.status(404).json({ success: false, message: 'Order not found.' });
   }
@@ -51,14 +67,15 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
     try {
       const provider = aggregatorManager.getProvider(updatedOrder.source);
       if (status === 'ACCEPTED') {
-        provider.acceptOrder(restaurantId, updatedOrder.orderNumber, 25);
+        const prepTime = chosenPrepTime || 25;
+        provider.acceptOrder(restaurantId, updatedOrder.orderNumber, prepTime);
         aggregatorManager.logSyncEvent(
           restaurantId,
           updatedOrder.source,
           'ACCEPT_ORDER',
           'ORDER',
           'SUCCESS',
-          `Accepted ${updatedOrder.source} order #${updatedOrder.orderNumber} (KOT dispatched)`
+          `Accepted ${updatedOrder.source} order #${updatedOrder.orderNumber} (Prep time: ${prepTime}m, KOT dispatched)`
         );
       } else if (status === 'REJECTED') {
         provider.rejectOrder(restaurantId, updatedOrder.orderNumber, rejectionReason || 'Kitchen rejected');
@@ -79,6 +96,24 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
           'ORDER',
           'SUCCESS',
           `Marked ${updatedOrder.source} order #${updatedOrder.orderNumber} READY for pickup`
+        );
+      } else if (status === 'OUT_FOR_DELIVERY') {
+        aggregatorManager.logSyncEvent(
+          restaurantId,
+          updatedOrder.source,
+          'ORDER_DISPATCH',
+          'ORDER',
+          'SUCCESS',
+          `${updatedOrder.source} order #${updatedOrder.orderNumber} is OUT FOR DELIVERY with delivery partner`
+        );
+      } else if (status === 'DELIVERED') {
+        aggregatorManager.logSyncEvent(
+          restaurantId,
+          updatedOrder.source,
+          'ORDER_DELIVERED',
+          'ORDER',
+          'SUCCESS',
+          `${updatedOrder.source} order #${updatedOrder.orderNumber} DELIVERED & SETTLED (₹${updatedOrder.total})`
         );
       }
     } catch (aggErr) {

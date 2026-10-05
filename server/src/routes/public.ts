@@ -38,6 +38,19 @@ router.get('/menu/:restaurantSlug/:qrToken', (req: Request, res: Response) => {
   const orders = db.getOrders(restaurant.id).filter(o => o.tableId === table.id && o.status !== 'COMPLETED' && o.status !== 'REJECTED');
   const activeOrder = orders.length > 0 ? orders[0] : null;
 
+  // CRM Config for Diner
+  const crmSettings = db.getCrmSettings(restaurant.id);
+  const crmConfig = {
+    enabled: crmSettings.enabled,
+    minOrderValue: crmSettings.minOrderValue,
+    coinsPerAmount: crmSettings.coinsPerAmount,
+    redemptionCoinsUnit: crmSettings.redemptionCoinsUnit,
+    redemptionDiscountUnit: crmSettings.redemptionDiscountUnit,
+    maxDiscountPerOrder: crmSettings.maxDiscountPerOrder,
+    signupBonusCoins: crmSettings.signupBonusCoins,
+    signupBonusEnabled: crmSettings.signupBonusEnabled
+  };
+
   return res.json({
     success: true,
     restaurant: {
@@ -55,13 +68,14 @@ router.get('/menu/:restaurantSlug/:qrToken', (req: Request, res: Response) => {
       status: table.status
     },
     menu: menuData,
-    activeOrder
+    activeOrder,
+    crmConfig
   });
 });
 
 // Place customer order from table
 router.post('/order', (req: Request, res: Response) => {
-  const { restaurantSlug, qrToken, items, customerNotes } = req.body;
+  const { restaurantSlug, qrToken, items, customerNotes, customerId, redeemCoins } = req.body;
 
   if (!restaurantSlug || !qrToken || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ success: false, message: 'Please select items to place an order.' });
@@ -112,9 +126,40 @@ router.post('/order', (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'No valid items found in order.' });
   }
 
-  // 5% Restaurant GST
-  const tax = Math.round(subtotal * 0.05 * 100) / 100;
-  const total = Math.round((subtotal + tax) * 100) / 100;
+  // Server-side authoritative coin discount calculation (ANTI-ABUSE)
+  let coinsUsed = 0;
+  let coinDiscount = 0;
+  let identifiedCustomer = null;
+
+  if (customerId) {
+    const customer = db.getCustomerById(restaurant.id, customerId);
+    if (customer) {
+      identifiedCustomer = customer;
+      if (redeemCoins) {
+        const crmSettings = db.getCrmSettings(restaurant.id);
+        if (crmSettings.enabled && subtotal >= crmSettings.minOrderValue) {
+          const usableCoins = Math.max(0, customer.coinBalance - customer.reservedCoins);
+          const coinsUnit = Math.max(1, crmSettings.redemptionCoinsUnit || 100);
+          const discountUnit = Math.max(1, crmSettings.redemptionDiscountUnit || 10);
+          const affordableUnits = Math.floor(usableCoins / coinsUnit);
+          const maxAffordableDiscount = affordableUnits * discountUnit;
+          let eligibleDiscount = Math.min(crmSettings.maxDiscountPerOrder, maxAffordableDiscount);
+
+          if (!crmSettings.allowFullDiscount && eligibleDiscount >= subtotal) {
+            eligibleDiscount = Math.max(0, subtotal - 1);
+          }
+
+          coinDiscount = eligibleDiscount;
+          coinsUsed = Math.floor(eligibleDiscount / discountUnit) * coinsUnit;
+        }
+      }
+    }
+  }
+
+  // 5% Restaurant GST on net food subtotal
+  const netSubtotal = Math.max(0, subtotal - coinDiscount);
+  const tax = Math.round(netSubtotal * 0.05 * 100) / 100;
+  const total = Math.round((netSubtotal + tax) * 100) / 100;
 
   // Check if this table already has an active order in progress
   const activeOrder = db.getActiveOrderByTable(restaurant.id, table.id);
@@ -124,8 +169,8 @@ router.post('/order', (req: Request, res: Response) => {
     const additionResult = db.addOrderAddition(restaurant.id, activeOrder.id, {
       customerNotes: customerNotes ? String(customerNotes).trim() : undefined,
       subtotal,
-      tax,
-      total,
+      tax: Math.round(subtotal * 0.05 * 100) / 100,
+      total: Math.round((subtotal + (subtotal * 0.05)) * 100) / 100,
       items: verifiedItems
     });
 
@@ -154,6 +199,12 @@ router.post('/order', (req: Request, res: Response) => {
     subtotal,
     tax,
     total,
+    customerId: identifiedCustomer?.id,
+    customerName: identifiedCustomer?.name,
+    customerPhone: identifiedCustomer?.phone,
+    coinsUsed,
+    coinsEarned: 0,
+    coinDiscount,
     items: verifiedItems
   });
 
@@ -169,7 +220,219 @@ router.post('/order', (req: Request, res: Response) => {
     success: true,
     isAddition: false,
     message: 'Your order has been sent to the kitchen!',
-    order
+    order,
+    discountApplied: coinDiscount,
+    coinsReserved: coinsUsed
+  });
+});
+
+// --- PUBLIC CRM & DISCOUNT COIN ENDPOINTS ---
+
+// 1. Identify customer by mobile number
+router.post('/crm/identify', (req: Request, res: Response) => {
+  const { restaurantSlug, phone } = req.body;
+
+  if (!restaurantSlug || !phone) {
+    return res.status(400).json({ success: false, message: 'Please provide restaurant and phone number.' });
+  }
+
+  const restaurant = db.getRestaurantBySlug(restaurantSlug);
+  if (!restaurant) {
+    return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+  }
+
+  const crmSettings = db.getCrmSettings(restaurant.id);
+  if (!crmSettings.enabled) {
+    return res.json({
+      success: true,
+      enabled: false,
+      message: 'Discount Coins are currently not active at this restaurant.'
+    });
+  }
+
+  const normPhone = db.normalizePhone(phone);
+  if (!normPhone || normPhone.length !== 10) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
+  }
+
+  const customer = db.getCustomerByPhone(restaurant.id, normPhone);
+
+  if (customer) {
+    return res.json({
+      success: true,
+      exists: true,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        phoneMasked: db.maskPhone(customer.phone),
+        phone: customer.phone,
+        coinBalance: customer.coinBalance,
+        usableCoins: Math.max(0, customer.coinBalance - customer.reservedCoins),
+        status: customer.status
+      }
+    });
+  }
+
+  return res.json({
+    success: true,
+    exists: false,
+    phone: normPhone
+  });
+});
+
+// 2. Pre-order or in-flow customer signup
+router.post('/crm/signup', (req: Request, res: Response) => {
+  const { restaurantSlug, name, phone } = req.body;
+
+  if (!restaurantSlug || !phone || !name) {
+    return res.status(400).json({ success: false, message: 'Name and mobile number are required.' });
+  }
+
+  const restaurant = db.getRestaurantBySlug(restaurantSlug);
+  if (!restaurant) {
+    return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+  }
+
+  const normPhone = db.normalizePhone(phone);
+  if (!normPhone || normPhone.length !== 10) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
+  }
+
+  const crmSettings = db.getCrmSettings(restaurant.id);
+  const result = db.createCustomer(restaurant.id, {
+    name: name.trim(),
+    phone: normPhone
+  });
+
+  const bonusCoins = result.isNew && crmSettings.enabled && crmSettings.signupBonusEnabled
+    ? crmSettings.signupBonusCoins
+    : 0;
+
+  return res.status(result.isNew ? 201 : 200).json({
+    success: true,
+    isNew: result.isNew,
+    customer: {
+      id: result.customer.id,
+      name: result.customer.name,
+      phoneMasked: db.maskPhone(result.customer.phone),
+      phone: result.customer.phone,
+      coinBalance: result.customer.coinBalance,
+      usableCoins: Math.max(0, result.customer.coinBalance - result.customer.reservedCoins),
+      status: result.customer.status
+    },
+    bonusAwarded: bonusCoins
+  });
+});
+
+// 3. Authoritative real-time discount calculation for cart
+router.post('/crm/calculate-discount', (req: Request, res: Response) => {
+  const { restaurantSlug, customerId, subtotal, orderSubtotal } = req.body;
+  const rawSubtotal = subtotal !== undefined ? subtotal : orderSubtotal;
+
+  if (!restaurantSlug || !customerId) {
+    return res.status(400).json({ success: false, message: 'Missing parameters.' });
+  }
+
+  const restaurant = db.getRestaurantBySlug(restaurantSlug);
+  if (!restaurant) {
+    return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+  }
+
+  const customer = db.getCustomerById(restaurant.id, customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: 'Customer not found.' });
+  }
+
+  const crmSettings = db.getCrmSettings(restaurant.id);
+  const cartSubtotal = Number(rawSubtotal) || 0;
+
+  if (!crmSettings.enabled) {
+    return res.json({
+      success: true,
+      eligible: false,
+      reason: 'Loyalty system is inactive.'
+    });
+  }
+
+  const usableCoins = Math.max(0, customer.coinBalance - customer.reservedCoins);
+  const coinsUnit = Math.max(1, crmSettings.redemptionCoinsUnit || 100);
+  const discountUnit = Math.max(1, crmSettings.redemptionDiscountUnit || 10);
+  const affordableUnits = Math.floor(usableCoins / coinsUnit);
+  const maxAffordableDiscount = affordableUnits * discountUnit;
+  let eligibleDiscount = Math.min(crmSettings.maxDiscountPerOrder, maxAffordableDiscount);
+
+  if (!crmSettings.allowFullDiscount && eligibleDiscount >= cartSubtotal) {
+    eligibleDiscount = Math.max(0, cartSubtotal - 1);
+  }
+
+  const coinsToRedeem = Math.floor(eligibleDiscount / discountUnit) * coinsUnit;
+  const isEligible = cartSubtotal >= crmSettings.minOrderValue && eligibleDiscount > 0;
+
+  return res.json({
+    success: true,
+    eligible: isEligible,
+    minOrderValue: crmSettings.minOrderValue,
+    currentSubtotal: cartSubtotal,
+    usableCoins,
+    eligibleDiscount: isEligible ? eligibleDiscount : 0,
+    coinsToRedeem: isEligible ? coinsToRedeem : 0,
+    conversionText: `${coinsUnit} coins = ₹${discountUnit} discount`,
+    maxDiscountPerOrder: crmSettings.maxDiscountPerOrder
+  });
+});
+
+// 4. Post-order bonus claim for guests
+router.post('/crm/post-order-claim', (req: Request, res: Response) => {
+  const { restaurantSlug, orderId, name, phone } = req.body;
+
+  if (!restaurantSlug || !name || !phone) {
+    return res.status(400).json({ success: false, message: 'Name and mobile number are required.' });
+  }
+
+  const restaurant = db.getRestaurantBySlug(restaurantSlug);
+  if (!restaurant) {
+    return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+  }
+
+  const normPhone = db.normalizePhone(phone);
+  if (!normPhone || normPhone.length !== 10) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
+  }
+
+  const crmSettings = db.getCrmSettings(restaurant.id);
+  const result = db.createCustomer(restaurant.id, {
+    name: name.trim(),
+    phone: normPhone
+  });
+
+  // Link order if provided
+  if (orderId) {
+    const order = db.getOrder(restaurant.id, orderId);
+    if (order && !order.customerId) {
+      order.customerId = result.customer.id;
+      order.customerName = result.customer.name;
+      order.customerPhone = result.customer.phone;
+    }
+  }
+
+  const bonusCoins = result.isNew && crmSettings.enabled && crmSettings.signupBonusEnabled
+    ? crmSettings.signupBonusCoins
+    : 0;
+
+  return res.json({
+    success: true,
+    isNew: result.isNew,
+    customer: {
+      id: result.customer.id,
+      name: result.customer.name,
+      phoneMasked: db.maskPhone(result.customer.phone),
+      coinBalance: result.customer.coinBalance,
+      usableCoins: Math.max(0, result.customer.coinBalance - result.customer.reservedCoins)
+    },
+    bonusAwarded: bonusCoins,
+    message: result.isNew
+      ? `Welcome to SwaadSevak Rewards! ${bonusCoins} Bonus Coins have been added to your profile.`
+      : `Welcome back! You already have ${result.customer.coinBalance} Discount Coins.`
   });
 });
 

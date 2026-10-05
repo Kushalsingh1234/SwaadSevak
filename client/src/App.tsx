@@ -12,6 +12,7 @@ import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { GrowthEnginePage } from './pages/GrowthEnginePage';
+import { CrmPage } from './pages/CrmPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
@@ -550,6 +551,14 @@ export function App() {
 
         {currentTab === 'growth' && (
           <GrowthEnginePage
+            restaurant={restaurant}
+            manager={manager}
+            onNavigateTab={handleTabChange}
+          />
+        )}
+
+        {currentTab === 'crm' && (
+          <CrmPage
             restaurant={restaurant}
             manager={manager}
             onNavigateTab={handleTabChange}

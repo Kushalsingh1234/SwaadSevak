@@ -13,8 +13,13 @@ import {
   Sparkles,
   ArrowRight,
   ChevronDown,
-  Download
+  Download,
+  Gift,
+  Coins,
+  Award,
+  Check
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { VegIcon } from '../components/VegIcon';
 import { api } from '../services/api';
 import { getSocket, joinTableRoom } from '../services/socket';
@@ -41,6 +46,56 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVegOnly, setFilterVegOnly] = useState(false);
 
+  // CRM & Loyalty State
+  const [crmConfig, setCrmConfig] = useState<any>(null);
+  const [identifiedCustomer, setIdentifiedCustomer] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem(`swaad_customer_${restaurantSlug}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Non-blocking gentle prompt banner
+  const [showGentleBanner, setShowGentleBanner] = useState<boolean>(false);
+
+  // Identification modal states
+  const [isIdentityModalOpen, setIsIdentityModalOpen] = useState<boolean>(false);
+  const [identityStep, setIdentityStep] = useState<'PHONE' | 'FOUND' | 'NEW_PROMPT' | 'SIGNUP_FORM' | 'SIGNUP_SUCCESS'>('PHONE');
+  const [identityPhone, setIdentityPhone] = useState<string>('');
+  const [identityName, setIdentityName] = useState<string>('');
+  const [isCheckingPhone, setIsCheckingPhone] = useState<boolean>(false);
+  const [isSigningUp, setIsSigningUp] = useState<boolean>(false);
+  const [identityError, setIdentityError] = useState<string>('');
+  const [signupBonusAwarded, setSignupBonusAwarded] = useState<number>(0);
+
+  // Loyalty Balance Info Modal
+  const [showLoyaltyInfoModal, setShowLoyaltyInfoModal] = useState<boolean>(false);
+
+  // Cart Loyalty Redemption
+  const [redeemCoins, setRedeemCoins] = useState<boolean>(false);
+  const [coinDiscountCalc, setCoinDiscountCalc] = useState<{
+    eligible: boolean;
+    eligibleDiscount: number;
+    coinsToRedeem: number;
+    usableCoins: number;
+    minOrderValue: number;
+  }>({
+    eligible: false,
+    eligibleDiscount: 0,
+    coinsToRedeem: 0,
+    usableCoins: 0,
+    minOrderValue: 300
+  });
+
+  // Post-order Guest Modal
+  const [showPostOrderModal, setShowPostOrderModal] = useState<boolean>(false);
+  const [postOrderName, setPostOrderName] = useState<string>('');
+  const [postOrderPhone, setPostOrderPhone] = useState<string>('');
+  const [isClaimingPostOrder, setIsClaimingPostOrder] = useState<boolean>(false);
+  const [postOrderClaimSuccess, setPostOrderClaimSuccess] = useState<boolean>(false);
+
   // Cart State
   const [cart, setCart] = useState<Array<{
     menuItemId: string;
@@ -61,6 +116,17 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
   const [activeBill, setActiveBill] = useState<any>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
+  // Confetti helper
+  const triggerConfetti = () => {
+    try {
+      confetti({
+        particleCount: 70,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+    } catch {}
+  };
+
   // Load Menu and Table details
   useEffect(() => {
     loadPublicMenu();
@@ -75,6 +141,9 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         setRestaurant(data.restaurant);
         setTable(data.table);
         setMenu(data.menu || []);
+        if (data.crmConfig) {
+          setCrmConfig(data.crmConfig);
+        }
         if (data.activeOrder) {
           setActiveOrder(data.activeOrder);
           if (data.activeOrder.billRequested) {
@@ -200,10 +269,150 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     );
   };
 
+  // Gentle Prompt Banner Effect: Trigger after 1.5s if loyalty active and guest
+  useEffect(() => {
+    if (crmConfig?.enabled && !identifiedCustomer) {
+      const isDismissed = sessionStorage.getItem(`swaad_dismiss_crm_${restaurantSlug}`);
+      if (!isDismissed) {
+        const timer = setTimeout(() => {
+          setShowGentleBanner(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [crmConfig?.enabled, identifiedCustomer, restaurantSlug]);
+
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTax = Math.round(cartTotal * 0.05 * 100) / 100;
-  const cartGrandTotal = Math.round((cartTotal + cartTax) * 100) / 100;
+
+  // Authoritative dynamic discount calculation
+  useEffect(() => {
+    if (!crmConfig?.enabled || !identifiedCustomer) {
+      setCoinDiscountCalc({
+        eligible: false,
+        eligibleDiscount: 0,
+        coinsToRedeem: 0,
+        usableCoins: 0,
+        minOrderValue: crmConfig?.minOrderValue || 300
+      });
+      return;
+    }
+
+    const minOrder = crmConfig.minOrderValue || 300;
+    const usable = Math.max(0, (identifiedCustomer.coinBalance || 0) - (identifiedCustomer.reservedCoins || 0));
+    const coinsUnit = Math.max(1, crmConfig.redemptionCoinsUnit || 100);
+    const discountUnit = Math.max(1, crmConfig.redemptionDiscountUnit || 10);
+    const maxDiscount = crmConfig.maxDiscountPerOrder || 100;
+
+    const affordableUnits = Math.floor(usable / coinsUnit);
+    let maxAffordableDiscount = affordableUnits * discountUnit;
+    let eligibleDiscount = Math.min(maxDiscount, maxAffordableDiscount);
+
+    if (!crmConfig.allowFullDiscount && eligibleDiscount >= cartTotal) {
+      eligibleDiscount = Math.max(0, cartTotal - 1);
+    }
+
+    const coinsToRedeem = Math.floor(eligibleDiscount / discountUnit) * coinsUnit;
+    const isEligible = cartTotal >= minOrder && eligibleDiscount > 0;
+
+    setCoinDiscountCalc({
+      eligible: isEligible,
+      eligibleDiscount: isEligible ? eligibleDiscount : 0,
+      coinsToRedeem: isEligible ? coinsToRedeem : 0,
+      usableCoins: usable,
+      minOrderValue: minOrder
+    });
+
+    // Auto-enable discount when condition is met
+    if (isEligible && cartTotal >= minOrder && !redeemCoins) {
+      setRedeemCoins(true);
+    }
+  }, [cartTotal, identifiedCustomer, crmConfig]);
+
+  // Discount math
+  const appliedDiscount = redeemCoins && coinDiscountCalc.eligible ? coinDiscountCalc.eligibleDiscount : 0;
+  const appliedCoins = redeemCoins && coinDiscountCalc.eligible ? coinDiscountCalc.coinsToRedeem : 0;
+  const netSubtotal = Math.max(0, cartTotal - appliedDiscount);
+  const cartTax = Math.round(netSubtotal * 0.05 * 100) / 100;
+  const cartGrandTotal = Math.round((netSubtotal + cartTax) * 100) / 100;
+
+  // Identification Handlers
+  const handleCheckPhone = async () => {
+    const cleaned = identityPhone.replace(/\D/g, '').slice(-10);
+    if (cleaned.length !== 10) {
+      setIdentityError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    setIdentityError('');
+    setIsCheckingPhone(true);
+    try {
+      const res = await api.identifyPublicCustomer(restaurantSlug, cleaned);
+      if (res.success) {
+        if (res.exists && res.customer) {
+          setIdentifiedCustomer(res.customer);
+          localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(res.customer));
+          setIdentityStep('FOUND');
+        } else {
+          setIdentityStep('NEW_PROMPT');
+        }
+      } else {
+        setIdentityError(res.message || 'Could not verify mobile number.');
+      }
+    } catch (e: any) {
+      setIdentityError(e.message || 'Verification failed. Please try again.');
+    } finally {
+      setIsCheckingPhone(false);
+    }
+  };
+
+  const handleSignup = async () => {
+    if (!identityName.trim()) {
+      setIdentityError('Please enter your full name');
+      return;
+    }
+    const cleaned = identityPhone.replace(/\D/g, '').slice(-10);
+    setIdentityError('');
+    setIsSigningUp(true);
+    try {
+      const res = await api.signupPublicCustomer(restaurantSlug, identityName.trim(), cleaned);
+      if (res.success && res.customer) {
+        setIdentifiedCustomer(res.customer);
+        localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(res.customer));
+        setSignupBonusAwarded(res.bonusAwarded || 100);
+        setIdentityStep('SIGNUP_SUCCESS');
+        triggerConfetti();
+      } else {
+        setIdentityError(res.message || 'Registration failed.');
+      }
+    } catch (e: any) {
+      setIdentityError(e.message || 'Registration failed.');
+    } finally {
+      setIsSigningUp(false);
+    }
+  };
+
+  // Post-order Guest Claim
+  const handleClaimPostOrder = async () => {
+    if (!postOrderName.trim()) return;
+    const cleaned = postOrderPhone.replace(/\D/g, '').slice(-10);
+    if (cleaned.length !== 10) return;
+
+    setIsClaimingPostOrder(true);
+    try {
+      const res = await api.claimPostOrderBonus(restaurantSlug, activeOrder?.id, postOrderName.trim(), cleaned);
+      if (res.success && res.customer) {
+        setIdentifiedCustomer(res.customer);
+        localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(res.customer));
+        setPostOrderClaimSuccess(true);
+        triggerConfetti();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsClaimingPostOrder(false);
+    }
+  };
 
   // Place Order from diner screen (Section 18)
   const handlePlaceOrder = async () => {
@@ -214,13 +423,33 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         restaurantSlug,
         qrToken,
         items: cart,
-        customerNotes
+        customerNotes,
+        customerId: identifiedCustomer?.id,
+        redeemCoins: redeemCoins && coinDiscountCalc.eligible
       });
 
       if (res.success) {
         setActiveOrder(res.order);
         setCart([]);
         setIsCartOpen(false);
+
+        // If guest placed an order and CRM is enabled, present the post-order signup celebration modal
+        if (!identifiedCustomer && crmConfig?.enabled) {
+          setTimeout(() => {
+            setShowPostOrderModal(true);
+          }, 900);
+        }
+
+        // If coins were used, update local customer state
+        if (identifiedCustomer && res.coinsReserved > 0) {
+          const updated = {
+            ...identifiedCustomer,
+            reservedCoins: (identifiedCustomer.reservedCoins || 0) + res.coinsReserved,
+            usableCoins: Math.max(0, identifiedCustomer.coinBalance - ((identifiedCustomer.reservedCoins || 0) + res.coinsReserved))
+          };
+          setIdentifiedCustomer(updated);
+          localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(updated));
+        }
       } else {
         alert(res.message || 'Could not place order');
       }
@@ -299,20 +528,46 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
       )}
 
       {/* Restaurant & Table Header */}
-      <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight">
+      <header className="bg-white border-b border-gray-200 p-3.5 sm:p-4 sticky top-0 z-30 shadow-xs">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 pr-1">
+            <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight truncate">
               {restaurant?.name || 'The Chai & Chaat Co.'}
             </h1>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 mt-0.5 truncate">
               {restaurant?.restaurantType || 'Café'} • {restaurant?.city || 'Dining Room'}
             </p>
           </div>
 
-          {/* Table Badge */}
-          <div className="px-3 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold text-center">
-            {table?.tableNumber || 'Table 01'}
+          {/* Table & Loyalty Badges */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {crmConfig?.enabled && (
+              identifiedCustomer ? (
+                <button
+                  onClick={() => setShowLoyaltyInfoModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-linear-to-r from-amber-50 to-orange-50 border border-amber-300 text-amber-900 text-xs font-bold hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+                  title="View your Discount Coins"
+                >
+                  <span className="text-sm">🪙</span>
+                  <span>{identifiedCustomer.coinBalance} Coins</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIdentityStep('PHONE');
+                    setIsIdentityModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold hover:bg-orange-100 transition-all active:scale-95 cursor-pointer"
+                >
+                  <span className="text-xs">🪙</span>
+                  <span>Redeem Coins</span>
+                </button>
+              )
+            )}
+
+            <div className="px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold text-center shrink-0">
+              {table?.tableNumber || 'Table 01'}
+            </div>
           </div>
         </div>
 
@@ -359,7 +614,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-gray-900">
-                Order #{activeOrder.orderNumber}
+                Order {activeOrder.orderNumber.startsWith('#') ? activeOrder.orderNumber : `#${activeOrder.orderNumber}`}
               </span>
             </div>
             <span className="flex items-center gap-1.5 text-xs font-medium">
@@ -624,6 +879,43 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
         })}
       </main>
 
+      {/* Floating Gentle Loyalty Prompt Toast */}
+      {crmConfig?.enabled && !identifiedCustomer && showGentleBanner && !isCartOpen && (
+        <div className={`fixed ${cartItemCount > 0 ? 'bottom-20' : 'bottom-4'} left-4 right-4 max-w-md mx-auto z-40 animate-in slide-in-from-bottom-2 fade-in duration-300`}>
+          <div className="bg-stone-900/95 text-white backdrop-blur-md p-3.5 rounded-2xl shadow-2xl border border-stone-700/60 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-xl shrink-0">🪙</span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">Have Discount Coins?</p>
+                <p className="text-[11px] text-stone-300 truncate">Enter phone to unlock instant bill savings</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => {
+                  setShowGentleBanner(false);
+                  sessionStorage.setItem(`swaad_dismiss_crm_${restaurantSlug}`, 'true');
+                  setIsIdentityModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                Claim
+              </button>
+              <button
+                onClick={() => {
+                  setShowGentleBanner(false);
+                  sessionStorage.setItem(`swaad_dismiss_crm_${restaurantSlug}`, 'true');
+                }}
+                className="p-1 rounded-lg text-stone-400 hover:text-white transition-colors cursor-pointer"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Bottom Cart Bar */}
       {cartItemCount > 0 && !isCartOpen && (
         <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 animate-in slide-in-from-bottom-3 duration-200">
@@ -668,42 +960,44 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             </div>
 
             {/* Cart Items List */}
-            <div className="flex-1 overflow-y-auto p-4 divide-y divide-gray-100">
-              {cart.map((item) => (
-                <div key={item.menuItemId} className="py-3 flex items-center justify-between">
-                  <div className="flex items-start gap-2">
-                    <VegIcon isVeg={item.isVeg} size="sm" className="mt-0.5" />
-                    <div>
-                      <h4 className="text-xs font-semibold text-gray-900">{item.name}</h4>
-                      <p className="text-[11px] text-gray-500">₹{item.price} each</p>
+            <div className="flex-1 overflow-y-auto p-4 pb-10 space-y-4">
+              <div className="divide-y divide-gray-100">
+                {cart.map((item) => (
+                  <div key={item.menuItemId} className="py-3 flex items-center justify-between">
+                    <div className="flex items-start gap-2">
+                      <VegIcon isVeg={item.isVeg} size="sm" className="mt-0.5" />
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-900">{item.name}</h4>
+                        <p className="text-[11px] text-gray-500">₹{item.price} each</p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 text-xs font-medium">
-                      <button
-                        onClick={() => updateQuantity(item.menuItemId, -1)}
-                        className="w-5 h-5 rounded bg-white flex items-center justify-center text-gray-700 shadow-xs"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-4 text-center font-bold">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.menuItemId, 1)}
-                        className="w-5 h-5 rounded bg-orange-600 text-white flex items-center justify-center shadow-xs"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 text-xs font-medium">
+                        <button
+                          onClick={() => updateQuantity(item.menuItemId, -1)}
+                          className="w-5 h-5 rounded bg-white flex items-center justify-center text-gray-700 shadow-xs cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="w-4 text-center font-bold">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.menuItemId, 1)}
+                          className="w-5 h-5 rounded bg-orange-600 text-white flex items-center justify-center shadow-xs cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <span className="text-xs font-bold text-gray-900 w-14 text-right">
+                        ₹{item.price * item.quantity}
+                      </span>
                     </div>
-                    <span className="text-xs font-bold text-gray-900 w-14 text-right">
-                      ₹{item.price * item.quantity}
-                    </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
 
               {/* Special Cooking Instructions */}
-              <div className="pt-4">
+              <div className="pt-1">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Cooking Instructions for Chef (Optional)
                 </label>
@@ -716,35 +1010,135 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                 />
               </div>
 
+              {/* Loyalty Coin Redemption Card (Phases 9 & 10) */}
+              {crmConfig?.enabled && (
+                <div className="pt-1">
+                  {identifiedCustomer ? (
+                    <div className={`p-3 rounded-xl border transition-all ${
+                      coinDiscountCalc.eligible
+                        ? 'bg-linear-to-br from-amber-50 to-orange-50/60 border-amber-300 shadow-xs'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🪙</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-bold text-gray-900">Discount Coins</h4>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                Balance: {identifiedCustomer.coinBalance}
+                              </span>
+                            </div>
+                            {coinDiscountCalc.eligible ? (
+                              <p className="text-[11px] text-amber-800 mt-0.5">
+                                You can save <span className="font-bold text-amber-900">₹{coinDiscountCalc.eligibleDiscount}</span> using {coinDiscountCalc.coinsToRedeem} coins
+                              </p>
+                            ) : cartTotal < coinDiscountCalc.minOrderValue ? (
+                              <p className="text-[11px] text-gray-500 mt-0.5">
+                                Add ₹{(coinDiscountCalc.minOrderValue - cartTotal).toFixed(0)} more to redeem coins (Min order ₹{coinDiscountCalc.minOrderValue})
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-gray-500 mt-0.5">
+                                You'll earn coins on this order for future discounts!
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {coinDiscountCalc.eligible && (
+                          <button
+                            onClick={() => setRedeemCoins(!redeemCoins)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer ${
+                              redeemCoins
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : 'bg-orange-600 hover:bg-orange-500 text-white'
+                            }`}
+                          >
+                            {redeemCoins ? '✓ Applied' : `Apply ₹${coinDiscountCalc.eligibleDiscount}`}
+                          </button>
+                        )}
+                      </div>
+
+                      {redeemCoins && coinDiscountCalc.eligible && (
+                        <div className="mt-2 pt-2 border-t border-amber-200/70 flex items-center justify-between text-[11px] text-amber-900">
+                          <span className="flex items-center gap-1 font-medium">
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>₹{appliedDiscount} discount active</span>
+                          </span>
+                          <span className="font-semibold">{appliedCoins} coins will be used</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-200/80 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🪙</span>
+                        <div>
+                          <p className="text-xs font-bold text-gray-900">Have Discount Coins?</p>
+                          <p className="text-[11px] text-gray-600">Redeem coins to save on this order</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIdentityStep('PHONE');
+                          setIsIdentityModalOpen(true);
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition-all shrink-0 cursor-pointer"
+                      >
+                        Redeem Coins
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Summary */}
-              <div className="pt-4 space-y-1.5 text-xs">
+              <div className="pt-2 space-y-1.5 text-xs bg-gray-50/80 p-3 rounded-xl border border-gray-100">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
+
+                {appliedDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-lg">
+                    <span className="flex items-center gap-1">
+                      <span>🪙 Coin Discount</span>
+                      <span className="text-[10px] text-emerald-600 font-normal">({appliedCoins} coins)</span>
+                    </span>
+                    <span>-₹{appliedDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-gray-600">
                   <span>GST (5%)</span>
                   <span>₹{cartTax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
+
+                <div className="flex justify-between text-sm font-black text-gray-900 pt-2 border-t border-gray-200">
                   <span>Grand Total</span>
                   <span>₹{cartGrandTotal.toFixed(2)}</span>
                 </div>
+
+                {appliedDiscount > 0 && (
+                  <p className="text-[10px] text-gray-500 pt-1 leading-tight">
+                    ℹ️ 🪙 {appliedCoins} coins will be deducted automatically only after payment is completed.
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Submit Order Action */}
-            <div className="p-4 bg-gray-50 border-t border-gray-200">
+            <div className="p-4 bg-white border-t border-gray-200 shrink-0 shadow-lg">
               <button
                 onClick={handlePlaceOrder}
                 disabled={isPlacingOrder}
-                className="w-full py-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer active:scale-98"
               >
                 {isPlacingOrder ? (
                   <span>Sending to Kitchen...</span>
                 ) : (
                   <>
-                    <span>Place Order for {table?.tableNumber} • ₹{cartGrandTotal}</span>
+                    <span>Place Order for {table?.tableNumber} • ₹{cartGrandTotal.toFixed(2)}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -763,6 +1157,445 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
           isOpen={showInvoiceModal}
           onClose={() => setShowInvoiceModal(false)}
         />
+      )}
+
+      {/* PHASE 6, 7, 8 — CUSTOMER IDENTIFICATION MODAL */}
+      {isIdentityModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative">
+            <button
+              onClick={() => {
+                setIsIdentityModalOpen(false);
+                setIdentityError('');
+              }}
+              className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* STEP: PHONE INPUT (Phase 6) */}
+            {identityStep === 'PHONE' && (
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                  🪙
+                </div>
+                <h3 className="text-base font-bold text-gray-900 leading-snug">
+                  Redeem your Discount Coins
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  Enter your mobile number to check your balance and save on this order.
+                </p>
+
+                <div className="mt-4">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      placeholder="98765 43210"
+                      maxLength={10}
+                      value={identityPhone}
+                      onChange={(e) => {
+                        setIdentityPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                        setIdentityError('');
+                      }}
+                      className="w-full pl-12 pr-3 py-2.5 text-sm font-semibold rounded-xl border border-gray-300 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all tracking-wider"
+                      autoFocus
+                    />
+                  </div>
+                  {identityError && (
+                    <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{identityError}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  <button
+                    onClick={handleCheckPhone}
+                    disabled={isCheckingPhone || identityPhone.length !== 10}
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isCheckingPhone ? (
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span>Continue</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsIdentityModalOpen(false);
+                      sessionStorage.setItem(`swaad_dismiss_crm_${restaurantSlug}`, 'true');
+                    }}
+                    className="w-full py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Continue as Guest
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP: EXISTING CUSTOMER FOUND (Phase 7) */}
+            {identityStep === 'FOUND' && identifiedCustomer && (
+              <div className="text-center py-2">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 to-orange-400 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg">
+                  👋
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Welcome back, {identifiedCustomer.name}!
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  You have <span className="font-bold text-orange-600">{identifiedCustomer.coinBalance} Discount Coins</span>.
+                </p>
+
+                <div className="my-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium text-left flex items-center gap-2.5">
+                  <span className="text-xl">✨</span>
+                  <span>You can use your coins for discounts on this order during checkout!</span>
+                </div>
+
+                <button
+                  onClick={() => setIsIdentityModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all"
+                >
+                  Continue Ordering
+                </button>
+              </div>
+            )}
+
+            {/* STEP: NEW CUSTOMER PROMPT (Phase 8) */}
+            {identityStep === 'NEW_PROMPT' && (
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl mb-3">
+                  🔍
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  No profile found with +91 {identityPhone}
+                </h3>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  Want to create a free profile and get <span className="font-bold text-orange-600">{crmConfig?.signupBonusCoins || 100} Welcome Coins</span> right now?
+                </p>
+
+                <div className="mt-5 space-y-2">
+                  <button
+                    onClick={() => setIdentityStep('SIGNUP_FORM')}
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>Create Profile & Get Coins</span>
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsIdentityModalOpen(false);
+                      sessionStorage.setItem(`swaad_dismiss_crm_${restaurantSlug}`, 'true');
+                    }}
+                    className="w-full py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Continue as Guest
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP: SIGNUP FORM (Phase 8) */}
+            {identityStep === 'SIGNUP_FORM' && (
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mb-3">
+                  🎉
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Create your Loyalty Profile
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  Takes 5 seconds. No passwords. No OTP.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Your Full Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Rahul Sharma"
+                      value={identityName}
+                      onChange={(e) => {
+                        setIdentityName(e.target.value);
+                        setIdentityError('');
+                      }}
+                      className="w-full px-3 py-2.5 text-xs rounded-xl border border-gray-300 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="text"
+                      value={`+91 ${identityPhone}`}
+                      disabled
+                      className="w-full px-3 py-2.5 text-xs rounded-xl bg-gray-100 border border-gray-200 text-gray-600 font-semibold"
+                    />
+                  </div>
+
+                  {identityError && (
+                    <p className="text-xs text-red-600">{identityError}</p>
+                  )}
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  <button
+                    onClick={handleSignup}
+                    disabled={isSigningUp || !identityName.trim()}
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSigningUp ? (
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span>Claim {crmConfig?.signupBonusCoins || 100} Coins</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIdentityStep('PHONE')}
+                    className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    ← Change Number
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP: SIGNUP SUCCESS (Phase 8) */}
+            {identityStep === 'SIGNUP_SUCCESS' && (
+              <div className="text-center py-2">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-xl animate-bounce">
+                  🪙
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Welcome, {identifiedCustomer?.name}!
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  You've received <span className="font-bold text-orange-600">{signupBonusAwarded} Discount Coins</span> as a welcome reward.
+                </p>
+
+                <div className="my-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-semibold flex items-center justify-center gap-1.5">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Profile active for this restaurant</span>
+                </div>
+
+                <button
+                  onClick={() => setIsIdentityModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all"
+                >
+                  Start Ordering & Earning
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* LOYALTY INFO MODAL (Phase 9) */}
+      {showLoyaltyInfoModal && identifiedCustomer && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 relative">
+            <button
+              onClick={() => setShowLoyaltyInfoModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
+                🪙
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">{identifiedCustomer.name}</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                  {identifiedCustomer.status || 'REGULAR'} Customer
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-center">
+              <span className="text-xs text-amber-800 font-medium block">Current Balance</span>
+              <span className="text-2xl font-black text-amber-900 block mt-0.5">
+                {identifiedCustomer.coinBalance} <span className="text-sm font-bold text-amber-700">Coins</span>
+              </span>
+              {identifiedCustomer.reservedCoins > 0 && (
+                <span className="text-[11px] text-amber-700 block mt-1">
+                  ({identifiedCustomer.reservedCoins} reserved on active order)
+                </span>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-700">
+                <span>Earning Rule</span>
+                <span className="font-bold text-gray-900">
+                  1 coin per ₹{crmConfig?.coinsPerAmount || 10} spent
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-700">
+                <span>Redemption Rule</span>
+                <span className="font-bold text-gray-900">
+                  {crmConfig?.redemptionCoinsUnit || 100} coins = ₹{crmConfig?.redemptionDiscountUnit || 10} discount
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-700">
+                <span>Min Order to Redeem</span>
+                <span className="font-bold text-gray-900">
+                  ₹{crmConfig?.minOrderValue || 300}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-700">
+                <span>Max Discount / Order</span>
+                <span className="font-bold text-gray-900">
+                  ₹{crmConfig?.maxDiscountPerOrder || 100}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={() => setShowLoyaltyInfoModal(false)}
+                className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowLoyaltyInfoModal(false);
+                  localStorage.removeItem(`swaad_customer_${restaurantSlug}`);
+                  setIdentifiedCustomer(null);
+                }}
+                className="w-full py-1 text-[11px] text-gray-400 hover:text-gray-600"
+              >
+                Switch / Log out Customer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PHASE 15 & 16 — POST-ORDER SIGNUP MODAL FOR GUESTS */}
+      {showPostOrderModal && !identifiedCustomer && crmConfig?.enabled && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative text-center">
+            <button
+              onClick={() => setShowPostOrderModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {!postOrderClaimSuccess ? (
+              <>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
+                  🎉
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Want Discount Coins on your next visit?
+                </h3>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  You just placed an order. Create your free loyalty profile in 5 seconds and receive:
+                </p>
+
+                <div className="my-3 py-2.5 px-4 rounded-xl bg-amber-50 border border-amber-200 inline-flex items-center gap-2">
+                  <span className="text-xl">🪙</span>
+                  <span className="text-sm font-black text-amber-900">
+                    {crmConfig?.signupBonusCoins || 100} Bonus Coins
+                  </span>
+                </div>
+
+                <div className="mt-3 text-left space-y-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Rahul Sharma"
+                      value={postOrderName}
+                      onChange={(e) => setPostOrderName(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 outline-none focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
+                      value={postOrderPhone}
+                      onChange={(e) => setPostOrderPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 outline-none focus:border-orange-500 tracking-wider"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <button
+                    onClick={handleClaimPostOrder}
+                    disabled={isClaimingPostOrder || !postOrderName.trim() || postOrderPhone.length !== 10}
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isClaimingPostOrder ? (
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span>Claim My Coins</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowPostOrderModal(false)}
+                    className="w-full py-1 text-xs font-medium text-gray-400 hover:text-gray-600"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="py-2">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-3">
+                  🎁
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Welcome to SwaadSevak Rewards!
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  <span className="font-bold text-orange-600">{crmConfig?.signupBonusCoins || 100} Coins added</span> to your profile!
+                </p>
+                <div className="my-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-900">
+                  Current Balance: 🪙 {identifiedCustomer?.coinBalance || 100} Coins
+                </div>
+                <button
+                  onClick={() => setShowPostOrderModal(false)}
+                  className="w-full py-2 rounded-xl bg-orange-600 text-white text-xs font-bold shadow-xs hover:bg-orange-500"
+                >
+                  Awesome, got it!
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

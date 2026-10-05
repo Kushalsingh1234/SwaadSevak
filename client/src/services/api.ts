@@ -154,6 +154,72 @@ export const api = {
   getPublicOrderStatus: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/status`).then(r => r.json()),
   getPublicInvoice: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/invoice`).then(r => r.json()),
 
+  // Public Diner CRM & Discount Coins (No auth needed)
+  identifyPublicCustomer: (restaurantSlug: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/identify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, phone })
+    }).then(r => r.json()),
+  signupPublicCustomer: (restaurantSlug: string, name: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, name, phone })
+    }).then(r => r.json()),
+  calculatePublicDiscount: (restaurantSlug: string, customerId: string, subtotal: number) =>
+    fetch(`${API_BASE}/public/crm/calculate-discount`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, customerId, subtotal })
+    }).then(r => r.json()),
+  claimPostOrderBonus: (restaurantSlug: string, orderId: string, name: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/post-order-claim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, orderId, name, phone })
+    }).then(r => r.json()),
+
+  // Manager CRM & Discount Coins APIs (Authenticated)
+  getCrmOverview: () =>
+    request<{ success: boolean; overview: import('../types').CrmOverviewStats }>('/crm/overview'),
+  getCustomers: (filter?: string, search?: string) =>
+    request<{ success: boolean; customers: import('../types').Customer[] }>(
+      `/crm/customers?filter=${encodeURIComponent(filter || 'ALL')}${search ? `&search=${encodeURIComponent(search)}` : ''}`
+    ),
+  getCustomer: (id: string) =>
+    request<{
+      success: boolean;
+      customer: import('../types').Customer;
+      orders: import('../types').Order[];
+      coinHistory: import('../types').CoinTransaction[];
+    }>(`/crm/customers/${id}`),
+  adjustCustomerCoins: (id: string, coins: number, reason: string) =>
+    request<{
+      success: boolean;
+      message: string;
+      customer: import('../types').Customer;
+      transaction: import('../types').CoinTransaction;
+    }>(`/crm/customers/${id}/adjust-coins`, {
+      method: 'POST',
+      body: JSON.stringify({ coins, reason })
+    }),
+  getCoinLedger: (customerId?: string) =>
+    request<{ success: boolean; transactions: import('../types').CoinTransaction[] }>(
+      `/crm/ledger${customerId ? `?customerId=${encodeURIComponent(customerId)}` : ''}`
+    ),
+  getCrmSettings: () =>
+    request<{ success: boolean; settings: import('../types').CrmSettings }>('/crm/settings'),
+  updateCrmSettings: (settings: Partial<import('../types').CrmSettings>) =>
+    request<{ success: boolean; message: string; settings: import('../types').CrmSettings }>('/crm/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings)
+    }),
+  getCrmAnalytics: () =>
+    request<{ success: boolean; overview: any; topSpenders: any[]; topFrequent: any[]; segments: any }>('/crm/analytics'),
+  getCrmEvents: () =>
+    request<{ success: boolean; events: any[] }>('/crm/events'),
+
   // Pre-warm server ping
   pingServer: async (): Promise<boolean> => {
     try {

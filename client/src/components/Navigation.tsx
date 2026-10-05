@@ -11,7 +11,8 @@ import {
   Store,
   TrendingUp,
   Layers,
-  Sparkles
+  Sparkles,
+  Coins
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
@@ -68,6 +69,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Growth Engine',
       icon: Sparkles,
       badge: 'AI'
+    },
+    {
+      id: 'crm',
+      label: 'CRM & Loyalty',
+      icon: Coins,
+      badge: 'Coins'
     },
     {
       id: 'dashboard',

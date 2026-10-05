@@ -7,7 +7,6 @@ import { SITE_CONTENT } from '../../content/site';
 import { submitLeadForm } from '../../lib/submit';
 import { trackEvent } from '../../lib/analytics';
 import { formatINR } from '../../lib/utils';
-import { WebsitePreviewMockup } from '../mockups/WebsitePreviewMockup';
 import {
   Clock,
   CheckCircle2,
@@ -16,7 +15,6 @@ import {
   MessageCircle,
   ShieldCheck,
   Check,
-  Sparkles,
 } from 'lucide-react';
 
 const websiteInquirySchema = z.object({
@@ -53,7 +51,6 @@ export const WebsiteInquirySection: React.FC = () => {
 
   const cuisines = SITE_CONTENT.websiteConfigurator.cuisines;
   const selectedCuisine = cuisines.find((c) => c.id === selectedCuisineId) || cuisines[0];
-  const brandColors = ['#F97316', '#16A34A', '#2B1A12', '#DC2626', '#3D2519', '#F59E0B'];
 
   const {
     register,
@@ -136,7 +133,7 @@ export const WebsiteInquirySection: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cocoa border border-walnut text-xs font-semibold text-orange-400 mb-4 shadow-soft">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cocoa border border-walnut text-xs font-bold text-orange-400 mb-4 shadow-soft">
             <Clock className="w-3.5 h-3.5" />
             <span>Guaranteed 24-Hour Inquiry Response</span>
           </div>
@@ -145,21 +142,21 @@ export const WebsiteInquirySection: React.FC = () => {
             Need a Website for Your Restaurant? Tell Us, We Reply Within 24 Hours.
           </h2>
 
-          <p className="text-base sm:text-lg text-sand-200 leading-relaxed font-normal">
+          <p className="text-base sm:text-lg text-sand-100 leading-relaxed font-medium">
             Launch your branded online ordering portal with 1-tap WhatsApp checkout and 0% commission on direct neighbourhood orders.
           </p>
         </div>
 
         {/* 3-Step Process & Explicit 24h Response SLA */}
         <div className="mb-14 p-6 sm:p-8 rounded-card-lg bg-cocoa border border-walnut shadow-elevated">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-walnut/70 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-walnut text-left">
             <div className="flex items-start gap-3.5">
               <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-500 text-espresso font-mono font-extrabold text-xs shrink-0 mt-0.5">
                 01
               </span>
               <div>
                 <h4 className="font-bold text-sm text-white mb-1">Send inquiry</h4>
-                <p className="text-xs text-sand-300 leading-relaxed">Share your restaurant name, cuisine style, and optional menu PDF.</p>
+                <p className="text-xs text-sand-100 leading-relaxed">Share your restaurant name, cuisine style, and optional menu PDF.</p>
               </div>
             </div>
 
@@ -169,7 +166,7 @@ export const WebsiteInquirySection: React.FC = () => {
               </span>
               <div>
                 <h4 className="font-bold text-sm text-white mb-1">We reply within 24 hours</h4>
-                <p className="text-xs text-sand-300 leading-relaxed">We send a tailored proposal with full scope, exact price quote, and delivery timeline directly to your WhatsApp.</p>
+                <p className="text-xs text-sand-100 leading-relaxed">We send a tailored proposal with full scope, exact price quote, and delivery timeline directly to your WhatsApp.</p>
               </div>
             </div>
 
@@ -179,15 +176,15 @@ export const WebsiteInquirySection: React.FC = () => {
               </span>
               <div>
                 <h4 className="font-bold text-sm text-white mb-1">Build starts after you approve</h4>
-                <p className="text-xs text-sand-300 leading-relaxed">Once you review and approve the proposal, our design engineers begin development.</p>
+                <p className="text-xs text-sand-100 leading-relaxed">Once you review and approve the proposal, our design engineers begin development.</p>
               </div>
             </div>
           </div>
 
           {/* Explicit Visible Fine Print */}
-          <div className="pt-4 flex items-start gap-2.5 text-xs text-sand-300 text-left">
+          <div className="pt-4 flex items-start gap-2.5 text-xs text-sand-100 text-left">
             <ShieldCheck className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-            <p className="leading-relaxed font-mono text-[11px]">
+            <p className="leading-relaxed font-mono text-[11px] text-sand-100">
               {SITE_CONTENT.websiteConfigurator.honestNote}
             </p>
           </div>
@@ -200,28 +197,28 @@ export const WebsiteInquirySection: React.FC = () => {
           <div className="lg:col-span-5 p-6 sm:p-8 rounded-card-lg bg-cocoa border border-walnut text-left space-y-6 shadow-card">
             <div className="flex items-center justify-between border-b border-walnut pb-4">
               <div>
-                <span className="text-xs uppercase font-mono font-bold text-orange-400 block">Starting From</span>
+                <span className="text-xs uppercase font-mono font-extrabold text-orange-400 block">Starting From</span>
                 <span className="text-3xl font-extrabold text-white font-mono">{formatINR(SITE_CONTENT.websiteConfigurator.startingPrice)}</span>
               </div>
-              <span className="text-[10px] font-mono text-sand-300 uppercase bg-espresso px-2.5 py-1 rounded-lg border border-walnut">
+              <span className="text-[10px] font-mono text-sand-100 font-bold uppercase bg-espresso px-2.5 py-1 rounded-lg border border-walnut">
                 Scope Advisory
               </span>
             </div>
 
             {/* Deliverables Checklist */}
-            <div className="space-y-2.5 text-xs text-sand-200">
+            <div className="space-y-2.5 text-xs text-sand-100">
               <span className="font-bold text-white uppercase text-[11px] font-mono block mb-2">What is Included:</span>
               {SITE_CONTENT.websiteConfigurator.deliverables.map((item, idx) => (
                 <div key={idx} className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
-                  <span>{item}</span>
+                  <span className="text-sand-100 font-medium">{item}</span>
                 </div>
               ))}
             </div>
 
             {/* Cuisine Selector for preview */}
             <div className="pt-2 border-t border-walnut">
-              <label className="block text-xs font-mono uppercase tracking-wider text-sand-300 mb-2">
+              <label className="block text-xs font-mono uppercase tracking-wider text-sand-100 font-bold mb-2">
                 Select Cuisine Theme
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -230,10 +227,10 @@ export const WebsiteInquirySection: React.FC = () => {
                     key={c.id}
                     type="button"
                     onClick={() => handleCuisineSelect(c.id)}
-                    className={`px-3 py-2 text-xs font-semibold rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`px-3 py-2 text-xs font-bold rounded-xl border text-left transition-all cursor-pointer ${
                       selectedCuisineId === c.id
                         ? 'border-orange-500 bg-orange-500/20 text-orange-300'
-                        : 'border-walnut text-sand-200 hover:bg-espresso'
+                        : 'border-walnut text-sand-100 hover:bg-espresso'
                     }`}
                   >
                     {c.name}
@@ -253,7 +250,7 @@ export const WebsiteInquirySection: React.FC = () => {
                 <h3 className="text-2xl font-bold text-white">
                   Thanks. We'll reply on WhatsApp within 24 hours.
                 </h3>
-                <p className="text-sm text-sand-200 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-sand-100 max-w-md mx-auto leading-relaxed">
                   Our website team will review your details and send you a custom proposal with scope, mockup preview, and price quote.
                 </p>
                 {submissionSuccess.whatsappUrl && (
@@ -262,7 +259,7 @@ export const WebsiteInquirySection: React.FC = () => {
                       href={submissionSuccess.whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-espresso font-bold text-sm hover:bg-orange-600 transition-colors shadow-soft"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-espresso font-extrabold text-sm hover:bg-orange-600 transition-colors shadow-soft"
                     >
                       <MessageCircle className="w-4 h-4" />
                       <span>Open Pre-filled WhatsApp Chat Now</span>
@@ -283,7 +280,7 @@ export const WebsiteInquirySection: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-sand-200 mb-1">
+                    <label className="block text-xs font-bold text-sand-50 mb-1">
                       Restaurant Name *
                     </label>
                     <input
@@ -293,12 +290,12 @@ export const WebsiteInquirySection: React.FC = () => {
                       className="w-full px-3.5 py-2.5 rounded-xl bg-espresso border border-walnut text-sm text-white placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
                     />
                     {errors.restaurantName && (
-                      <span className="text-xs text-orange-400 mt-1 block">{errors.restaurantName.message}</span>
+                      <span className="text-xs text-orange-400 mt-1 block font-medium">{errors.restaurantName.message}</span>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-sand-200 mb-1">
+                    <label className="block text-xs font-bold text-sand-50 mb-1">
                       Owner / Manager Name *
                     </label>
                     <input
@@ -308,33 +305,33 @@ export const WebsiteInquirySection: React.FC = () => {
                       className="w-full px-3.5 py-2.5 rounded-xl bg-espresso border border-walnut text-sm text-white placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
                     />
                     {errors.ownerName && (
-                      <span className="text-xs text-orange-400 mt-1 block">{errors.ownerName.message}</span>
+                      <span className="text-xs text-orange-400 mt-1 block font-medium">{errors.ownerName.message}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-sand-200 mb-1">
+                    <label className="block text-xs font-bold text-sand-50 mb-1">
                       WhatsApp Number (+91 default) *
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-sm font-mono text-sand-300">+91</span>
+                      <span className="absolute left-3 top-2.5 text-sm font-mono text-sand-200 font-bold">+91</span>
                       <input
                         type="tel"
                         {...register('whatsappNumber')}
                         placeholder="9876543210"
                         maxLength={10}
-                        className="w-full pl-12 pr-3.5 py-2.5 rounded-xl bg-espresso border border-walnut text-sm text-white placeholder:text-sand-300 focus:border-orange-500 focus:outline-none font-mono"
+                        className="w-full pl-12 pr-3.5 py-2.5 rounded-xl bg-espresso border border-walnut text-sm text-white placeholder:text-sand-300 focus:border-orange-500 focus:outline-none font-mono font-medium"
                       />
                     </div>
                     {errors.whatsappNumber && (
-                      <span className="text-xs text-orange-400 mt-1 block">{errors.whatsappNumber.message}</span>
+                      <span className="text-xs text-orange-400 mt-1 block font-medium">{errors.whatsappNumber.message}</span>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-sand-200 mb-1">
+                    <label className="block text-xs font-bold text-sand-50 mb-1">
                       City / Area *
                     </label>
                     <input
@@ -344,17 +341,17 @@ export const WebsiteInquirySection: React.FC = () => {
                       className="w-full px-3.5 py-2.5 rounded-xl bg-espresso border border-walnut text-sm text-white placeholder:text-sand-300 focus:border-orange-500 focus:outline-none"
                     />
                     {errors.city && (
-                      <span className="text-xs text-orange-400 mt-1 block">{errors.city.message}</span>
+                      <span className="text-xs text-orange-400 mt-1 block font-medium">{errors.city.message}</span>
                     )}
                   </div>
                 </div>
 
                 {/* Optional Menu Upload */}
                 <div>
-                  <label className="block text-xs font-semibold text-sand-200 mb-1">
+                  <label className="block text-xs font-bold text-sand-50 mb-1">
                     Upload Menu Card (Optional PDF or Image, max 10MB)
                   </label>
-                  <label className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-walnut bg-espresso hover:border-orange-500 transition-colors cursor-pointer text-xs text-sand-300">
+                  <label className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-walnut bg-espresso hover:border-orange-500 transition-colors cursor-pointer text-xs text-sand-100 font-medium">
                     <Upload className="w-4 h-4 text-orange-400" />
                     <span>{menuFileName || 'Click to upload menu card (PDF/JPG/PNG)'}</span>
                     <input
@@ -364,12 +361,12 @@ export const WebsiteInquirySection: React.FC = () => {
                       className="hidden"
                     />
                   </label>
-                  {fileError && <span className="text-xs text-orange-400 mt-1 block">{fileError}</span>}
+                  {fileError && <span className="text-xs text-orange-400 mt-1 block font-medium">{fileError}</span>}
                 </div>
 
                 {/* Optional Notes */}
                 <div>
-                  <label className="block text-xs font-semibold text-sand-200 mb-1">
+                  <label className="block text-xs font-bold text-sand-50 mb-1">
                     Special Requirements / Notes (Optional)
                   </label>
                   <textarea
@@ -384,13 +381,13 @@ export const WebsiteInquirySection: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-shine w-full py-3.5 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-all duration-200 shadow-soft cursor-pointer flex items-center justify-center gap-2"
+                  className="btn-shine w-full py-3.5 rounded-xl font-extrabold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-all duration-200 shadow-soft cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>{isSubmitting ? 'Submitting...' : 'Send Inquiry for 24h Quote'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
-                <p className="text-[11px] text-sand-300 text-center">
+                <p className="text-[11px] text-sand-100 text-center font-medium">
                   We reply via WhatsApp within 24 hours with scope and quote. No spam ever.
                 </p>
               </form>

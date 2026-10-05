@@ -13,7 +13,7 @@
     --color-orange: #F97316;
     --color-orange-hover: #EA580C;
     --color-orange-dark: #C2410C;
-    --color-body-text: #6B5444;
+    --color-body-text: #3D2519;
     --color-success: #16A34A;
   }
 
@@ -55,7 +55,7 @@
 @layer utilities {
   /* Subtle Device Frame Shadow & Gloss */
   .device-laptop-frame {
-    background: #1F120C;
+    background: #1A0F0A;
     border: 12px solid #2B1A12;
     border-radius: 24px 24px 8px 8px;
     box-shadow: 0 24px 60px -12px rgba(43, 26, 18, 0.45);
@@ -70,7 +70,7 @@
   }
 
   .device-phone-frame {
-    background: #1F120C;
+    background: #1A0F0A;
     border: 8px solid #2B1A12;
     border-radius: 36px;
     box-shadow: 0 20px 48px -10px rgba(43, 26, 18, 0.4);
@@ -98,17 +98,7 @@
 
   /* Focus ring for WCAG AA compliance */
   .focus-ring:focus-visible {
-    outline: 2px solid #F97316;
-    outline-offset: 2px;
-  }
-}
-
-/* Accessibility: prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.5);
   }
 }

@@ -16,20 +16,20 @@ export const MetricsBandSection: React.FC = () => {
           
           {/* Left Heading (4 cols) */}
           <div className="lg:col-span-4 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cocoa border border-walnut text-xs font-semibold text-sand-100 shadow-soft mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cocoa border border-walnut text-xs font-bold text-sand-50 shadow-soft mb-3">
               <span className="w-2 h-2 rounded-full bg-orange-500" />
               <span>Verified Standards</span>
             </div>
             <h2 className="h2-fluid font-extrabold text-white tracking-tight mb-3">
               How We Build Trust
             </h2>
-            <p className="text-sm text-sand-200 leading-relaxed">
+            <p className="text-sm text-sand-100 leading-relaxed font-normal">
               Transparent engineering benchmarks. We never make exaggerated claims—every number is grounded in real operational constraints.
             </p>
           </div>
 
           {/* Right Stats with Divider Lines (8 cols) */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-left">
             {SITE_CONTENT.proofStats.map((stat, idx) => (
               <div
                 key={idx}
@@ -41,7 +41,7 @@ export const MetricsBandSection: React.FC = () => {
                       {statIcons[idx]}
                     </div>
                     {stat.isPlaceholder && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cocoa text-sand-300 uppercase">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cocoa text-sand-200 uppercase font-bold border border-walnut">
                         TODO: PLACEHOLDER
                       </span>
                     )}
@@ -50,10 +50,10 @@ export const MetricsBandSection: React.FC = () => {
                   <div className="font-mono font-extrabold text-3xl sm:text-4xl text-white tracking-tight mb-1">
                     {stat.value}
                   </div>
-                  <h3 className="font-bold text-sm text-sand-100 mb-1">
+                  <h3 className="font-extrabold text-sm text-white mb-1">
                     {stat.label}
                   </h3>
-                  <p className="text-xs text-sand-300 leading-relaxed">
+                  <p className="text-xs text-sand-100 leading-relaxed font-normal">
                     {stat.sub}
                   </p>
                 </div>

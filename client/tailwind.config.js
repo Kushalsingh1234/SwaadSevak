@@ -15,12 +15,12 @@ export default {
           100: '#F5E9DD', // Sand
           800: '#3D2519', // Cocoa
           900: '#2B1A12', // Espresso main
-          950: '#1F120C', // Darkest espresso
+          950: '#1A0F0A', // Darkest espresso
         },
         cocoa: {
           DEFAULT: '#3D2519', // Cards on dark
           light: '#4A2F21',
-          dark: '#301C12',
+          dark: '#2A180F',
         },
         walnut: {
           DEFAULT: '#5A3A28', // Borders on dark
@@ -36,8 +36,8 @@ export default {
           DEFAULT: '#F5E9DD',
           50: '#FAF4ED',
           100: '#F5E9DD',
-          200: '#EBD8C5',
-          300: '#DFC4AB',
+          200: '#E8D7C5',
+          300: '#D5BEAA',
         },
         orange: {
           DEFAULT: '#F97316', // Primary Action
@@ -45,11 +45,15 @@ export default {
           darkText: '#C2410C', // High-contrast orange text on white
           50: '#FFF7ED',
           100: '#FFEDD5',
+          200: '#FED7AA',
+          300: '#FDBA74',
+          400: '#FB923C',
           500: '#F97316',
           600: '#EA580C',
           700: '#C2410C',
         },
-        bodyText: '#6B5444', // Body text on light
+        bodyText: '#3D2519', // Rich dark brown for maximum contrast & crisp readability on light
+        bodyMuted: '#6B5444', // Secondary muted text on light
         success: '#16A34A',
       },
       fontFamily: {
@@ -63,10 +67,10 @@ export default {
         'pill': '9999px',
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px rgba(43, 26, 18, 0.06), 0 1px 4px -1px rgba(43, 26, 18, 0.04)',
-        'card': '0 8px 24px -4px rgba(43, 26, 18, 0.08), 0 2px 8px -2px rgba(43, 26, 18, 0.04)',
-        'elevated': '0 16px 40px -6px rgba(43, 26, 18, 0.14), 0 4px 14px -2px rgba(43, 26, 18, 0.06)',
-        'glow-orange': '0 0 32px -4px rgba(249, 115, 22, 0.35)',
+        'soft': '0 2px 8px -2px rgba(43, 26, 18, 0.08), 0 1px 4px -1px rgba(43, 26, 18, 0.04)',
+        'card': '0 8px 24px -4px rgba(43, 26, 18, 0.1), 0 2px 8px -2px rgba(43, 26, 18, 0.05)',
+        'elevated': '0 16px 40px -6px rgba(43, 26, 18, 0.2), 0 4px 14px -2px rgba(43, 26, 18, 0.08)',
+        'glow-orange': '0 0 32px -4px rgba(249, 115, 22, 0.4)',
         'glow-hero': '0 0 80px -10px rgba(249, 115, 22, 0.25)',
       },
       maxWidth: {

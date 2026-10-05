@@ -16,11 +16,11 @@ export const HeroSection: React.FC = () => {
 
       <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10">
         {/* Top Pill Label */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cocoa border border-walnut text-xs font-semibold text-sand-100 shadow-soft mb-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cocoa border border-walnut text-xs font-bold text-sand-50 shadow-soft mb-6">
           <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           <span>Restaurant POS &amp; Management Platform</span>
-          <span className="text-sand-300">•</span>
-          <span className="text-orange-400 font-mono">Indian Context (GST &amp; UPI)</span>
+          <span className="text-sand-200">•</span>
+          <span className="text-orange-400 font-mono font-bold">Indian Context (GST &amp; UPI)</span>
         </div>
 
         {/* Centered Large H1 */}
@@ -28,8 +28,8 @@ export const HeroSection: React.FC = () => {
           {t.hero.title}
         </h1>
 
-        {/* Short Sub-line */}
-        <p className="text-base sm:text-xl text-sand-200 max-w-2xl mx-auto leading-relaxed mb-8">
+        {/* Short Sub-line in Crisp High-Contrast Sand */}
+        <p className="text-base sm:text-xl text-sand-100 max-w-2xl mx-auto leading-relaxed mb-8 font-medium">
           {t.hero.subtitle}
         </p>
 
@@ -39,7 +39,7 @@ export const HeroSection: React.FC = () => {
             href={SITE_CONTENT.links.demo}
             data-event="hero_primary_demo_click"
             onClick={() => trackEvent('hero_primary_demo_click')}
-            className="btn-shine inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base bg-orange-500 text-espresso-950 hover:bg-orange-600 transition-all duration-200 shadow-glow-orange focus-ring w-full sm:w-auto cursor-pointer"
+            className="btn-shine inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-extrabold text-base bg-orange-500 text-espresso hover:bg-orange-600 transition-all duration-200 shadow-glow-orange focus-ring w-full sm:w-auto cursor-pointer"
           >
             <span>{t.hero.ctaPrimary}</span>
             <ArrowRight className="w-4 h-4" />
@@ -49,7 +49,7 @@ export const HeroSection: React.FC = () => {
             href={SITE_CONTENT.links.websiteInquiry}
             data-event="hero_secondary_website_click"
             onClick={() => trackEvent('hero_secondary_website_click')}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-sand-100 hover:text-orange-400 transition-colors focus-ring group cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-sand-50 hover:text-orange-400 transition-colors focus-ring group cursor-pointer"
           >
             <MessageSquare className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
             <span>{t.hero.ctaSecondary}</span>
@@ -68,8 +68,8 @@ export const HeroSection: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="text-left text-xs">
-              <span className="font-bold text-sand-50 block">KOT #128 Printed</span>
-              <span className="text-sand-300 text-[11px]">Table 04 • 3 Items</span>
+              <span className="font-extrabold text-white block">KOT #128 Printed</span>
+              <span className="text-sand-100 text-[11px] font-medium">Table 04 • 3 Items</span>
             </div>
           </div>
 
@@ -79,8 +79,8 @@ export const HeroSection: React.FC = () => {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div className="text-left text-xs">
-              <span className="font-bold text-sand-50 block">₹1,680 Settled</span>
-              <span className="text-sand-300 text-[11px]">Dynamic UPI QR</span>
+              <span className="font-extrabold text-white block">₹1,680 Settled</span>
+              <span className="text-sand-100 text-[11px] font-medium">Dynamic UPI QR</span>
             </div>
           </div>
 

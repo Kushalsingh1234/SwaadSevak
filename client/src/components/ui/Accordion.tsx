@@ -34,21 +34,21 @@ export const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <div className={cn('divide-y divide-receipt-divider dark:divide-maroon-800/60 rounded-2xl border border-receipt-divider dark:border-maroon-800/60 bg-paper dark:bg-paper-dark shadow-sm overflow-hidden', className)}>
+    <div className={cn('divide-y divide-sand-200 rounded-2xl border border-sand-200 bg-white shadow-soft overflow-hidden text-left', className)}>
       {items.map((item) => {
         const isOpen = openIds.includes(item.id);
         return (
           <div key={item.id} className="transition-colors">
             <button
               type="button"
-              className="flex w-full items-center justify-between p-5 sm:p-6 text-left font-sans font-semibold text-base sm:text-lg text-maroon-950 dark:text-cream-50 hover:bg-cream-100/60 dark:hover:bg-maroon-900/30 focus-ring cursor-pointer"
+              className="flex w-full items-center justify-between p-5 sm:p-6 text-left font-sans font-bold text-base sm:text-lg text-espresso hover:bg-sand-50 transition-colors focus-ring cursor-pointer"
               onClick={() => toggle(item.id)}
               aria-expanded={isOpen}
               aria-controls={`accordion-panel-${item.id}`}
               id={`accordion-btn-${item.id}`}
             >
               <span className="pr-4">{item.title}</span>
-              <span className={`shrink-0 transition-transform duration-200 text-saffron-600 dark:text-saffron-400 ${isOpen ? 'rotate-180' : ''}`}>
+              <span className={`shrink-0 transition-transform duration-200 text-orange-500 ${isOpen ? 'rotate-180' : ''}`}>
                 <ChevronDown className="w-5 h-5" />
               </span>
             </button>
@@ -62,7 +62,7 @@ export const Accordion: React.FC<AccordionProps> = ({
               )}
             >
               <div className="overflow-hidden">
-                <div className="p-5 sm:p-6 pt-0 text-sm sm:text-base text-maroon-900/80 dark:text-cream-200/80 leading-relaxed border-t border-dashed border-receipt-divider/50 dark:border-maroon-800/30 mt-1">
+                <div className="p-5 sm:p-6 pt-0 text-sm sm:text-base text-espresso/90 leading-relaxed border-t border-sand-100 mt-1">
                   {item.content}
                 </div>
               </div>

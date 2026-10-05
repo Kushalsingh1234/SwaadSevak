@@ -1,6 +1,5 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
-import { TableViewMockup } from '../mockups/TableViewMockup';
 import { ArrowRight, MessageSquare } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
@@ -66,15 +65,6 @@ export const HeroSection: React.FC = () => {
             <span>Get a Website Quote</span>
             <span className="group-hover:translate-x-1 transition-transform">→</span>
           </a>
-        </div>
-
-        {/* Device Mockup Straddling hero base */}
-        <div className="relative pt-4 max-w-5xl mx-auto">
-          {/* Ambient Glow */}
-          <div className="absolute inset-0 bg-orange-500/20 rounded-3xl blur-2xl -z-10" />
-
-          {/* Laptop & Phone Device Mockup */}
-          <TableViewMockup />
         </div>
       </div>
     </section>

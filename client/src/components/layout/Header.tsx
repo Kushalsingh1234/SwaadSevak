@@ -23,11 +23,10 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled
-          ? 'py-2.5 bg-espresso-900/95 backdrop-blur-md shadow-card border-b border-walnut'
-          : 'py-4 bg-espresso-900/80 backdrop-blur-sm'
+      className={`sticky top-0 z-50 w-full transition-all duration-300 border-b border-walnut ${
+        isScrolled ? 'py-2.5 shadow-card' : 'py-4'
       }`}
+      style={{ backgroundColor: '#2B1A12' }}
     >
       <div className="max-w-container mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Brand Logo */}

@@ -127,7 +127,7 @@ export const ProductTabsSection: React.FC = () => {
         </div>
 
         {/* Dynamic Interactive Mockup with Smooth Crossfade */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab.id}
@@ -135,7 +135,7 @@ export const ProductTabsSection: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.25 }}
-              className="bg-cream rounded-card-lg p-3 sm:p-6 border border-sand-200 shadow-card"
+              className="flex justify-center items-center"
             >
               {activeTab === 'pos' && <TableViewMockup />}
               {activeTab === 'online' && <LiveOrderFeedMockup />}

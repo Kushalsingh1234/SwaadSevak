@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --bg-page: #FFFFFF;
-    --bg-surface: #F8FAFC;
+    --bg-page: #FAF6F0; /* Warm Sand Linen */
+    --bg-surface: #FFFFFF;
     --bg-card: #FFFFFF;
-    --border-subtle: #E2E8F0;
-    --text-primary: #0B1220;
-    --text-body: #475569;
-    --text-muted: #64748B;
-    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #F04E23 100%);
+    --border-subtle: #E5D8CC; /* Warm Brown border */
+    --text-primary: #170C08; /* Deep Mocha Brown */
+    --text-body: #544336; /* Warm Espresso body text */
+    --text-muted: #7D5B46;
+    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #D9480F 100%);
     --color-indigo: #4F46E5;
   }
 
   .dark {
-    --bg-page: #0B1220;
-    --bg-surface: #111A2E;
-    --bg-card: #141E34;
-    --border-subtle: #1E293B;
-    --text-primary: #E6EBF5;
-    --text-body: #94A3B8;
-    --text-muted: #64748B;
-    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #F04E23 100%);
+    --bg-page: #140A06; /* Deep Roast Coffee */
+    --bg-surface: #1E120B; /* Dark Warm Mocha */
+    --bg-card: #26170E;
+    --border-subtle: #3A2418;
+    --text-primary: #FAF6F0;
+    --text-body: #D4C1B3;
+    --text-muted: #A78672;
+    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #D9480F 100%);
     --color-indigo: #818CF8;
   }
 
@@ -63,13 +63,13 @@
 }
 
 @layer utilities {
-  /* Faint technical grid background for hero */
+  /* Warm dot grid background for hero */
   .bg-grid-pattern {
-    background-image: radial-gradient(#CBD5E1 0.75px, transparent 0.75px);
-    background-size: 20px 20px;
+    background-image: radial-gradient(#D4C1B3 0.9px, transparent 0.9px);
+    background-size: 24px 24px;
   }
   .dark .bg-grid-pattern {
-    background-image: radial-gradient(#1E293B 0.75px, transparent 0.75px);
+    background-image: radial-gradient(#3A2418 0.9px, transparent 0.9px);
   }
 
   /* Spotlight cursor effect wrapper */
@@ -84,7 +84,7 @@
     left: var(--mouse-x, -1000px);
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(255, 122, 26, 0.08), transparent 70%);
+    background: radial-gradient(circle, rgba(255, 122, 26, 0.12), transparent 70%);
     transform: translate(-50%, -50%);
     pointer-events: none;
     opacity: 0;

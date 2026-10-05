@@ -22,7 +22,7 @@ import { MobileBottomBar } from './components/ui/MobileBottomBar';
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-ink-950 text-ink-950 dark:text-ink-50 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950 text-ink-950 dark:text-ink-50 transition-colors duration-200">
       {/* 0. SEO Helmet & Structured Schema */}
       <SEO />
 

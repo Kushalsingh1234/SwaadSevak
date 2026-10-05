@@ -10,10 +10,10 @@ export const HeroSection: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="relative pt-8 sm:pt-14 pb-16 sm:pb-24 overflow-hidden font-sans bg-white dark:bg-ink-950">
-      {/* Faint Technical Grid Background & Soft Orange-to-Indigo Glow */}
+    <section className="relative pt-8 sm:pt-14 pb-16 sm:pb-24 overflow-hidden font-sans bg-cream-50/50 dark:bg-ink-950">
+      {/* Warm Technical Grid Background & Warm Ember-to-Brown Ambient Glow */}
       <div className="absolute inset-0 bg-grid-pattern opacity-60 dark:opacity-30 pointer-events-none -z-10" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-ink-hero blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[720px] h-[450px] bg-gradient-ink-hero blur-3xl -z-10 pointer-events-none" />
 
       <div className="max-w-container mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
@@ -22,11 +22,11 @@ export const HeroSection: React.FC = () => {
           <div className="lg:col-span-7 space-y-6 text-left">
             {/* Top Pill */}
             <div className="inline-flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ember-50 dark:bg-ember-950/80 border border-ember-200 dark:border-ember-800 text-xs font-semibold text-ember-700 dark:text-ember-300">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-ember-100/80 dark:bg-ember-950/80 border border-ember-300 dark:border-ember-800 text-xs font-semibold text-ember-800 dark:text-ember-300 shadow-soft">
                 <span className="w-2 h-2 rounded-full bg-ember-500 animate-pulse" />
                 {t.hero.badge}
               </span>
-              <span className="text-xs font-mono text-ink-500 hidden sm:inline">
+              <span className="text-xs font-mono text-brown-600 dark:text-brown-400 font-semibold hidden sm:inline">
                 GST & UPI Ready
               </span>
             </div>

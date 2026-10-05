@@ -30,8 +30,8 @@ export const Header: React.FC = () => {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-200 ${
         isScrolled
-          ? 'py-2.5 bg-white/90 dark:bg-ink-950/90 backdrop-blur-md shadow-soft border-b border-ink-200 dark:border-ink-800'
-          : 'py-4 bg-white/70 dark:bg-ink-950/70 backdrop-blur-sm'
+          ? 'py-2.5 bg-cream-50/95 dark:bg-ink-950/95 backdrop-blur-md shadow-soft border-b border-ink-200 dark:border-ink-800'
+          : 'py-4 bg-cream-50/80 dark:bg-ink-950/80 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-container mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">

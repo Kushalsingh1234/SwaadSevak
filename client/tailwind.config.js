@@ -8,105 +8,102 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Saffron / Turmeric Action Palette
-        saffron: {
+        // Ink & Ember Design Tokens
+        ink: {
+          DEFAULT: '#0B1220',
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#64748B',
+          600: '#475569', // Body text
+          700: '#334155',
+          800: '#1E293B', // Dark border
+          900: '#111A2E', // Dark surface
+          950: '#0B1220', // Pure Ink Base
+        },
+        // Ember Orange Action Palette
+        ember: {
+          start: '#FF7A1A',
+          end: '#F04E23',
           50: '#FFF7ED',
           100: '#FFEDD5',
-          200: '#FED7AA',
-          300: '#FDBA74',
-          400: '#FB923C',
-          500: '#E57A1F', // Primary Saffron Action
-          600: '#D46714',
-          700: '#B8500D',
-          800: '#943E0E',
-          900: '#78330F',
-          DEFAULT: '#E57A1F',
+          500: '#FF7A1A',
+          600: '#F04E23',
+          700: '#C2410C',
+          DEFAULT: '#FF7A1A',
         },
-        // Deep Masala Maroon Headings and Dark Sections
-        maroon: {
-          50: '#FDF2F4',
-          100: '#FCE7EB',
-          200: '#F9D1D9',
-          300: '#F3AAB8',
-          400: '#E8758D',
-          500: '#D54466',
-          600: '#BC2C4E',
-          700: '#971F3B',
-          800: '#681729',
-          900: '#4A151B', // Deep Masala
-          950: '#2E0A0E', // Darkest Masala Ink
-          DEFAULT: '#4A151B',
+        // Secondary Indigo
+        indigo: {
+          50: '#EEF2FF',
+          100: '#E0E7FF',
+          400: '#818CF8', // Dark mode accent
+          500: '#6366F1',
+          600: '#4F46E5', // Product UI accent
+          700: '#4338CA',
+          DEFAULT: '#4F46E5',
         },
-        // Warm Cream Backgrounds
-        cream: {
-          50: '#FDFBF7',
-          100: '#F8F4EC',
-          200: '#F1E9DB',
-          300: '#E8DCB7',
-          DEFAULT: '#F8F4EC',
-        },
-        // Soft Paper White Cards
-        paper: {
-          light: '#FFFFFF',
-          DEFAULT: '#FCFBF9',
-          muted: '#F6F3ED',
-          dark: '#1C1518',
-        },
-        // Curry Leaf Green Success / Live status
-        curry: {
+        // Functional System Colors
+        success: {
           50: '#F0FDF4',
-          100: '#DCFCE7',
-          500: '#1E7B4D', // Curry-leaf green
-          600: '#15803D',
-          700: '#166534',
-          800: '#14532D',
-          DEFAULT: '#1E7B4D',
+          500: '#22C55E',
+          600: '#16A34A',
+          DEFAULT: '#16A34A',
         },
-        // Thermal / Receipt Ink
-        receipt: {
-          ink: '#1A1817',
-          faint: '#7A736E',
-          divider: '#E4DDD3',
-          yellow: '#FEF9C3',
-          pink: '#FFE4E6',
-          blue: '#E0F2FE',
+        warning: {
+          50: '#FFFBEB',
+          500: '#F59E0B',
+          DEFAULT: '#F59E0B',
+        },
+        danger: {
+          50: '#FEF2F2',
+          500: '#EF4444',
+          600: '#DC2626',
+          DEFAULT: '#DC2626',
         },
       },
       fontFamily: {
-        serif: ['Fraunces', 'Instrument Serif', 'Georgia', 'serif'],
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        hindi: ['Hind', 'Noto Sans Devanagari', 'sans-serif'],
-        mono: ['Courier Prime', 'Space Mono', 'ui-monospace', 'monospace'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        hindi: ['Noto Sans Devanagari', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        'receipt': '0 4px 20px -2px rgba(46, 10, 14, 0.08), 0 2px 6px -1px rgba(46, 10, 14, 0.04)',
-        'receipt-lg': '0 12px 36px -4px rgba(46, 10, 14, 0.12), 0 4px 14px -2px rgba(46, 10, 14, 0.06)',
-        'saffron-glow': '0 0 24px -2px rgba(229, 122, 31, 0.35)',
+        'soft': '0 1px 3px 0 rgba(11, 18, 32, 0.05), 0 1px 2px -1px rgba(11, 18, 32, 0.03)',
+        'card': '0 4px 16px -2px rgba(11, 18, 32, 0.06), 0 2px 6px -1px rgba(11, 18, 32, 0.03)',
+        'elevated': '0 12px 32px -4px rgba(11, 18, 32, 0.08), 0 4px 12px -2px rgba(11, 18, 32, 0.04)',
+        'glow-ember': '0 0 28px -4px rgba(255, 122, 26, 0.35)',
+        'glow-indigo': '0 0 28px -4px rgba(79, 70, 229, 0.25)',
       },
       maxWidth: {
         'container': '1200px',
       },
       borderRadius: {
-        'card': '18px',
+        'card': '14px',
+      },
+      backgroundImage: {
+        'gradient-ember': 'linear-gradient(135deg, #FF7A1A 0%, #F04E23 100%)',
+        'gradient-ink-hero': 'radial-gradient(ellipse at top, rgba(255, 122, 26, 0.12) 0%, rgba(79, 70, 229, 0.08) 50%, transparent 80%)',
+        'gradient-dark-band': 'linear-gradient(180deg, #0B1220 0%, #111A2E 100%)',
       },
       keyframes: {
-        'ticket-drop': {
-          '0%': { transform: 'translateY(-30px) scale(0.96)', opacity: '0' },
+        'order-drop': {
+          '0%': { transform: 'translateY(-16px) scale(0.97)', opacity: '0' },
           '100%': { transform: 'translateY(0) scale(1)', opacity: '1' },
         },
-        'pulse-subtle': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.6' },
+        'shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         },
-        'scroll-left': {
+        'marquee': {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-50%)' },
-        }
+        },
       },
       animation: {
-        'ticket-drop': 'ticket-drop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
-        'scroll-left': 'scroll-left 25s linear infinite',
+        'order-drop': 'order-drop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'shimmer': 'shimmer 2.5s infinite',
+        'marquee': 'marquee 28s linear infinite',
       },
     },
   },

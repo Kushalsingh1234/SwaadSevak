@@ -6,17 +6,14 @@ import { useTranslation } from '../../i18n';
 import { SITE_CONTENT } from '../../content/site';
 import { submitLeadForm } from '../../lib/submit';
 import { trackEvent } from '../../lib/analytics';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Input, Select } from '../ui/Input';
-import { ReceiptCard } from '../ui/ReceiptCard';
 import {
   CalendarCheck,
   MessageCircle,
   ArrowRight,
   ShieldCheck,
   Check,
-  Sparkles,
 } from 'lucide-react';
 
 const demoFormSchema = z.object({
@@ -28,8 +25,8 @@ const demoFormSchema = z.object({
     .max(10, 'Enter a valid 10-digit mobile number')
     .regex(/^[6-9]\d{9}$/, 'Please enter a valid Indian mobile number starting with 6, 7, 8, or 9'),
   city: z.string().min(2, 'Please enter your city/town'),
-  outletType: z.string().min(1, 'Please select your outlet type'),
-  interest: z.string().min(1, 'Please select what you are interested in'),
+  outletType: z.string().min(1, 'Please select your outlet format'),
+  interest: z.string().min(1, 'Please select your primary interest'),
   honeypot: z.string().optional(),
 });
 
@@ -97,33 +94,30 @@ export const FinalCTASection: React.FC = () => {
   ];
 
   const interestOptions = [
-    { value: 'both', label: 'Both: POS System + 24h Website' },
+    { value: 'both', label: 'Both: POS System + 24h Website Quote' },
     { value: 'pos', label: 'Only Restaurant POS & KOT Billing' },
-    { value: 'website', label: 'Only 24-Hour Custom Website' },
+    { value: 'website', label: 'Only Custom Restaurant Website' },
   ];
 
   return (
-    <section id="book-demo" className="py-20 sm:py-28 font-sans relative bg-cream-50 dark:bg-maroon-950">
+    <section id="book-demo" className="py-20 sm:py-28 font-sans bg-ink-950 text-white relative overflow-hidden">
+      {/* Background Subtle Mesh */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[400px] bg-gradient-to-l from-ember-500/10 via-indigo-500/10 to-transparent blur-3xl -z-10 pointer-events-none" />
+
       <div className="max-w-container mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           
-          <ReceiptCard
-            sawtooth="both"
-            ticketNumber="DEMO #RESERVATION"
-            ticketType="PRIORITY INVITATION"
-            ticketTime="10-Min Live Walkthrough"
-            className="p-6 sm:p-12 border-2 border-saffron-500/40 shadow-receipt-lg"
-          >
+          <div className="p-6 sm:p-12 rounded-3xl bg-ink-900 border border-ink-800 shadow-elevated text-left">
             {submissionSuccess ? (
-              <div className="py-8 text-center space-y-4 animate-ticket-drop font-sans">
-                <div className="w-16 h-16 rounded-full bg-curry-100 text-curry-600 flex items-center justify-center mx-auto shadow-inner">
+              <div className="py-8 text-center space-y-4 animate-order-drop">
+                <div className="w-16 h-16 rounded-full bg-success-500/20 text-success-400 flex items-center justify-center mx-auto">
                   <Check className="w-9 h-9 stroke-[3]" />
                 </div>
-                <h3 className="font-serif font-bold text-2xl sm:text-3xl text-maroon-950 dark:text-cream-50">
-                  Demo Request Confirmed!
+                <h3 className="font-bold text-2xl text-white">
+                  Demo Request Confirmed
                 </h3>
-                <p className="text-sm text-maroon-900/80 dark:text-cream-200/80 max-w-md mx-auto leading-relaxed">
-                  Namaste! Our restaurant growth specialist will connect with you on WhatsApp within 15 minutes to schedule your live 10-minute POS tour.
+                <p className="text-xs sm:text-sm text-ink-300 max-w-md mx-auto leading-relaxed">
+                  Our restaurant specialist will connect with you on WhatsApp within 15 minutes to schedule your live walkthrough.
                 </p>
 
                 {submissionSuccess.whatsappUrl && (
@@ -134,7 +128,7 @@ export const FinalCTASection: React.FC = () => {
                       rel="noopener noreferrer"
                       className="w-full sm:w-auto"
                     >
-                      <Button variant="curry" size="lg" fullWidth icon={<MessageCircle className="w-5 h-5 fill-current" />}>
+                      <Button variant="ember" size="lg" fullWidth icon={<MessageCircle className="w-4 h-4 fill-current" />}>
                         {t.finalCta.whatsappDirect}
                       </Button>
                     </a>
@@ -142,20 +136,21 @@ export const FinalCTASection: React.FC = () => {
                 )}
               </div>
             ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="text-center mb-8">
-                  <Badge variant="saffron" className="mb-3">
-                    {t.finalCta.badge}
-                  </Badge>
-                  <h3 className="font-serif font-bold text-2xl sm:text-3xl text-maroon-950 dark:text-cream-50 mb-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ember-950/80 border border-ember-800/80 text-xs font-semibold text-ember-400 mb-3">
+                    <CalendarCheck className="w-3.5 h-3.5" />
+                    <span>{t.finalCta.badge}</span>
+                  </div>
+                  <h3 className="font-bold text-2xl sm:text-3xl text-white mb-2">
                     {t.finalCta.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-maroon-900/70 dark:text-cream-200/70 max-w-lg mx-auto">
+                  <p className="text-xs sm:text-sm text-ink-400 max-w-lg mx-auto">
                     {t.finalCta.subtitle}
                   </p>
                 </div>
 
-                {/* Honeypot */}
+                {/* Honeypot anti-spam */}
                 <input
                   type="text"
                   {...register('honeypot')}
@@ -196,7 +191,7 @@ export const FinalCTASection: React.FC = () => {
 
                   <Input
                     label="City / Location"
-                    placeholder="e.g. Bengaluru, Hyderabad, Delhi NCR"
+                    placeholder="e.g. Bengaluru, Hyderabad"
                     required
                     {...register('city')}
                     error={errors.city?.message}
@@ -224,7 +219,7 @@ export const FinalCTASection: React.FC = () => {
                 <div className="pt-4">
                   <Button
                     type="submit"
-                    variant="saffron"
+                    variant="ember"
                     size="lg"
                     fullWidth
                     disabled={isSubmitting}
@@ -236,24 +231,24 @@ export const FinalCTASection: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="pt-4 border-t border-dashed border-receipt-divider dark:border-maroon-800 flex flex-wrap items-center justify-between gap-3 text-xs text-maroon-800/70 dark:text-cream-300/70">
+                <div className="pt-4 border-t border-ink-800 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-400">
                   <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-curry-600" />
-                    <span>No credit card required. No spam guarantee.</span>
+                    <ShieldCheck className="w-4 h-4 text-success-500" />
+                    <span>No credit card required. 100% spam-free.</span>
                   </span>
                   <a
                     href={`https://wa.me/${SITE_CONTENT.brand.whatsappNumber}?text=${encodeURIComponent('Namaste SwaadSevak! I want a quick demo.')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-saffron-600 dark:text-saffron-400 hover:underline flex items-center gap-1"
+                    className="font-bold text-ember-400 hover:underline flex items-center gap-1"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
-                    <span>Prefer WhatsApp? Chat now</span>
+                    <span>Chat on WhatsApp</span>
                   </a>
                 </div>
               </form>
             )}
-          </ReceiptCard>
+          </div>
 
         </div>
       </div>

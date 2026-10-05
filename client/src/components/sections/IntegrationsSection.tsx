@@ -1,5 +1,5 @@
 import React from 'react';
-import { SITE_CONTENT, Integration } from '../../content/site';
+import { SITE_CONTENT, IntegrationItem } from '../../content/site';
 import { Badge } from '../ui/Badge';
 import {
   Smartphone,
@@ -15,71 +15,70 @@ export const IntegrationsSection: React.FC = () => {
     switch (id) {
       case 'zomato':
       case 'swiggy':
-        return <Smartphone className="w-5 h-5 text-red-500" />;
+        return <Smartphone className="w-5 h-5 text-ember-500" />;
       case 'ondc':
-        return <ShoppingBag className="w-5 h-5 text-blue-500" />;
+        return <ShoppingBag className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />;
       case 'upi':
-        return <CreditCard className="w-5 h-5 text-curry-600" />;
+        return <CreditCard className="w-5 h-5 text-success-600" />;
       case 'tally':
-        return <FileSpreadsheet className="w-5 h-5 text-amber-600" />;
+        return <FileSpreadsheet className="w-5 h-5 text-amber-500" />;
       case 'whatsapp':
-        return <MessageCircle className="w-5 h-5 text-emerald-500" />;
+        return <MessageCircle className="w-5 h-5 text-success-500" />;
       default:
-        return <Layers className="w-5 h-5 text-saffron-500" />;
+        return <Layers className="w-5 h-5 text-slate-500" />;
     }
   };
 
   return (
-    <section className="py-16 sm:py-24 font-sans bg-cream-100/60 dark:bg-maroon-900/20 border-t border-receipt-divider dark:border-maroon-800">
+    <section className="py-16 sm:py-24 font-sans bg-ink-50/50 dark:bg-ink-900/30 border-t border-ink-200/80 dark:border-ink-800 overflow-hidden">
       <div className="max-w-container mx-auto px-4 sm:px-6">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="maroon" className="mb-3">
-            Ecosystem Connectivity
+          <Badge variant="neutral" className="mb-3">
+            Ecosystem Integrations
           </Badge>
-          <h2 className="h2-fluid font-serif font-bold text-maroon-950 dark:text-cream-50 mb-3">
-            Plugs into the software & hardware you already rely on
+          <h2 className="h2-fluid font-bold text-ink-950 dark:text-ink-50 mb-3">
+            Plugs into your existing delivery & payment accounts
           </h2>
-          <p className="text-sm sm:text-base text-maroon-900/80 dark:text-cream-200/80 leading-relaxed">
-            Zero rip-and-replace. Connect your delivery accounts, payment soundboxes, and accounting registers in minutes.
+          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
+            Connect your delivery aggregators, dynamic UPI soundboxes, and accounting software without changing your workflow.
           </p>
         </div>
 
         {/* Integrations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SITE_CONTENT.integrations.map((integration) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+          {SITE_CONTENT.integrations.map((item: IntegrationItem) => (
             <div
-              key={integration.id}
-              className="p-6 rounded-3xl bg-paper dark:bg-paper-dark border border-receipt-divider dark:border-maroon-800 shadow-sm hover:shadow-receipt transition-all text-left flex flex-col justify-between"
+              key={item.id}
+              className="p-6 rounded-3xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="p-3 rounded-2xl bg-cream-100 dark:bg-maroon-900/50">
-                    {getIcon(integration.id)}
+                  <div className="p-2.5 rounded-xl bg-ink-50 dark:bg-ink-950">
+                    {getIcon(item.id)}
                   </div>
-                  <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-cream-200 dark:bg-maroon-900 text-maroon-800 dark:text-cream-200 uppercase tracking-wider">
-                    {integration.badge}
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200 uppercase">
+                    {item.badge}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-lg text-maroon-950 dark:text-cream-50 mb-1.5">
-                  {integration.name}
+                <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1">
+                  {item.name}
                 </h3>
 
-                <span className="text-xs font-mono font-semibold text-saffron-700 dark:text-saffron-400 block mb-2">
-                  {integration.category}
+                <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 block mb-2">
+                  {item.category}
                 </span>
 
-                <p className="text-xs text-maroon-900/70 dark:text-cream-200/70 leading-relaxed">
-                  {integration.description}
+                <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed">
+                  {item.description}
                 </p>
               </div>
 
-              {/* Verified Tag / Verification notice */}
-              <div className="pt-4 mt-4 border-t border-dashed border-receipt-divider dark:border-maroon-800 flex items-center justify-between text-[11px] font-mono text-receipt-faint">
-                <span>API Status: Verified Ready</span>
-                <span className="text-curry-600 font-bold">● Active Sync</span>
+              <div className="pt-4 mt-4 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between text-[11px] font-mono text-ink-400">
+                <span>Direct API Bridge</span>
+                <span className="text-success-600 font-bold">● Active Sync</span>
               </div>
             </div>
           ))}

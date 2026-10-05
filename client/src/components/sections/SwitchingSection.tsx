@@ -1,56 +1,56 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
 import { Badge } from '../ui/Badge';
-import { Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Clock, CheckCircle2 } from 'lucide-react';
 
 export const SwitchingSection: React.FC = () => {
   return (
-    <section className="py-16 sm:py-24 font-sans bg-cream-50 dark:bg-maroon-950/40">
+    <section className="py-16 sm:py-24 font-sans bg-white dark:bg-ink-950 border-t border-ink-200/80 dark:border-ink-800">
       <div className="max-w-container mx-auto px-4 sm:px-6">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="saffron" className="mb-3">
-            Zero-Disruption Migration
+          <Badge variant="ember" className="mb-3">
+            Fast Migration
           </Badge>
-          <h2 className="h2-fluid font-serif font-bold text-maroon-950 dark:text-cream-50 mb-3">
-            Switching to SwaadSevak takes less than one afternoon
+          <h2 className="h2-fluid font-bold text-ink-950 dark:text-ink-50 mb-3">
+            Switch to SwaadSevak without pausing dinner service
           </h2>
-          <p className="text-sm sm:text-base text-maroon-900/80 dark:text-cream-200/80 leading-relaxed">
-            Never lose an order or pause your dinner service. Our white-glove onboarding team handles the migration from your old software.
+          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
+            Our onboarding team handles menu formatting, printer configuration, and staff training so you never drop an active table order.
           </p>
         </div>
 
-        {/* 3 Steps Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+        {/* 3 Steps */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           {SITE_CONTENT.switchingSteps.map((step, idx) => (
             <div
               key={idx}
-              className="p-6 sm:p-8 rounded-3xl bg-paper dark:bg-paper-dark border border-receipt-divider dark:border-maroon-800 shadow-sm flex flex-col justify-between text-left relative group hover:border-saffron-500 transition-all"
+              className="p-6 sm:p-8 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="font-serif font-bold text-3xl text-saffron-600 dark:text-saffron-400">
+                  <span className="font-mono font-bold text-2xl text-ember-600 dark:text-ember-400">
                     {step.step}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-cream-200 dark:bg-maroon-900 text-maroon-800 dark:text-cream-200">
-                    <Clock className="w-3 h-3 text-saffron-600" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200">
+                    <Clock className="w-3 h-3 text-ember-500" />
                     <span>{step.duration}</span>
                   </span>
                 </div>
 
-                <h3 className="font-bold text-lg text-maroon-950 dark:text-cream-50 mb-2">
+                <h3 className="font-bold text-base sm:text-lg text-ink-950 dark:text-ink-50 mb-2">
                   {step.title}
                 </h3>
 
-                <p className="text-xs sm:text-sm text-maroon-900/70 dark:text-cream-200/70 leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
                   {step.desc}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-dashed border-receipt-divider dark:border-maroon-800 flex items-center gap-2 text-xs font-semibold text-curry-600 dark:text-curry-400">
+              <div className="pt-4 border-t border-ink-200/80 dark:border-ink-800 flex items-center gap-2 text-xs font-semibold text-success-600 dark:text-success-400">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>Handled by SwaadSevak Team</span>
+                <span>Assisted by SwaadSevak Team</span>
               </div>
             </div>
           ))}

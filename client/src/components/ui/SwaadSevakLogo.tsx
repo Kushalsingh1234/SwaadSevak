@@ -3,7 +3,6 @@ import React from 'react';
 interface SwaadSevakLogoProps {
   className?: string;
   iconOnly?: boolean;
-  variant?: 'light' | 'dark' | 'auto';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -13,57 +12,54 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
   size = 'md',
 }) => {
   const iconDimensions = {
-    sm: 'w-7 h-7',
-    md: 'w-9 h-9',
-    lg: 'w-11 h-11',
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8',
+    lg: 'w-10 h-10',
   }[size];
 
   const textDimensions = {
-    sm: 'text-xl',
-    md: 'text-2xl',
-    lg: 'text-3xl',
+    sm: 'text-lg',
+    md: 'text-xl',
+    lg: 'text-2xl',
   }[size];
 
   return (
-    <div className={`flex items-center gap-2.5 select-none font-serif ${className}`}>
-      {/* Custom SVG Icon: Stylized Ladle + Indian Dining Plate + Rupee Sparkle motif */}
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-saffron-500 to-saffron-700 shadow-sm p-1.5 text-white ${iconDimensions}`}>
+    <div className={`flex items-center gap-2.5 select-none font-sans ${className}`}>
+      {/* Modern B2B SaaS Mark: Stylized Serving Plate & Ladle Rupee Mark in Ember Gradient */}
+      <div
+        className={`relative flex items-center justify-center rounded-xl bg-gradient-ember shadow-soft p-1.5 text-ink-950 shrink-0 ${iconDimensions}`}
+      >
         <svg
-          viewBox="0 0 36 36"
+          viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full"
           aria-hidden="true"
         >
-          {/* Outer plate circle */}
-          <circle cx="18" cy="18" r="14" stroke="currentColor" strokeWidth="2.2" strokeDasharray="3 2" />
-          {/* Inner serving plate */}
-          <circle cx="18" cy="18" r="9" fill="currentColor" fillOpacity="0.2" />
-          {/* Stylized ladle handle and bowl */}
+          {/* Plate contour */}
+          <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="2.5" />
+          {/* Ladle stem and head */}
           <path
-            d="M10 24C10 21 13 18 17 18H20"
+            d="M9 20C9 16 13 14 17 14H20"
             stroke="currentColor"
             strokeWidth="2.5"
             strokeLinecap="round"
           />
           <path
-            d="M20 15L25 10M25 10L27 12M25 10L23 8"
+            d="M20 11L24 7M24 7L26 9"
             stroke="currentColor"
             strokeWidth="2.5"
             strokeLinecap="round"
           />
-          {/* Spark of flavor / Swaad essence dot */}
-          <circle cx="18" cy="18" r="2.2" fill="white" />
+          {/* Center core pulse */}
+          <circle cx="16" cy="16" r="2.5" fill="currentColor" />
         </svg>
       </div>
 
       {!iconOnly && (
-        <div className="flex flex-col leading-none">
-          <span className={`font-bold tracking-tight font-serif text-maroon-950 dark:text-cream-50 ${textDimensions}`}>
-            Swaad<span className="text-saffron-600 dark:text-saffron-400">Sevak</span>
-          </span>
-          <span className="text-[10px] tracking-wider uppercase font-sans font-semibold text-maroon-700/70 dark:text-cream-200/60 mt-0.5">
-            Restaurant OS
+        <div className="flex items-center gap-1.5 leading-none">
+          <span className={`font-bold tracking-tight text-ink-950 dark:text-ink-50 ${textDimensions}`}>
+            Swaad<span className="text-ember-500">Sevak</span>
           </span>
         </div>
       )}

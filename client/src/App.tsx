@@ -3,9 +3,10 @@ import { SEO } from './components/ui/SEO';
 import { Header } from './components/layout/Header';
 import { HeroSection } from './components/sections/HeroSection';
 import { ProofStripSection } from './components/sections/ProofStripSection';
-import { DayStorySection } from './components/sections/DayStorySection';
+import { ProblemSolutionSection } from './components/sections/ProblemSolutionSection';
+import { ProductTourSection } from './components/sections/ProductTourSection';
 import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
-import { Website24hSection } from './components/sections/Website24hSection';
+import { WebsiteInquirySection } from './components/sections/WebsiteInquirySection';
 import { OutletTypesSection } from './components/sections/OutletTypesSection';
 import { SavingsCalculatorSection } from './components/sections/SavingsCalculatorSection';
 import { IntegrationsSection } from './components/sections/IntegrationsSection';
@@ -21,59 +22,62 @@ import { MobileBottomBar } from './components/ui/MobileBottomBar';
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-[#160D10] text-maroon-950 dark:text-cream-50 transition-colors duration-300">
-      {/* Dynamic SEO & JSON-LD schema */}
+    <div className="min-h-screen flex flex-col bg-white dark:bg-ink-950 text-ink-950 dark:text-ink-50 transition-colors duration-200">
+      {/* 0. SEO Helmet & Structured Schema */}
       <SEO />
 
-      {/* 1. Header (Sticky & Shrink-on-scroll) */}
+      {/* 1. Header (Sticky with blur-and-shrink on scroll) */}
       <Header />
 
-      {/* Main Page Sections */}
+      {/* Main Content Sections */}
       <main id="main-content" className="flex-1">
         {/* 2. Hero Section */}
         <HeroSection />
 
-        {/* 3. Proof Strip Section */}
+        {/* 3. Proof Strip */}
         <ProofStripSection />
 
-        {/* 4. "A Day at Your Restaurant" Scroll Story */}
-        <DayStorySection />
+        {/* 4. Problem to Solution (3 Pains & Fixes) */}
+        <ProblemSolutionSection />
 
-        {/* 5. Features Bento Grid (8 Tiles with Mini Demos) */}
+        {/* 5. Product Tour (4-Moment Scroll Story with React Mockups) */}
+        <ProductTourSection />
+
+        {/* 6. Features Bento Grid (8 Tiles with Mini Demos) */}
         <FeaturesBentoSection />
 
-        {/* 6. FEATURED: Your Restaurant Website in 24 Hours */}
-        <Website24hSection />
+        {/* 7. Website Inquiry Section (Dark Ink Band, 24h Response Scope) */}
+        <WebsiteInquirySection />
 
-        {/* 7. Outlet Types (8 Tabs) */}
+        {/* 8. Outlet Types (8 Tabs) */}
         <OutletTypesSection />
 
-        {/* 8. Savings Calculator */}
+        {/* 9. Savings Calculator */}
         <SavingsCalculatorSection />
 
-        {/* 9. Integrations Grid */}
+        {/* 10. Integrations */}
         <IntegrationsSection />
 
-        {/* 10. Switching Made Easy */}
+        {/* 11. Switching Made Easy (3 Steps with Timeline) */}
         <SwitchingSection />
 
-        {/* 11. Pricing & Comparison */}
+        {/* 12. Pricing & Comparison Table */}
         <PricingSection />
 
-        {/* 12. Testimonials (Receipt-style) */}
+        {/* 13. Testimonials (Marked TODO Placeholders) */}
         <TestimonialsSection />
 
-        {/* 13. FAQ Accordion */}
+        {/* 14. FAQ (8 Accessible Accordion Items) */}
         <FAQSection />
 
-        {/* 14. Final CTA Demo Form */}
+        {/* 15. Final CTA Demo Form (Dark Ink Band) */}
         <FinalCTASection />
       </main>
 
-      {/* 15. Footer */}
+      {/* 16. Footer */}
       <Footer />
 
-      {/* Global Conversion & Privacy Utilities */}
+      {/* Global Utilities */}
       <CookieBanner />
       <FloatingWhatsApp />
       <MobileBottomBar />

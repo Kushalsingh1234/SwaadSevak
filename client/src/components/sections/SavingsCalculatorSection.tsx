@@ -4,12 +4,10 @@ import { SITE_CONTENT } from '../../content/site';
 import { formatINR } from '../../lib/utils';
 import { trackEvent } from '../../lib/analytics';
 import { Badge } from '../ui/Badge';
-import { ReceiptCard } from '../ui/ReceiptCard';
-import { Calculator, TrendingUp, Info, HelpCircle } from 'lucide-react';
+import { Calculator, HelpCircle } from 'lucide-react';
 
 export const SavingsCalculatorSection: React.FC = () => {
   const { t } = useTranslation();
-
   const defaults = SITE_CONTENT.calculatorDefaults;
 
   const [outlets, setOutlets] = useState<number>(defaults.outlets);
@@ -18,22 +16,20 @@ export const SavingsCalculatorSection: React.FC = () => {
   const [commissionPct, setCommissionPct] = useState<number>(defaults.aggregatorCommissionPct);
   const [wastagePct, setWastagePct] = useState<number>(defaults.wastagePct);
 
-  // Mathematical Calculation Logic
-  // 1. Total monthly gross revenue across outlets = outlets * monthlyOrders * avgOrderValue
-  const totalMonthlyRevenue = outlets * monthlyOrders * avgOrderValue;
+  // Formula Calculation
+  // 1. Total monthly gross order volume
+  const totalGrossVolume = outlets * monthlyOrders * avgOrderValue;
 
-  // 2. Direct order commission savings:
-  // Assuming 25% of aggregator orders shift to direct 24h website / WhatsApp / table QR ordering
+  // 2. Direct channel shift: assuming 25% of aggregator orders shift to direct WhatsApp / QR (0% commission)
   const directShiftPct = 0.25;
-  const directShiftOrders = (monthlyOrders * (defaults.aggregatorSharePct / 100)) * directShiftPct;
-  const commissionSavedMonthly = outlets * directShiftOrders * avgOrderValue * (commissionPct / 100);
+  const directShiftOrders = monthlyOrders * (defaults.aggregatorSharePct / 100) * directShiftPct;
+  const monthlyCommissionSavings = outlets * directShiftOrders * avgOrderValue * (commissionPct / 100);
 
-  // 3. Raw ingredient recipe auto-deduction savings:
-  // SwaadSevak typically reduces food shrinkage and ingredient pilferage by ~50% of the wastage rate
-  const wastageRecoveredPct = wastagePct * 0.45; // 45% recovery of food waste
-  const inventorySavedMonthly = (totalMonthlyRevenue * 0.35) * (wastageRecoveredPct / 100); // 35% assumed food cost
+  // 3. Raw ingredient recipe auto-deduction savings: 45% recovery of food wastage loss (assuming 35% food cost)
+  const wastageRecoveryPct = wastagePct * 0.45;
+  const monthlyInventorySavings = totalGrossVolume * 0.35 * (wastageRecoveryPct / 100);
 
-  const totalMonthlySavings = Math.round(commissionSavedMonthly + inventorySavedMonthly);
+  const totalMonthlySavings = Math.round(monthlyCommissionSavings + monthlyInventorySavings);
   const totalAnnualSavings = totalMonthlySavings * 12;
 
   const handleSliderChange = (name: string, value: number) => {
@@ -41,36 +37,36 @@ export const SavingsCalculatorSection: React.FC = () => {
   };
 
   return (
-    <section id="savings-calculator" className="py-16 sm:py-24 font-sans bg-cream-50 dark:bg-maroon-950/30">
+    <section id="savings-calculator" className="py-16 sm:py-24 font-sans bg-white dark:bg-ink-950">
       <div className="max-w-container mx-auto px-4 sm:px-6">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="curry" className="mb-3">
+          <Badge variant="indigo" className="mb-3">
             <Calculator className="w-3.5 h-3.5" />
             <span>{t.calculator.badge}</span>
           </Badge>
-          <h2 className="h2-fluid font-serif font-bold text-maroon-950 dark:text-cream-50 mb-4">
+          <h2 className="h2-fluid font-bold text-ink-950 dark:text-ink-50 mb-3">
             {t.calculator.title}
           </h2>
-          <p className="text-sm sm:text-base text-maroon-900/80 dark:text-cream-200/80 leading-relaxed">
+          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
             {t.calculator.subtitle}
           </p>
         </div>
 
-        {/* Calculator Grid: Sliders on Left, Dynamic Output Receipt on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left">
           
-          {/* Sliders Container (7 Cols) */}
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-paper dark:bg-paper-dark border border-receipt-divider dark:border-maroon-800 shadow-sm space-y-6 text-left">
+          {/* Sliders (7 Cols) */}
+          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft space-y-6">
             
-            {/* Slider 1: Outlets */}
+            {/* Outlets */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="outlets-slider" className="text-xs sm:text-sm font-bold text-maroon-950 dark:text-cream-50">
+                <label htmlFor="outlets-slider" className="text-xs sm:text-sm font-bold text-ink-900 dark:text-ink-100">
                   {t.calculator.outletsLabel}
                 </label>
-                <span className="font-mono font-bold text-base text-saffron-600 dark:text-saffron-400">
+                <span className="font-mono font-bold text-sm sm:text-base text-ember-600 dark:text-ember-400">
                   {outlets} {outlets === 1 ? 'Outlet' : 'Outlets'}
                 </span>
               </div>
@@ -86,17 +82,17 @@ export const SavingsCalculatorSection: React.FC = () => {
                   setOutlets(val);
                   handleSliderChange('outlets', val);
                 }}
-                className="w-full accent-saffron-500 cursor-pointer h-2 bg-cream-200 dark:bg-maroon-900 rounded-lg"
+                className="w-full accent-ember-500 cursor-pointer h-2 bg-ink-200 dark:bg-ink-800 rounded-lg"
               />
             </div>
 
-            {/* Slider 2: Monthly Orders per outlet */}
+            {/* Monthly Online Orders */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="orders-slider" className="text-xs sm:text-sm font-bold text-maroon-950 dark:text-cream-50">
-                  {t.calculator.ordersLabel} (per outlet)
+                <label htmlFor="orders-slider" className="text-xs sm:text-sm font-bold text-ink-900 dark:text-ink-100">
+                  {t.calculator.ordersLabel}
                 </label>
-                <span className="font-mono font-bold text-base text-saffron-600 dark:text-saffron-400">
+                <span className="font-mono font-bold text-sm sm:text-base text-ember-600 dark:text-ember-400">
                   {monthlyOrders.toLocaleString()} orders
                 </span>
               </div>
@@ -112,17 +108,17 @@ export const SavingsCalculatorSection: React.FC = () => {
                   setMonthlyOrders(val);
                   handleSliderChange('monthlyOrders', val);
                 }}
-                className="w-full accent-saffron-500 cursor-pointer h-2 bg-cream-200 dark:bg-maroon-900 rounded-lg"
+                className="w-full accent-ember-500 cursor-pointer h-2 bg-ink-200 dark:bg-ink-800 rounded-lg"
               />
             </div>
 
-            {/* Slider 3: Average Order Value */}
+            {/* Average Order Value */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="aov-slider" className="text-xs sm:text-sm font-bold text-maroon-950 dark:text-cream-50">
+                <label htmlFor="aov-slider" className="text-xs sm:text-sm font-bold text-ink-900 dark:text-ink-100">
                   Average Order Value (AOV)
                 </label>
-                <span className="font-mono font-bold text-base text-saffron-600 dark:text-saffron-400">
+                <span className="font-mono font-bold text-sm sm:text-base text-ember-600 dark:text-ember-400">
                   {formatINR(avgOrderValue)}
                 </span>
               </div>
@@ -138,17 +134,17 @@ export const SavingsCalculatorSection: React.FC = () => {
                   setAvgOrderValue(val);
                   handleSliderChange('avgOrderValue', val);
                 }}
-                className="w-full accent-saffron-500 cursor-pointer h-2 bg-cream-200 dark:bg-maroon-900 rounded-lg"
+                className="w-full accent-ember-500 cursor-pointer h-2 bg-ink-200 dark:bg-ink-800 rounded-lg"
               />
             </div>
 
-            {/* Slider 4: Aggregator Commission % */}
+            {/* Aggregator Commission */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="commission-slider" className="text-xs sm:text-sm font-bold text-maroon-950 dark:text-cream-50">
+                <label htmlFor="commission-slider" className="text-xs sm:text-sm font-bold text-ink-900 dark:text-ink-100">
                   {t.calculator.commissionLabel}
                 </label>
-                <span className="font-mono font-bold text-base text-saffron-600 dark:text-saffron-400">
+                <span className="font-mono font-bold text-sm sm:text-base text-ember-600 dark:text-ember-400">
                   {commissionPct}%
                 </span>
               </div>
@@ -164,17 +160,17 @@ export const SavingsCalculatorSection: React.FC = () => {
                   setCommissionPct(val);
                   handleSliderChange('commissionPct', val);
                 }}
-                className="w-full accent-saffron-500 cursor-pointer h-2 bg-cream-200 dark:bg-maroon-900 rounded-lg"
+                className="w-full accent-ember-500 cursor-pointer h-2 bg-ink-200 dark:bg-ink-800 rounded-lg"
               />
             </div>
 
-            {/* Slider 5: Food Wastage % */}
+            {/* Food Wastage */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="wastage-slider" className="text-xs sm:text-sm font-bold text-maroon-950 dark:text-cream-50">
+                <label htmlFor="wastage-slider" className="text-xs sm:text-sm font-bold text-ink-900 dark:text-ink-100">
                   {t.calculator.wastageLabel}
                 </label>
-                <span className="font-mono font-bold text-base text-saffron-600 dark:text-saffron-400">
+                <span className="font-mono font-bold text-sm sm:text-base text-ember-600 dark:text-ember-400">
                   {wastagePct}%
                 </span>
               </div>
@@ -190,63 +186,52 @@ export const SavingsCalculatorSection: React.FC = () => {
                   setWastagePct(val);
                   handleSliderChange('wastagePct', val);
                 }}
-                className="w-full accent-saffron-500 cursor-pointer h-2 bg-cream-200 dark:bg-maroon-900 rounded-lg"
+                className="w-full accent-ember-500 cursor-pointer h-2 bg-ink-200 dark:bg-ink-800 rounded-lg"
               />
             </div>
 
           </div>
 
-          {/* Dynamic Savings Output Receipt (Right 5 Cols) */}
-          <div className="lg:col-span-5">
-            <ReceiptCard
-              sawtooth="both"
-              ticketNumber="SIMULATION #ROI"
-              ticketType="ESTIMATED SAVINGS"
-              ticketTime="Formula Verified"
-              className="p-6 sm:p-8 border-2 border-curry-500/40 shadow-receipt-lg text-left"
-            >
-              <div className="space-y-4 font-mono text-xs">
-                <div>
-                  <span className="text-[10px] text-receipt-faint uppercase tracking-wider block mb-1">
-                    {t.calculator.estimatedSavings}
+          {/* Dynamic Savings Card (5 Cols) */}
+          <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 shadow-card flex flex-col justify-between">
+            <div className="space-y-4">
+              <div>
+                <span className="text-[10px] uppercase font-mono tracking-wider text-ink-400 block mb-1">
+                  {t.calculator.estimatedSavings}
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-mono font-bold text-3xl sm:text-4xl text-ink-950 dark:text-ink-50">
+                    {formatINR(totalMonthlySavings)}
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-serif font-bold text-3xl sm:text-4xl text-curry-600 dark:text-curry-400">
-                      {formatINR(totalMonthlySavings)}
-                    </span>
-                    <span className="text-xs text-maroon-800/80 dark:text-cream-300 font-sans">
-                      {t.calculator.perMonth}
-                    </span>
-                  </div>
-                  <span className="block text-xs font-semibold text-saffron-700 dark:text-saffron-300 mt-1">
-                    ≈ {formatINR(totalAnnualSavings)} {t.calculator.perYear}
+                  <span className="text-xs text-ink-500 font-mono">
+                    {t.calculator.perMonth}
                   </span>
                 </div>
+                <span className="block text-xs font-semibold text-ember-600 dark:text-ember-400 mt-1">
+                  ≈ {formatINR(totalAnnualSavings)} {t.calculator.perYear}
+                </span>
+              </div>
 
-                <div className="receipt-tear-line w-full" />
-
-                {/* Breakdown Items */}
-                <div className="space-y-2 text-[11px]">
-                  <div className="flex justify-between">
-                    <span>Direct WhatsApp & 24h Web Shift:</span>
-                    <span className="font-bold text-curry-600">+{formatINR(Math.round(commissionSavedMonthly))}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Recipe Inventory Loss Reduction:</span>
-                    <span className="font-bold text-curry-600">+{formatINR(Math.round(inventorySavedMonthly))}</span>
-                  </div>
-                  <div className="flex justify-between text-receipt-faint pt-1 border-t border-dashed">
-                    <span>Monthly Software Subscription Cost:</span>
-                    <span className="text-red-500 font-bold">-₹2,199 (Growth)</span>
-                  </div>
+              <div className="pt-4 border-t border-ink-100 dark:border-ink-800 space-y-2 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Direct WhatsApp & QR Shift:</span>
+                  <span className="font-bold text-success-600">+{formatINR(Math.round(monthlyCommissionSavings))}</span>
                 </div>
-
-                <div className="p-3 rounded-xl bg-cream-100 dark:bg-maroon-900/40 text-[10px] font-sans leading-relaxed text-maroon-800/80 dark:text-cream-300">
-                  <span className="font-bold block mb-0.5">{t.calculator.formulaTitle}</span>
-                  Calculated based on a 25% shift of aggregator traffic to direct channels (0% commission) + 45% reduction in recipe food wastage. Illustrative estimate based on user-adjusted inputs.
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Recipe Inventory Shrinkage Cut:</span>
+                  <span className="font-bold text-success-600">+{formatINR(Math.round(monthlyInventorySavings))}</span>
+                </div>
+                <div className="flex justify-between text-ink-400 pt-1 border-t border-ink-100 dark:border-ink-800">
+                  <span>Growth Plan Cost:</span>
+                  <span className="text-danger-600 font-bold">-₹2,199 / mo</span>
                 </div>
               </div>
-            </ReceiptCard>
+
+              <div className="p-3 rounded-xl bg-ink-50 dark:bg-ink-950/60 text-[10px] font-mono leading-relaxed text-ink-500">
+                <span className="font-bold block mb-0.5">{t.calculator.formulaTitle}</span>
+                Estimated based on a 25% shift of aggregator volume to direct 0% commission channels + 45% reduction in recipe food wastage. Illustrative estimate based on user-selected inputs.
+              </div>
+            </div>
           </div>
 
         </div>

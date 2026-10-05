@@ -70,8 +70,32 @@ export const ProductTabsSection: React.FC = () => {
   };
 
   return (
-    <section id="products" className="py-16 sm:py-24 bg-white text-espresso font-sans border-b border-sand-200">
-      <div className="max-w-container mx-auto px-4 sm:px-6">
+    <section id="products" className="relative py-16 sm:py-24 bg-white text-espresso font-sans border-b border-sand-200 overflow-hidden">
+      {/* Background Logo Glimpse (Watermark Silhouette in Middle) */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-0 select-none overflow-hidden">
+        {/* Soft Radial Ambient Glow */}
+        <div className="w-[700px] h-[700px] rounded-full bg-orange-500/5 blur-[120px] absolute" />
+        
+        {/* Big Subtle SwaadSevak Mark Watermark */}
+        <svg
+          viewBox="0 0 200 200"
+          className="w-[500px] sm:w-[700px] md:w-[850px] lg:w-[1000px] h-auto text-orange-500 opacity-[0.045] transition-transform duration-1000"
+          fill="currentColor"
+        >
+          {/* 3 Rising Saffron Steam Waves */}
+          <path d="M 60 75 C 50 45 80 30 68 10" stroke="currentColor" strokeWidth="12" strokeLinecap="round" fill="none" />
+          <path d="M 100 75 C 90 45 120 30 108 10" stroke="currentColor" strokeWidth="12" strokeLinecap="round" fill="none" />
+          <path d="M 140 75 C 130 45 160 30 148 10" stroke="currentColor" strokeWidth="12" strokeLinecap="round" fill="none" />
+          {/* Bowl Rim */}
+          <rect x="25" y="95" width="150" height="16" rx="8" fill="currentColor" />
+          {/* Bowl Body */}
+          <path d="M 35 113 C 40 155 75 175 100 175 C 125 175 160 155 165 113 Z" fill="currentColor" />
+          {/* Pedestal Foot */}
+          <rect x="75" y="175" width="50" height="10" rx="5" fill="currentColor" />
+        </svg>
+      </div>
+
+      <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Tab Selection Bar */}
         <div className="flex items-center justify-center">

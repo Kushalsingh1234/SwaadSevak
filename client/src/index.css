@@ -131,9 +131,17 @@
     transform: translateX(100%);
   }
 
-  /* Focus ring for WCAG AA compliance */
-  .focus-ring:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.5);
+  /* Continuous Right-to-Left Marquee */
+  @keyframes marquee-left {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee-left {
+    display: flex;
+    width: max-content;
+    animation: marquee-left 25s linear infinite;
+  }
+  .animate-marquee-left:hover {
+    animation-play-state: paused;
   }
 }

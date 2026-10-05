@@ -14,18 +14,9 @@ const PLACEHOLDER_LOGOS = [
 export const TrustStripSection: React.FC = () => {
   return (
     <section
-      className="py-10 sm:py-12 font-sans overflow-hidden border-y border-walnut/40 relative"
-      style={{ backgroundColor: '#1A0F0A' }}
+      className="py-8 sm:py-10 font-sans overflow-hidden relative"
+      style={{ backgroundColor: '#2B1A12' }}
     >
-      {/* Subtle Dot Grid */}
-      <div
-        className="absolute inset-0 pointer-events-none -z-0"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.06) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
       <div className="max-w-[1700px] mx-auto px-4 sm:px-8 mb-6 text-center relative z-10">
         {/* Uppercase Heading Label */}
         <p className="text-xs sm:text-sm uppercase tracking-widest font-extrabold text-sand-100 flex items-center justify-center gap-2.5">
@@ -36,18 +27,24 @@ export const TrustStripSection: React.FC = () => {
 
       {/* Infinite Logo Marquee (Moving Right to Left) */}
       <div className="relative w-full overflow-hidden flex items-center">
-        {/* Left & Right gradient fade masks matching page background */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-[#1A0F0A] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-[#1A0F0A] to-transparent z-10 pointer-events-none" />
+        {/* Left & Right gradient fade masks matching #2B1A12 */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(to right, #2B1A12 10%, transparent 100%)' }}
+        />
+        <div
+          className="absolute right-0 top-0 bottom-0 w-24 sm:w-36 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(to left, #2B1A12 10%, transparent 100%)' }}
+        />
 
-        <div className="flex animate-marquee gap-4 sm:gap-6 shrink-0 items-center py-2">
-          {[...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS].map((item, idx) => (
+        <div className="animate-marquee-left gap-4 sm:gap-6 items-center py-2">
+          {[...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS].map((item, idx) => (
             <div
               key={`${item.id}-${idx}`}
               className="flex items-center gap-3.5 px-5 py-3 rounded-2xl shadow-card shrink-0 hover:border-orange-500 hover:scale-[1.02] transition-all cursor-pointer"
               style={{
-                backgroundColor: '#2B1A12',
-                border: '1px solid #4A2D1F',
+                backgroundColor: '#382015',
+                border: '1px solid #5A3A28',
               }}
             >
               <div className="w-9 h-9 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center font-black text-sm shrink-0 border border-orange-500/20 shadow-inner">

@@ -9,14 +9,14 @@ export const WhyUsSection: React.FC = () => {
   return (
     <section
       id="why-us"
-      className="py-20 sm:py-28 font-sans border-b border-walnut relative overflow-hidden"
+      className="py-16 sm:py-24 font-sans border-b border-walnut/40 relative overflow-hidden"
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       {/* Background glow & subtle patterns */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
         
         {/* Centered Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

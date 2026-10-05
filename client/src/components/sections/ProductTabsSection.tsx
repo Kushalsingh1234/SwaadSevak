@@ -71,41 +71,33 @@ export const ProductTabsSection: React.FC = () => {
 
   return (
     <section id="products" className="relative pt-16 sm:pt-24 pb-20 sm:pb-28 overflow-hidden font-sans">
-      {/* Split Background: Upper White, Lower Brown with Smooth Curve */}
-      <div className="absolute inset-0 pointer-events-none -z-0">
-        {/* Upper White Background */}
-        <div className="absolute inset-x-0 top-0 h-[55%] bg-white" />
-
-        {/* Lower Espresso Brown Background */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-[50%]"
-          style={{ backgroundColor: '#2B1A12' }}
+      {/* Split Background: Upper White, Lower Brown with Smooth Dramatic Curve */}
+      <div className="absolute inset-0 pointer-events-none -z-0 bg-white">
+        {/* Full-bleed SVG defining the smooth curved bottom espresso area */}
+        <svg
+          viewBox="0 0 1440 600"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute inset-0 w-full h-full"
+          preserveAspectRatio="none"
         >
-          {/* Subtle Warm Dot Grid */}
-          <div
-            className="absolute inset-0 opacity-25"
-            style={{
-              backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.3) 1.5px, transparent 1.5px)',
-              backgroundSize: '24px 24px',
-            }}
+          {/* Smooth continuous curve dividing top white and bottom espresso brown */}
+          <path
+            d="M 0 240 Q 720 440 1440 240 L 1440 600 L 0 600 Z"
+            fill="#2B1A12"
           />
-        </div>
+        </svg>
 
-        {/* Smooth Curved Wave Line Divider */}
-        <div className="absolute inset-x-0 top-[40%] sm:top-[45%] w-full overflow-hidden leading-none">
-          <svg
-            viewBox="0 0 1440 220"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-24 sm:h-36 md:h-44 object-cover"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,60 C420,170 980,10 1440,80 L1440,220 L0,220 Z"
-              fill="#2B1A12"
-            />
-          </svg>
-        </div>
+        {/* Ambient Warm Dot Grid inside the lower brown region */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[60%] pointer-events-none opacity-20"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.3) 1.5px, transparent 1.5px)',
+            backgroundSize: '24px 24px',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+          }}
+        />
       </div>
 
       <div className="max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">

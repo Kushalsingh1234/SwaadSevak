@@ -19,7 +19,7 @@ import { trackEvent } from '../../lib/analytics';
 export const HeroSection: React.FC = () => {
   return (
     <section
-      className="relative min-h-[calc(100vh-73px)] flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-8 sm:pt-12 pb-8 text-left"
+      className="relative min-h-screen flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-24 sm:pt-28 pb-8 text-left"
       style={{ backgroundColor: '#1A0F0A', color: '#FFFFFF' }}
     >
       {/* Ambient Lighting & Luxury Glows */}

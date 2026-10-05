@@ -27,11 +27,11 @@ export const HeroSection: React.FC = () => {
       <div className="absolute top-1/3 right-1/4 w-[650px] h-[550px] bg-orange-600/18 rounded-full blur-[140px] pointer-events-none -z-0" />
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-500/10 rounded-full blur-[130px] pointer-events-none -z-0" />
       
-      {/* High-Visibility Warm Sand Dot Grid */}
+      {/* Subtle Ambient Warm Dot Grid */}
       <div
         className="absolute inset-0 pointer-events-none -z-0"
         style={{
-          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.22) 1.5px, transparent 1.5px)',
+          backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.07) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
         }}
       />

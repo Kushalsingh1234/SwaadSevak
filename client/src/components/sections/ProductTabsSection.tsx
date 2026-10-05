@@ -92,7 +92,7 @@ export const ProductTabsSection: React.FC = () => {
         <div
           className="absolute inset-x-0 bottom-0 h-[60%] pointer-events-none opacity-20"
           style={{
-            backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.3) 1.5px, transparent 1.5px)',
+            backgroundImage: 'radial-gradient(rgba(245, 233, 221, 0.08) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
             maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
             WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',

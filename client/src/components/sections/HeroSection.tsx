@@ -120,15 +120,15 @@ export const HeroSection: React.FC = () => {
 
           </div>
 
-          {/* Right Column: Visual Showcase Illustration (5.5 Cols on xl) */}
+          {/* Right Column: Visual Showcase Characters Cutout (5.5 Cols on xl) */}
           <div className="lg:col-span-6 xl:col-span-5 relative flex justify-center items-center">
-            {/* Soft Ambient Glow behind Illustration */}
-            <div className="absolute inset-0 bg-orange-500/10 rounded-3xl blur-2xl -z-10" />
-            <div className="relative w-full overflow-hidden rounded-3xl flex items-center justify-center transition-transform hover:scale-[1.01] duration-500">
+            {/* Ambient Warm Glow behind Characters */}
+            <div className="absolute inset-0 bg-orange-500/15 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="relative w-full flex items-center justify-center transition-transform hover:scale-[1.02] duration-500">
               <img
-                src="/brand/hero-showcase.jpg"
-                alt="SwaadSevak Restaurant Team Illustration"
-                className="w-full h-auto object-cover rounded-3xl shadow-2xl"
+                src="/brand/hero-characters-transparent.png"
+                alt="SwaadSevak Restaurant Team & Characters"
+                className="w-full h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
               />
             </div>
           </div>

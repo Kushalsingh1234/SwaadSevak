@@ -25,22 +25,22 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
   if (iconOnly) {
     return (
       <svg
-        viewBox="0 0 48 48"
+        viewBox="0 0 36 42"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={`${heightClass} w-auto select-none shrink-0 ${className}`}
         aria-label="SwaadSevak Logo"
       >
         {/* 3 Rising Saffron Steam Waves */}
-        <path d="M 16 19 C 14 13 20 10 17 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M 24 19 C 22 13 28 10 25 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M 32 19 C 30 13 36 10 33 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M 10 16 C 8 10 14 7 11 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M 18 16 C 16 10 22 7 19 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M 26 16 C 24 10 30 7 27 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
         {/* Saffron Bowl Rim */}
-        <rect x="8" y="24" width="32" height="4" rx="2" fill="#F97316" />
+        <rect x="2" y="20" width="32" height="4" rx="2" fill="#F97316" />
         {/* Pure White Bowl Body */}
-        <path d="M 10 28 C 11 38 18 43 24 43 C 30 43 37 38 38 28 Z" fill="#FFFFFF" />
+        <path d="M 4 24 C 5 33 12 37 18 37 C 24 37 31 33 32 24 Z" fill="#FFFFFF" />
         {/* Pedestal Foot */}
-        <rect x="18" y="43" width="12" height="2.5" rx="1.25" fill="#FFFFFF" />
+        <rect x="12" y="37" width="12" height="2.5" rx="1.25" fill="#FFFFFF" />
       </svg>
     );
   }
@@ -51,42 +51,42 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
 
   return (
     <svg
-      viewBox="0 0 234 50"
+      viewBox="0 0 216 44"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${heightClass} w-auto select-none shrink-0 ${className}`}
       aria-label="SwaadSevak"
     >
-      {/* App Icon Mark (Left - Clean without container box/border) */}
-      <g transform="translate(1, 1)">
+      {/* App Icon Mark */}
+      <g>
         {/* 3 Rising Saffron Steam Waves */}
-        <path d="M 16 19 C 14 13 20 10 17 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M 24 19 C 22 13 28 10 25 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M 32 19 C 30 13 36 10 33 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M 10 16 C 8 10 14 7 11 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M 18 16 C 16 10 22 7 19 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M 26 16 C 24 10 30 7 27 2" stroke="#F97316" strokeWidth="2.8" strokeLinecap="round" />
         {/* Saffron Bowl Rim */}
-        <rect x="8" y="24" width="32" height="4" rx="2" fill="#F97316" />
+        <rect x="2" y="20" width="32" height="4" rx="2" fill="#F97316" />
         {/* Pure White Bowl Body */}
-        <path d="M 10 28 C 11 38 18 43 24 43 C 30 43 37 38 38 28 Z" fill="#FFFFFF" />
+        <path d="M 4 24 C 5 33 12 37 18 37 C 24 37 31 33 32 24 Z" fill="#FFFFFF" />
         {/* Pedestal Foot */}
-        <rect x="18" y="43" width="12" height="2.5" rx="1.25" fill="#FFFFFF" />
+        <rect x="12" y="37" width="12" height="2.5" rx="1.25" fill="#FFFFFF" />
       </g>
 
       {/* Wordmark */}
       <text
-        x="60"
-        y="33"
+        x="44"
+        y="29"
         fontFamily="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
         fontWeight="900"
-        fontSize="25"
+        fontSize="26"
         letterSpacing="-0.03em"
         fill={primaryText}
       >
         Swaad<tspan fill={accentText}>Sevak</tspan>
       </text>
 
-      {/* Dynamic Curved Underline Swoosh: Perfectly positioned under 'Sevak' */}
+      {/* Dynamic Curved Underline Swoosh under 'Sevak' */}
       <path
-        d="M 146 39 C 166 45 198 45 224 38 C 198 42 166 42 146 39 Z"
+        d="M 132 35 C 152 41 184 41 210 34 C 184 38 152 38 132 35 Z"
         fill={swooshColor}
       />
     </svg>

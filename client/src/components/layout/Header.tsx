@@ -28,7 +28,7 @@ export const Header: React.FC = () => {
       }`}
       style={{ backgroundColor: '#2B1A12' }}
     >
-      <div className="max-w-container mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+      <div className="max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 flex items-center justify-between gap-4">
         {/* Brand Logo */}
         <a href="#" className="focus-ring rounded-lg shrink-0 flex items-center gap-3">
           <SwaadSevakLogo size={isScrolled ? 'sm' : 'md'} lightText />

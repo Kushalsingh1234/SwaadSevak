@@ -31,9 +31,6 @@ export const HeroSection: React.FC = () => {
           className="w-full h-full"
           aria-hidden="true"
         >
-          {/* Subtle Outer Squircle Contour */}
-          <rect x="2" y="2" width="96" height="96" rx="26" stroke="#F97316" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.5" />
-          
           {/* 3 Rising Saffron Steam Waves */}
           <path
             d="M 33 38 C 29 27 41 20 35 10"

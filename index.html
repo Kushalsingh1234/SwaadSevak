@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  
+  <!-- SEO Primary Meta Tags -->
+  <title>SwaadSevak — Restaurant Billing & POS Software | Website Live in 24 Hours</title>
+  <meta name="title" content="SwaadSevak — Restaurant Billing & POS Software | Website Live in 24 Hours" />
+  <meta name="description" content="Cloud POS software built for Indian restaurants, cafes & cloud kitchens. 3-click GST billing, Zomato/Swiggy aggregation, offline mode, and your restaurant website live in 24 hours." />
+  <meta name="keywords" content="restaurant billing software india, cafe pos, cloud kitchen pos, swiggy zomato aggregator, restaurant website in 24 hours, gst restaurant pos, kot billing" />
+  <link rel="canonical" href="https://swaadsevak.vercel.app/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://swaadsevak.vercel.app/" />
+  <meta property="og:title" content="SwaadSevak — Restaurant POS & Management Software" />
+  <meta property="og:description" content="Manage billing, KOT, inventory, aggregator orders in one place — plus get your restaurant website live in 24 hours." />
+  <meta property="og:image" content="https://swaadsevak.vercel.app/og-image.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://swaadsevak.vercel.app/" />
+  <meta property="twitter:title" content="SwaadSevak — Restaurant POS & Management Software" />
+  <meta property="twitter:description" content="Manage billing, KOT, inventory, aggregator orders in one place — plus get your restaurant website live in 24 hours." />
+  <meta property="twitter:image" content="https://swaadsevak.vercel.app/og-image.png" />
+
+  <!-- Google Fonts: Plus Jakarta Sans (Display) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Structured Data JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "SwaadSevak",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web, Android, iOS, Windows, macOS",
+        "offers": {
+          "@type": "Offer",
+          "price": "999",
+          "priceCurrency": "INR"
+        },
+        "description": "Cloud POS and restaurant operating software for Indian eateries with 3-click KOT billing and 24-hour website setup."
+      },
+      {
+        "@type": "Organization",
+        "name": "SwaadSevak Technologies",
+        "url": "https://swaadsevak.vercel.app/",
+        "logo": "https://swaadsevak.vercel.app/logo.png",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91-9876543210",
+          "contactType": "Customer Support",
+          "areaServed": "IN",
+          "availableLanguage": ["English", "Hindi"]
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What hardware do I need to run SwaadSevak?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SwaadSevak runs on any standard hardware — Android tablets, iPads, Windows PCs, laptops, and thermal receipt printers (58mm and 80mm)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does SwaadSevak work when the internet is down?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, SwaadSevak features an offline-first architecture. You can punch KOTs, generate bills, and take payments uninterrupted. All data syncs automatically to the cloud once connectivity resumes."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Placeholder Google Tag Manager -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    // gtag('js', new Date());
+    // gtag('config', 'GTM-XXXXXXX'); // [TODO: Replace with actual GTM ID]
+  </script>
+
+  <style>
+    /* CSS Variables Design System */
+    :root {
+      --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+      /* Colors (Warm Food SaaS Palette) */
+      --color-brand-50: #FFF7ED;
+      --color-brand-100: #FFEDD5;
+      --color-brand-500: #F97316;
+      --color-brand-600: #EA580C; /* Saffron Orange Accent */
+      --color-brand-700: #C2410C;
+      --color-brand-900: #7C2D12;
+
+      --color-ink-900: #0F172A; /* Deep Charcoal Text */
+      --color-ink-800: #1E293B;
+      --color-ink-700: #334155;
+      --color-ink-500: #64748B;
+      --color-ink-400: #94A3B8;
+
+      --color-surface-bg: #FAF8F5; /* Warm off-white */
+      --color-surface-card: #FFFFFF;
+      --color-surface-muted: #F1EFEA;
+      --color-surface-border: #E5E0D8;
+
+      --color-success: #10B981; /* Fresh Emerald Green */
+      --color-success-bg: #ECFDF5;
+      --color-danger: #EF4444;
+
+      /* Spacing & Radius */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+      --shadow-card-hover: 0 20px 30px -8px rgba(234, 88, 12, 0.15), 0 8px 12px -4px rgba(15, 23, 42, 0.06);
+
+      --max-width: 1200px;
+    }
+
+    /* Dark Mode Overrides (Optional toggle support) */
+    [data-theme="dark"] {
+      --color-surface-bg: #0B0F17;
+      --color-surface-card: #151C28;
+      --color-surface-muted: #1E2838;
+      --color-surface-border: #263345;
+      --color-ink-900: #F8FAFC;
+      --color-ink-800: #E2E8F0;
+      --color-ink-700: #CBD5E1;
+      --color-ink-500: #94A3B8;
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-surface-bg);
+      color: var(--color-ink-800);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .font-display {
+      font-family: var(--font-display);
+      color: var(--color-ink-900);
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    img, svg {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Utilities & Layout */
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
+    .section-py {
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+
+    @media (max-width: 768px) {
+      .section-py {
+        padding-top: 3.5rem;
+        padding-bottom: 3.5rem;
+      }
+    }
+
+    .text-center { text-align: center; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-brand {
+      background-color: var(--color-brand-100);
+      color: var(--color-brand-700);
+      border: 1px solid rgba(234, 88, 12, 0.2);
+    }
+    .badge-success {
+      background-color: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.35rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background-color: var(--color-brand-600);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+    }
+    .btn-primary:hover {
+      background-color: var(--color-brand-700);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(234, 88, 12, 0.38);
+    }
+    .btn-secondary {
+      background-color: var(--color-surface-card);
+      color: var(--color-ink-900);
+      border-color: var(--color-surface-border);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-secondary:hover {
+      background-color: var(--color-surface-muted);
+      border-color: var(--color-ink-400);
+      transform: translateY(-2px);
+    }
+    .btn-success {
+      background-color: #059669;
+      color: #FFFFFF;
+    }
+    .btn-success:hover {
+      background-color: #047857;
+      transform: translateY(-2px);
+    }
+    .btn-sm {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm);
+    }
+    .btn-lg {
+      padding: 0.95rem 1.85rem;
+      font-size: 1.05rem;
+      border-radius: var(--radius-md);
+    }
+
+    /* Sticky Header */
+    .header-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250, 248, 245, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-surface-border);
+      transition: all 0.3s ease;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 4.5rem;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--color-ink-900);
+    }
+    .logo-badge {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-700));
+      color: white;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-ink-700);
+    }
+    .nav-links a:hover {
+      color: var(--color-brand-600);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-full);
+      padding: 2px;
+      background: var(--color-surface-card);
+      cursor: pointer;
+    }
+    .lang-btn {
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--color-ink-500);
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--color-brand-600);
+      color: #fff;
+    }
+
+    /* Mobile Nav Toggle */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      color: var(--color-ink-900);
+    }
+
+    @media (max-width: 960px) {
+      .nav-links, .header-actions .contact-phone {
+        display: none;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+    }
+
+    /* Hero Section */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 3.5rem;
+      align-items: center;
+      padding-top: 3rem;
+      padding-bottom: 4rem;
+    }
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        padding-top: 1.5rem;
+      }
+    }
+    .hero-h1 {
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      letter-spacing: -0.025em;
+      margin-top: 1rem;
+      margin-bottom: 1.25rem;
+      color: var(--color-ink-900);
+    }
+    .hero-h1 span.highlight {
+      color: var(--color-brand-600);
+      position: relative;
+    }
+    .hero-sub {
+      font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+      color: var(--color-ink-700);
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero-trust-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-ink-500);
+    }
+    .hero-trust-line span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* HTML/CSS Product Mockup (No stock photos) */
+    .mockup-wrapper {
+      position: relative;
+    }
+    .pos-screen {
+      background: #111827;
+      border-radius: var(--radius-lg);
+      border: 3px solid #1F2937;
+      box-shadow: var(--shadow-lg), 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      color: #F3F4F6;
+      overflow: hidden;
+      font-size: 0.75rem;
+    }
+    .pos-screen-header {
+      background: #1F2937;
+      padding: 0.6rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #374151;
+    }
+    .pos-screen-body {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      height: 290px;
+    }
+    .pos-table-grid {
+      padding: 0.75rem;
+      background: #111827;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      overflow-y: auto;
+    }
+    .pos-table-card {
+      background: #1F2937;
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid #374151;
+      text-align: center;
+    }
+    .pos-table-card.active {
+      border-color: var(--color-brand-500);
+      background: #2D1A10;
+    }
+    .pos-cart {
+      background: #182234;
+      border-left: 1px solid #374151;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pos-cart-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .pos-cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px dashed #374151;
+    }
+    .pos-cart-totals {
+      background: #111827;
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      margin-top: 0.5rem;
+    }
+
+    /* Phone Floating Mockup */
+    .phone-mockup {
+      position: absolute;
+      bottom: -1.75rem;
+      right: -1.5rem;
+      width: 175px;
+      background: #000;
+      border: 3px solid #374151;
+      border-radius: 24px;
+      padding: 0.5rem;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.65rem;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .phone-mockup { animation: none; }
+    }
+    .phone-screen {
+      background: #FFFFFF;
+      color: #111827;
+      border-radius: 16px;
+      padding: 0.45rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .phone-order-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.4rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.6rem;
+    }
+    .badge-zomato { background: #FDE8E8; color: #E11D48; }
+    .badge-swiggy { background: #FFEDD5; color: #EA580C; }
+
+    /* Trust Strip */
+    .trust-strip {
+      background: var(--color-surface-card);
+      border-top: 1px solid var(--color-surface-border);
+      border-bottom: 1px solid var(--color-surface-border);
+      padding: 2.25rem 0;
+    }
+    .trust-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .trust-grid { grid-template-columns: 1fr; }
+    }
+    .trust-numbers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+    .trust-stat {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--color-brand-600);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .trust-label {
+      font-size: 0.75rem;
+      color: var(--color-ink-500);
+      font-weight: 500;
+    }
+    .placeholder-logos {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-around;
+      gap: 0.75rem;
+    }
+    .client-logo-box {
+      padding: 0.4rem 0.85rem;
+      background: var(--color-surface-muted);
+      border: 1px dashed var(--color-surface-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-ink-500);
+    }
+
+    /* Cards & Grids */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.75rem;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card-hover);
+      border-color: rgba(234, 88, 12, 0.3);
+    }
+
+    /* Problem -> Solution section */
+    .pain-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pain-header {
+      background: #FEF2F2;
+      color: #991B1B;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .fix-header {
+      background: #F0FDF4;
+      color: #166534;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Feature Cards */
+    .feature-icon-box {
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-sm);
+      background: var(--color-brand-100);
+      color: var(--color-brand-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Signature 24h Website Section */
+    .highlight-section {
+      background: linear-gradient(180deg, #FFF7ED 0%, #FFFFFF 100%);
+      border: 2px solid var(--color-brand-100);
+      border-radius: var(--radius-lg);
+      padding: 3.5rem 2.5rem;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    @media (max-width: 768px) {
+      .highlight-section { padding: 2rem 1.25rem; }
+    }
+    .step-pills {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin: 2.5rem 0;
+    }
+    @media (max-width: 768px) {
+      .step-pills { grid-template-columns: 1fr; }
+    }
+    .step-pill {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--color-brand-600);
+      color: #fff;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Interactive Form */
+    .form-group {
+      margin-bottom: 1.15rem;
+      text-align: left;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--color-ink-800);
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-sm);
+      background: #FFFFFF;
+      font-size: 0.925rem;
+      color: var(--color-ink-900);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--color-brand-600);
+      box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+    }
+    .form-input.error {
+      border-color: var(--color-danger);
+    }
+    .error-msg {
+      color: var(--color-danger);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    /* Outlets Tabs */
+    .tabs-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .tab-btn {
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-surface-border);
+      color: var(--color-ink-700);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--color-brand-600);
+      color: #FFFFFF;
+      border-color: var(--color-brand-600);
+      box-shadow: 0 4px 10px rgba(234, 88, 12, 0.25);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Pricing Plans */
+    .pricing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .switch-wrap {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+    .switch-wrap input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--color-ink-400);
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .switch-slider { background-color: var(--color-brand-600); }
+    input:checked + .switch-slider:before { transform: translateX(22px); }
+
+    .pricing-card.popular {
+      border: 2px solid var(--color-brand-600);
+      position: relative;
+    }
+    .popular-tag {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-brand-600);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 12px;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.05em;
+    }
+
+    /* Comparison Table */
+    .table-container {
+      overflow-x: auto;
+      background: var(--color-surface-card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-surface-border);
+      box-shadow: var(--shadow-sm);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--color-surface-border);
+    }
+    .comparison-table th {
+      background: var(--color-surface-muted);
+      font-weight: 700;
+      color: var(--color-ink-900);
+    }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .col-highlight {
+      background: #FFFBF5;
+      font-weight: 600;
+      color: var(--color-brand-700);
+    }
+
+    /* Accordion FAQ */
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .faq-item {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .faq-question {
+      width: 100%;
+      padding: 1.15rem 1.35rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-ink-900);
+      cursor: pointer;
+      text-align: left;
+    }
+    .faq-answer {
+      padding: 0 1.35rem 1.25rem 1.35rem;
+      color: var(--color-ink-700);
+      font-size: 0.925rem;
+      display: none;
+      line-height: 1.6;
+    }
+    .faq-item.active .faq-answer { display: block; }
+    .faq-item.active .faq-icon { transform: rotate(180deg); }
+    .faq-icon { transition: transform 0.2s; }
+
+    /* Sticky Bottom Mobile Bar */
+    .mobile-sticky-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      background: #FFFFFF;
+      border-top: 1px solid var(--color-surface-border);
+      padding: 0.65rem 1rem;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    }
+    @media (max-width: 768px) {
+      .mobile-sticky-bar {
+        display: flex;
+        gap: 0.75rem;
+      }
+      body {
+        padding-bottom: 4.5rem; /* space for mobile bar */
+      }
+    }
+
+    /* Floating WhatsApp Button */
+    .floating-whatsapp {
+      position: fixed;
+      bottom: 5.5rem;
+      right: 1.5rem;
+      z-index: 98;
+      width: 54px;
+      height: 54px;
+      background: #25D366;
+      color: white;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    @media (min-width: 769px) {
+      .floating-whatsapp { bottom: 2rem; right: 2rem; width: 58px; height: 58px; }
+    }
+    .floating-whatsapp:hover {
+      transform: scale(1.08);
+    }
+
+    /* Cookie Banner */
+    .cookie-banner {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      max-width: 400px;
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-surface-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-lg);
+      z-index: 101;
+      display: none;
+    }
+    .cookie-banner.show { display: block; }
+
+    /* Footer */
+    .footer {
+      background: #0F172A;
+      color: #94A3B8;
+      padding: 4rem 0 2rem 0;
+      font-size: 0.875rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(4, 1fr);
+      gap: 2.5rem;
+      margin-bottom: 3.5rem;
+    }
+    @media (max-width: 960px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 540px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+    .footer-title {
+      color: #FFFFFF;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .footer-links a:hover { color: var(--color-brand-500); }
+    .footer-bottom {
+      border-top: 1px solid #1E293B;
+      padding-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.8rem;
+    }
+
+    /* Modal / Success Dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      max-width: 480px;
+      width: 100%;
+      padding: 2.25rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Honeypot field for spam prevention */
+    .hidden-trap {
+      display: none !important;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONSTANTS / SINGLE SOURCE OF TRUTH SCRIPT (EN & HI) -->
+  <script>
+    const APP_CONFIG = {
+      brandName: "SwaadSevak",
+      phone: "+91 98765 43210", // [TODO: Replace with verified contact]
+      whatsapp: "+919876543210", // [TODO: Replace with verified WhatsApp]
+      email: "help@swaadsevak.com", // [TODO: Replace with verified email]
+      hours: "9:00 AM – 1:00 AM IST (All 7 Days)",
+      
+      // Verifiable Pricing Placeholders (Single Source of Truth)
+      pricing: {
+        starterMonthly: 999, // [TODO: Set pricing]
+        starterAnnual: 799,
+        growthMonthly: 1999, // [TODO: Set pricing]
+        growthAnnual: 1599,
+        scaleMonthly: 3999, // [TODO: Set pricing]
+        scaleAnnual: 3199,
+        websiteOneTime: 2999, // [TODO: Set pricing]
+        websiteMonthly: 499,
+      },
+
+      // Verifiable Stats (Single Source of Truth)
+      stats: {
+        gmvProcessed: "₹150+ Cr", // [TODO: Replace with audited GMV]
+        outletsCount: "2,400+", // [TODO: Replace with exact active outlets]
+        uptimeSla: "99.98%",
+        avgBillingSpeed: "3 Seconds"
+      }
+    };
+
+    // Bilingual strings
+    const I18N = {
+      en: {
+        heroBadge: "🇮🇳 Built Exclusively for Indian Food Businesses",
+        heroH1: "Restaurant billing software that runs your whole outlet, and gets you a <span class='highlight'>website in 24 hours</span>",
+        heroSub: "Cloud POS, 3-click KOT billing, Zomato/Swiggy aggregation, and offline reliability built for Indian cafes, cloud kitchens & dine-in restaurants.",
+        btnDemo: "Book a 10-Minute Demo",
+        btnWebsite: "Get My Website in 24 Hours",
+        trust1: "Zero Credit Card Required",
+        trust2: "Free Data Migration from Old POS",
+        trust3: "Live Setup in 30 Minutes",
+        painSolTitle: "Fix Your 3 Biggest Restaurant Headaches",
+        featTitle: "Everything You Need to Run a High-Volume Outlet",
+        websiteSecTitle: "Your Restaurant Website, Live in 24 Hours — From ₹2,999",
+        outletsTitle: "Custom-Tailored for Every Outlet Format",
+        pricingTitle: "Transparent, Zero-Hidden-Fee Pricing"
+      },
+      hi: {
+        heroBadge: "🇮🇳 भारतीय रेस्टोरेंट्स और कैफे के लिए विशेष रूप से निर्मित",
+        heroH1: "रेस्टोरेंट बिलिंग सॉफ्टवेयर जो आपका पूरा आउटलेट चलाए, और <span class='highlight'>24 घंटे में वेबसाइट</span> तैयार करे",
+        heroSub: "क्लाउड पीओएस, 3-क्लिक केओटी बिलिंग, ज़ोमैटो/स्विगी इंटीग्रेशन और ऑफलाइन सुविधा — भारतीय कैफे, डाइन-इन और क्लाउड किचन के लिए।",
+        btnDemo: "10-मिनट का फ्री डेमो बुक करें",
+        btnWebsite: "24 घंटे में वेबसाइट प्राप्त करें",
+        trust1: "कोई क्रेडिट कार्ड आवश्यक नहीं",
+        trust2: "पुराने POS से मुफ़्त डेटा माइग्रेशन",
+        trust3: "30 मिनट में लाइव सेटअप",
+        painSolTitle: "रेस्टोरेंट के 3 सबसे बड़े सिरदर्द का स्थायी समाधान",
+        featTitle: "तेज़ और सुचारू संचालन के लिए सभी आवश्यक फीचर्स",
+        websiteSecTitle: "आपके रेस्टोरेंट की वेबसाइट, 24 घंटे में लाइव — केवल ₹2,999 से",
+        outletsTitle: "हर प्रकार के रेस्टोरेंट व कैफे के अनुकूल",
+        pricingTitle: "सरल, पारदर्शी और बिना किसी छिपे शुल्क के प्लान"
+      }
+    };
+
+    let currentLang = 'en';
+  </script>
+
+  <!-- 1. STICKY HEADER -->
+  <header class="header-nav">
+    <div class="container header-inner">
+      <a href="#hero" class="logo-wrap" data-event="nav_logo_click">
+        <div class="logo-badge">S</div>
+        <span>SwaadSevak</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#website-24h">Website in 24h</a></li>
+        <li><a href="#outlets">Outlet Types</a></li>
+        <li><a href="#integrations">Integrations</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+
+      <div class="header-actions">
+        <!-- Language Switcher -->
+        <div class="lang-toggle" title="Switch Language / भाषा बदलें">
+          <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
+          <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हिन्दी</button>
+        </div>
+
+        <a href="tel:+919876543210" class="contact-phone" style="font-size: 0.85rem; font-weight: 600; color: var(--color-ink-700);">
+          📞 <span id="header-phone">+91 98765 43210</span>
+        </a>
+
+        <a href="#book-demo" class="btn btn-primary btn-sm" data-event="header_book_demo">
+          Book Free Demo
+        </a>
+      </div>
+
+      <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. HERO SECTION -->
+  <section id="hero" class="section-py" style="background: radial-gradient(circle at top right, #FFF7ED, #FAF8F5 60%);">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <div class="badge badge-brand" id="hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>🇮🇳 Built Exclusively for Indian Food Businesses</span>
+          </div>
+
+          <h1 class="hero-h1" id="hero-h1">
+            Restaurant billing software that runs your whole outlet, and gets you a <span class="highlight">website in 24 hours</span>
+          </h1>
+
+          <p class="hero-sub" id="hero-sub">
+            Cloud POS, 3-click KOT billing, Zomato/Swiggy aggregation, and offline reliability built for Indian cafes, cloud kitchens & dine-in restaurants.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="#book-demo" class="btn btn-primary btn-lg" data-event="hero_primary_demo" id="hero-btn-demo">
+              Book a 10-Minute Demo
+            </a>
+            <a href="#website-24h" class="btn btn-secondary btn-lg" data-event="hero_secondary_website" id="hero-btn-website">
+              Get My Website in 24 Hours →
+            </a>
+          </div>
+
+          <div class="hero-trust-line">
+            <span id="hero-trust-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Zero Credit Card Required
+            </span>
+            <span id="hero-trust-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Free Data Migration from Old POS
+            </span>
+            <span id="hero-trust-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Live Setup in 30 Minutes
+            </span>
+          </div>
+        </div>
+
+        <!-- Realistic HTML/CSS POS Mockup (No stock photos) -->
+        <div class="mockup-wrapper">
+          <div class="pos-screen">
+            <div class="pos-screen-header">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="display:inline-block; width:8px; height:8px; background:#10B981; border-radius:50%;"></span>
+                <span style="font-weight:700; color:#fff;">SwaadSevak POS — Table 04</span>
+              </div>
+              <span style="background:#374151; padding:2px 8px; border-radius:4px; font-size:0.65rem; color:#9CA3AF;">Offline Mode Ready</span>
+            </div>
+
+            <div class="pos-screen-body">
+              <!-- Tables View -->
+              <div class="pos-table-grid">
+                <div class="pos-table-card active">
+                  <div style="font-weight:700; color:#F97316;">T-04 (Dine-In)</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">3 Items • ₹820</div>
+                  <div style="font-size:0.6rem; color:#10B981; margin-top:2px;">KOT Sent</div>
+                </div>
+                <div class="pos-table-card">
+                  <div style="font-weight:700;">T-01</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">Vacant</div>
+                </div>
+                <div class="pos-table-card">
+                  <div style="font-weight:700;">T-02</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">Bill Printed</div>
+                </div>
+                <div class="pos-table-card">
+                  <div style="font-weight:700;">T-03</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">Vacant</div>
+                </div>
+                <div class="pos-table-card">
+                  <div style="font-weight:700;">T-05</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">Occupied</div>
+                </div>
+                <div class="pos-table-card">
+                  <div style="font-weight:700;">Takeaway #12</div>
+                  <div style="font-size:0.65rem; color:#9CA3AF;">Ready</div>
+                </div>
+              </div>
+
+              <!-- Cart Summary -->
+              <div class="pos-cart">
+                <div>
+                  <div style="font-weight:700; margin-bottom:0.4rem; color:#E5E7EB; border-bottom:1px solid #374151; padding-bottom:0.25rem;">Active Order (T-04)</div>
+                  <div class="pos-cart-items">
+                    <div class="pos-cart-item">
+                      <span>1x Paneer Butter Masala</span>
+                      <span>₹340</span>
+                    </div>
+                    <div class="pos-cart-item">
+                      <span>2x Butter Garlic Naan</span>
+                      <span>₹180</span>
+                    </div>
+                    <div class="pos-cart-item">
+                      <span>2x Masala Cold Brew</span>
+                      <span>₹300</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pos-cart-totals">
+                  <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#9CA3AF;">
+                    <span>Subtotal</span><span>₹820.00</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#9CA3AF;">
+                    <span>GST (5%)</span><span>₹41.00</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.8rem; color:#FFF; margin-top:0.25rem;">
+                    <span>Total Bill</span><span style="color:#10B981;">₹861.00</span>
+                  </div>
+                  <button style="width:100%; margin-top:0.5rem; background:#EA580C; color:#fff; border:none; border-radius:4px; padding:0.4rem; font-weight:700; font-size:0.7rem; cursor:pointer;">
+                    ⚡ 1-Click Settle & Print
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phone Notification Badge -->
+          <div class="phone-mockup">
+            <div class="phone-screen">
+              <div style="font-weight:800; font-size:0.65rem; display:flex; justify-content:space-between;">
+                <span>Aggregator Hub</span>
+                <span style="color:#10B981;">● Live</span>
+              </div>
+              <div class="phone-order-badge badge-zomato">
+                <span>🔴 Zomato #9821</span>
+                <span style="margin-left:auto; font-weight:700;">₹420</span>
+              </div>
+              <div class="phone-order-badge badge-swiggy">
+                <span>🟠 Swiggy #4102</span>
+                <span style="margin-left:auto; font-weight:700;">₹680</span>
+              </div>
+              <div style="font-size:0.55rem; color:#6B7280; text-align:center; margin-top:2px;">
+                🔔 Auto-accepted & KOT sent
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. TRUST STRIP (Placeholder Logos + Constant Stats) -->
+  <section class="trust-strip">
+    <div class="container">
+      <div class="trust-grid">
+        <div class="trust-numbers">
+          <div>
+            <div class="trust-stat" id="stat-gmv">₹150+ Cr</div>
+            <div class="trust-label">GMV Processed [TODO]</div>
+          </div>
+          <div>
+            <div class="trust-stat" id="stat-outlets">2,400+</div>
+            <div class="trust-label">Outlets Powered [TODO]</div>
+          </div>
+          <div>
+            <div class="trust-stat">99.98%</div>
+            <div class="trust-label">Uptime SLA Guaranteed</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-ink-500); font-weight:700; margin-bottom:0.75rem; text-align:center;">
+            Trusted by modern food brands across India
+          </div>
+          <div class="placeholder-logos">
+            <span class="client-logo-box">[Chai & Chaat Co. TODO]</span>
+            <span class="client-logo-box">[Biryani Mahal TODO]</span>
+            <span class="client-logo-box">[Urban Café TODO]</span>
+            <span class="client-logo-box">[Spice Kitchen TODO]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. PROBLEM TO SOLUTION SECTION -->
+  <section class="section-py" style="background: #FFFFFF;">
+    <div class="container">
+      <div class="text-center" style="max-width: 700px; margin: 0 auto 3.5rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Direct Fixes</div>
+        <h2 id="pain-title" style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Fix Your 3 Biggest Restaurant Headaches</h2>
+        <p style="color: var(--color-ink-700); margin-top: 0.75rem;">
+          Traditional POS systems are clunky, prone to internet crashes, and trap you into paying 28%+ aggregator commissions.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <!-- Problem 1 -->
+        <div class="card pain-card">
+          <div>
+            <div class="pain-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>The Pain: Aggregator Order Chaos</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--color-ink-700);">
+              Juggling 3 separate tablets for Zomato, Swiggy, and Dine-In orders during peak dinner rush causes missed orders and delayed KOTs.
+            </p>
+          </div>
+          <div>
+            <div class="fix-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>The SwaadSevak Fix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-top: 0.35rem;">
+              Single unified dashboard auto-accepts orders from all aggregators and prints instant thermal KOTs directly to kitchen stations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Problem 2 -->
+        <div class="card pain-card">
+          <div>
+            <div class="pain-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>The Pain: Raw Material Theft & Stockouts</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--color-ink-700);">
+              Ingredients run out during service without warning, and unaccounted kitchen pilferage silently eats away 4–7% of your net profits.
+            </p>
+          </div>
+          <div>
+            <div class="fix-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>The SwaadSevak Fix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-top: 0.35rem;">
+              Automated recipe-level raw ingredient deduction upon every punched order, with proactive low-stock alerts sent to owner WhatsApp.
+            </p>
+          </div>
+        </div>
+
+        <!-- Problem 3 -->
+        <div class="card pain-card">
+          <div>
+            <div class="pain-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>The Pain: Zero Direct Brand Presence</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--color-ink-700);">
+              Agencies charge ₹25,000+ and take 4 weeks for a basic website, forcing you to lose repeat diners to third-party commission portals.
+            </p>
+          </div>
+          <div>
+            <div class="fix-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>The SwaadSevak Fix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-top: 0.35rem;">
+              Your branded restaurant website live in 24 hours with digital menu, Google Maps SEO, and 0% commission direct WhatsApp ordering.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. CORE FEATURES GRID (8 CARDS) -->
+  <section id="features" class="section-py" style="background: var(--color-surface-bg);">
+    <div class="container">
+      <div class="text-center" style="max-width: 720px; margin: 0 auto 3.5rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Comprehensive Toolkit</div>
+        <h2 id="feat-title" style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Everything You Need to Run a High-Volume Outlet</h2>
+        <p style="color: var(--color-ink-700); margin-top: 0.75rem;">
+          From your front-of-house captains to kitchen chefs and accountants — built for maximum speed and accuracy.
+        </p>
+      </div>
+
+      <div class="grid-4">
+        <!-- 1 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">3-Click Billing & KOT</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Punch items, split bills, apply 5% GST, and trigger 58mm/80mm thermal receipts in under 3 seconds.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 2 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Recipe & Inventory Control</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Auto-deduct raw materials per dish ordered. Real-time low stock WhatsApp warnings prevent mid-service stockouts.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 3 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Online Order Aggregation</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Centralize Zomato, Swiggy, and ONDC orders onto a single screen with auto-acceptance & rider tracking.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 4 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">80+ Actionable Reports</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Analyze hourly sales, high-margin stars, food waste logs, and download 1-click GSTR-1 ready Excel files.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 5 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">CRM & WhatsApp Loyalty</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Capture customer numbers during billing and send personalized birthday cashback coupons on WhatsApp.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 6 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">QR Scan & Order at Tables</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Diners scan table QR to view photo menus, place re-orders, and call the waiter without downloading any app.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 7 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Kitchen Display (KDS)</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Color-coded preparation timers replace paper tickets. Chefs mark dishes ready to alert runners instantly.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+
+        <!-- 8 -->
+        <div class="card">
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/></svg>
+          </div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">100% Offline Mode</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700); margin-bottom: 1rem;">
+            Broadband down? Continue punching KOTs and settling cash/UPI bills without interruption. Auto-syncs on reconnect.
+          </p>
+          <a href="#book-demo" style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-600);">Learn more →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FEATURED SECTION — "WEBSITE IN 24 HOURS" -->
+  <section id="website-24h" class="section-py" style="background: #FFFFFF;">
+    <div class="container">
+      <div class="highlight-section">
+        <div class="text-center" style="max-width: 780px; margin: 0 auto;">
+          <div class="badge badge-brand" style="margin-bottom:0.75rem;">Signature Guarantee</div>
+          <h2 id="website-sec-title" style="font-size: clamp(2rem, 3.5vw, 2.75rem); color: var(--color-ink-900);">
+            Your Restaurant Website, Live in 24 Hours — From ₹2,999
+          </h2>
+          <p style="color: var(--color-ink-700); font-size: 1.05rem; margin-top: 0.75rem;">
+            Stop losing 28% to aggregators on your loyal repeat customers. Get a high-converting, mobile-friendly restaurant website with direct WhatsApp ordering.
+          </p>
+        </div>
+
+        <!-- 3-Step Visual -->
+        <div class="step-pills">
+          <div class="step-pill">
+            <div class="step-num">1</div>
+            <h4 style="font-size: 1rem; margin-bottom: 0.35rem;">Share Menu & Details</h4>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+              Fill our simple 2-minute form or WhatsApp us your PDF menu, logo, and store photos.
+            </p>
+          </div>
+
+          <div class="step-pill">
+            <div class="step-num">2</div>
+            <h4 style="font-size: 1rem; margin-bottom: 0.35rem;">We Build & Optimize</h4>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+              Our web engineers create a custom, mobile-first ordering site with Google Maps SEO and WhatsApp integration.
+            </p>
+          </div>
+
+          <div class="step-pill">
+            <div class="step-num">3</div>
+            <h4 style="font-size: 1rem; margin-bottom: 0.35rem;">Live Within 24 Hours</h4>
+            <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+              Your website goes live on your custom domain with 2 free revision rounds included.
+            </p>
+          </div>
+        </div>
+
+        <!-- Two Column: Included Checklist & Sample Templates + Inline Form -->
+        <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 2.5rem; margin-top: 2rem;">
+          <!-- Left: Checklist & Templates -->
+          <div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">What’s Included in the 24h Package:</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; color: var(--color-ink-800);">
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Custom Domain Connection (e.g. yourcafe.in or yourcafe.com)
+              </li>
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Mobile-First, Lightning-Fast Performance (Lighthouse 95+ score)
+              </li>
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Complete Interactive Digital Menu & Online Ordering Cart
+              </li>
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Direct WhatsApp 1-Click Ordering & Table Booking Button
+              </li>
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Google Maps Location Embed & Local SEO Rich Snippets
+              </li>
+              <li style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                2 Free Revisions Included for menu tweaks & pricing adjustments
+              </li>
+            </ul>
+
+            <!-- Sample HTML/CSS Template Previews -->
+            <div style="margin-top: 2rem;">
+              <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--color-ink-700);">Sample Template Styles:</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="background: #1E293B; color: #fff; padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.75rem;">
+                  <div style="color: #F97316; font-weight: 700;">Template A: Artisan Café</div>
+                  <div style="color: #94A3B8; font-size: 0.7rem; margin-top: 2px;">Warm tones, photo dish cards & barista picks</div>
+                </div>
+                <div style="background: #064E3B; color: #fff; padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.75rem;">
+                  <div style="color: #34D399; font-weight: 700;">Template B: Cloud Kitchen</div>
+                  <div style="color: #A7F3D0; font-size: 0.7rem; margin-top: 2px;">High-conversion combo deals & quick re-order</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price & Fine Print -->
+            <div style="margin-top: 1.5rem; background: var(--color-surface-muted); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-surface-border);">
+              <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+                <span style="font-size: 1.5rem; font-weight: 800; color: var(--color-brand-600);" id="website-price">₹2,999</span>
+                <span style="font-size: 0.85rem; color: var(--color-ink-500);">one-time setup (or ₹499/mo add-on) [TODO]</span>
+              </div>
+              <p style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.35rem;">
+                *Fine print: The 24-hour delivery timeline begins immediately after we receive your menu items and brand logo.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Inline Request Form -->
+          <div class="card" style="background: #FFFFFF; border-color: var(--color-brand-500); box-shadow: var(--shadow-lg);">
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Request Your Website in 24h</h3>
+            <p style="font-size: 0.85rem; color: var(--color-ink-500); margin-bottom: 1.25rem;">
+              Fill in your details — our team will message you on WhatsApp to kick off your build.
+            </p>
+
+            <form id="website-form" onsubmit="handleWebsiteFormSubmit(event)">
+              <!-- Spam Honeypot -->
+              <input type="text" name="website_url_trap" class="hidden-trap" tabindex="-1" autocomplete="off" />
+
+              <div class="form-group">
+                <label class="form-label">Restaurant / Café Name *</label>
+                <input type="text" id="wf-brand" class="form-input" placeholder="e.g. Royal Chai & Kitchen" required />
+                <div class="error-msg" id="err-wf-brand">Please enter your restaurant name</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">Owner Name *</label>
+                  <input type="text" id="wf-name" class="form-input" placeholder="Your name" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">WhatsApp Number *</label>
+                  <input type="tel" id="wf-phone" class="form-input" placeholder="+91 98765 43210" value="+91 " required />
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">City *</label>
+                  <input type="text" id="wf-city" class="form-input" placeholder="e.g. Bengaluru / Delhi" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Cuisine Type *</label>
+                  <select id="wf-cuisine" class="form-select" required>
+                    <option value="">Select Cuisine</option>
+                    <option value="Cafe / Bakery">Café & Bakery</option>
+                    <option value="North / South Indian">North & South Indian</option>
+                    <option value="Biryani / Cloud Kitchen">Biryani & Cloud Kitchen</option>
+                    <option value="Fast Food / QSR">Fast Food & QSR</option>
+                    <option value="Multi-Cuisine">Multi-Cuisine / Bar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Preferred Brand Colors (Optional)</label>
+                <input type="text" id="wf-colors" class="form-input" placeholder="e.g. Warm orange & cream / Emerald & gold" />
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.9rem;" data-event="website_form_submit">
+                🚀 Start My 24-Hour Delivery Clock
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. WORKS FOR EVERY OUTLET TYPE (TABS) -->
+  <section id="outlets" class="section-py" style="background: var(--color-surface-bg);">
+    <div class="container">
+      <div class="text-center" style="max-width: 700px; margin: 0 auto 3rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Format Versatility</div>
+        <h2 id="outlets-title" style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Custom-Tailored for Every Outlet Format</h2>
+        <p style="color: var(--color-ink-700); margin-top: 0.75rem;">
+          Whether you run a 4-table specialty chai bar or a 50-table fine dine, SwaadSevak adapts to your floor plan.
+        </p>
+      </div>
+
+      <!-- Tabs Nav -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchOutletTab('cafe', this)">Café & Bakery</button>
+        <button class="tab-btn" onclick="switchOutletTab('qsr', this)">QSR & Fast Food</button>
+        <button class="tab-btn" onclick="switchOutletTab('finedine', this)">Fine Dine & Bistro</button>
+        <button class="tab-btn" onclick="switchOutletTab('cloudkitchen', this)">Cloud Kitchen</button>
+        <button class="tab-btn" onclick="switchOutletTab('bar', this)">Bar & Pub</button>
+        <button class="tab-btn" onclick="switchOutletTab('chains', this)">Multi-Outlet Chain</button>
+      </div>
+
+      <!-- Tab Contents -->
+      <div id="tab-cafe" class="tab-content active">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Fast Counter Quick-Bill</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Punch coffees and pastries with single-tap modifiers (Oat milk, sugar-free) in 2 seconds.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Bakery Expiry Tracking</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Batch management flags shelf-life items to reduce pastry and cake wastage.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Table QR Loyalty</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Diners working on laptops scan QR to order repeat cold brews without standing in line.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-qsr" class="tab-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">High-Speed Token System</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Print order numbers on bills and announce ready orders on customer-facing display screens.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Combo & Add-On Prompts</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">POS automatically reminds cashiers to upsell fries and drinks during billing.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Instant Dynamic QR Code</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Generate exact amount UPI QR code on the payment screen for zero-reconciliation errors.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-finedine" class="tab-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Visual Floor Plan & Captain App</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Waiters take orders table-side on Android phones with instant wireless KOT printing.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Course-Wise KOT Routing</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Hold main course KOTs until starters are served to maintain kitchen pacing.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Split & Merge Bills</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Easily split bills item-wise or equally between large groups with separate payment modes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-cloudkitchen" class="tab-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Multi-Brand Virtual POS</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Manage 5+ cloud kitchen brands from a single kitchen setup and shared inventory pool.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Auto-Aggregator Sync</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Auto-accept Zomato & Swiggy orders to maintain a perfect 0% cancellation score.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Packaging Material Tracking</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Deduct containers, cutlery, and delivery bags alongside food ingredients.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-bar" class="tab-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Peg & Bottle Pour Control</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Auto-track 30ml/60ml peg measures with exact liquor stock bottle reconciliation.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Happy Hour Scheduler</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Automated 1+1 and percentage discounts apply seamlessly during preset time windows.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">State VAT & Excise Reports</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Generate state-specific excise and liquor sales logs with zero manual calculations.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-chains" class="tab-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Central Menu & Price Push</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Update prices and seasonal dishes across 100+ stores with 1 single click.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Central Kitchen (Base Kitchen)</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Manage raw material indent requests, warehouse dispatches, and inter-store transfers.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size: 1.1rem; color: var(--color-brand-600); margin-bottom: 0.5rem;">Franchise Royalties & Audit</h4>
+            <p style="font-size: 0.875rem; color: var(--color-ink-700);">Automated royalty calculation with role-based access control and anti-theft cash audits.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. INTEGRATIONS (Verified with [CONFIRM] Tags) -->
+  <section id="integrations" class="section-py" style="background: #FFFFFF;">
+    <div class="container text-center">
+      <div class="badge badge-brand" style="margin-bottom:0.5rem;">Ecosystem Partners</div>
+      <h2 style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Seamless Integrations with the Tools You Use</h2>
+      <p style="color: var(--color-ink-700); max-width: 600px; margin: 0.75rem auto 3rem auto;">
+        Direct two-way integrations that save your staff from manual duplicate data entry.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem;">
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #E11D48;">Zomato</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">Direct Order Sync <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #EA580C;">Swiggy</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">Menu & Order Sync <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #2563EB;">ONDC</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">Open Network Protocol <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #059669;">UPI & Razorpay</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">Dynamic QR Settlement <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #D97706;">TallyPrime</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">1-Click Accounting Export <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: #25D366;">WhatsApp Cloud</div>
+          <div style="font-size: 0.75rem; color: var(--color-ink-500); margin-top: 0.25rem;">Digital Bill & CRM API <span style="color:#EA580C; font-weight:700;">[CONFIRM]</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. HOW IT WORKS / ONBOARDING -->
+  <section class="section-py" style="background: var(--color-surface-bg);">
+    <div class="container">
+      <div class="text-center" style="max-width: 650px; margin: 0 auto 3.5rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Fast Transition</div>
+        <h2 style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Go Live in 3 Simple Steps with Zero Downtime</h2>
+        <p style="color: var(--color-ink-700); margin-top: 0.75rem;">
+          Our deployment specialists handle your complete menu and data migration for free.
+        </p>
+      </div>
+
+      <div class="step-pills">
+        <div class="step-pill">
+          <div class="step-num">1</div>
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--color-brand-600); text-transform: uppercase;">Day 1 (30 Mins)</div>
+          <h4 style="font-size: 1.1rem; margin: 0.25rem 0 0.4rem 0;">1-Click AI Menu Import</h4>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+            Upload your existing menu PDF or Excel. Our AI automatically extracts categories, prices, portion sizes, and taxes.
+          </p>
+        </div>
+
+        <div class="step-pill">
+          <div class="step-num">2</div>
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--color-brand-600); text-transform: uppercase;">Day 1–2 (24 Hours)</div>
+          <h4 style="font-size: 1.1rem; margin: 0.25rem 0 0.4rem 0;">Free Data Migration</h4>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+            Switching from Petpooja, Posist, or Vyapar? Our engineers migrate your customer history and recipe database with zero data loss.
+          </p>
+        </div>
+
+        <div class="step-pill">
+          <div class="step-num">3</div>
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--color-brand-600); text-transform: uppercase;">Day 2 (30 Mins)</div>
+          <h4 style="font-size: 1.1rem; margin: 0.25rem 0 0.4rem 0;">Staff & Captain Training</h4>
+          <p style="font-size: 0.85rem; color: var(--color-ink-700);">
+            Simple, intuitive UI requires under 30 minutes of staff orientation. We run test bills with your cashiers until they are 100% confident.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. PRICING SECTION -->
+  <section id="pricing" class="section-py" style="background: #FFFFFF;">
+    <div class="container">
+      <div class="text-center" style="max-width: 700px; margin: 0 auto 2.5rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Transparent Plans</div>
+        <h2 id="pricing-title" style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Simple Pricing Built for Sustainable Food Businesses</h2>
+        <p style="color: var(--color-ink-700); margin-top: 0.75rem;">
+          No hidden transaction cuts, no locked-in long term contracts. Choose the plan that fits your current outlet scale.
+        </p>
+      </div>
+
+      <!-- Pricing Toggle -->
+      <div class="pricing-toggle">
+        <span id="label-monthly">Monthly</span>
+        <label class="switch-wrap">
+          <input type="checkbox" id="pricing-switch" onchange="togglePricingPeriod(this.checked)" />
+          <span class="switch-slider"></span>
+        </label>
+        <span id="label-annual">Annual <span style="background:#ECFDF5; color:#059669; font-size:0.75rem; padding:2px 8px; border-radius:12px; font-weight:700;">Save 20%</span></span>
+      </div>
+
+      <!-- 3 Plans Grid -->
+      <div class="grid-3" style="align-items: stretch;">
+        <!-- Starter Plan -->
+        <div class="card pricing-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Starter Plan</h3>
+            <p style="font-size: 0.85rem; color: var(--color-ink-500); margin-bottom: 1.5rem;">For single cafes, food stalls & small bistros.</p>
+            <div style="display:flex; align-items:baseline; gap:0.25rem; margin-bottom:1.5rem;">
+              <span style="font-size: 2.25rem; font-weight:800; color:var(--color-ink-900);" id="price-starter">₹999</span>
+              <span style="font-size: 0.85rem; color:var(--color-ink-500);">/ month [TODO]</span>
+            </div>
+
+            <ul style="list-style:none; display:flex; flex-direction:column; gap:0.65rem; font-size:0.875rem; color:var(--color-ink-700); margin-bottom:2rem;">
+              <li>✓ 1 Active Billing Counter + 2 Captain Logins</li>
+              <li>✓ Unlimited Table KOTs & GST Billing</li>
+              <li>✓ Offline Mode with Cloud Sync</li>
+              <li>✓ QR Code Scan & Menu View</li>
+              <li>✓ Daily WhatsApp Sales Summary</li>
+            </ul>
+          </div>
+          <a href="#book-demo" class="btn btn-secondary" style="width:100%;">Start Free Trial</a>
+        </div>
+
+        <!-- Growth Plan (Most Popular) -->
+        <div class="card pricing-card popular" style="display:flex; flex-direction:column; justify-content:space-between; background:#FFFBF5;">
+          <div class="popular-tag">MOST POPULAR</div>
+          <div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Growth Plan</h3>
+            <p style="font-size: 0.85rem; color: var(--color-ink-500); margin-bottom: 1.5rem;">For high-volume dine-in restaurants & busy cloud kitchens.</p>
+            <div style="display:flex; align-items:baseline; gap:0.25rem; margin-bottom:1.5rem;">
+              <span style="font-size: 2.25rem; font-weight:800; color:var(--color-brand-600);" id="price-growth">₹1,999</span>
+              <span style="font-size: 0.85rem; color:var(--color-ink-500);">/ month [TODO]</span>
+            </div>
+
+            <ul style="list-style:none; display:flex; flex-direction:column; gap:0.65rem; font-size:0.875rem; color:var(--color-ink-700); margin-bottom:2rem;">
+              <li>✓ <strong>Everything in Starter, plus:</strong></li>
+              <li>✓ Zomato & Swiggy Central Order Hub</li>
+              <li>✓ Recipe-Level Inventory & Low-Stock Alerts</li>
+              <li>✓ Kitchen Display System (KDS) Screen</li>
+              <li>✓ CRM Loyalty & Automated WhatsApp Promotions</li>
+              <li>✓ Direct Table QR Ordering & Bill Requests</li>
+            </ul>
+          </div>
+          <a href="#book-demo" class="btn btn-primary" style="width:100%;">Get Growth Demo</a>
+        </div>
+
+        <!-- Scale Plan -->
+        <div class="card pricing-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Scale & Chain</h3>
+            <p style="font-size: 0.85rem; color: var(--color-ink-500); margin-bottom: 1.5rem;">For multi-outlet brands & growing franchise networks.</p>
+            <div style="display:flex; align-items:baseline; gap:0.25rem; margin-bottom:1.5rem;">
+              <span style="font-size: 2.25rem; font-weight:800; color:var(--color-ink-900);" id="price-scale">₹3,999</span>
+              <span style="font-size: 0.85rem; color:var(--color-ink-500);">/ month [TODO]</span>
+            </div>
+
+            <ul style="list-style:none; display:flex; flex-direction:column; gap:0.65rem; font-size:0.875rem; color:var(--color-ink-700); margin-bottom:2rem;">
+              <li>✓ <strong>Everything in Growth, plus:</strong></li>
+              <li>✓ Multi-Outlet HQ Dashboard & Role Permissions</li>
+              <li>✓ Central Kitchen Indent & Stock Transfer</li>
+              <li>✓ Custom ERP & Accounting API Integration</li>
+              <li>✓ Dedicated Account Manager & 24/7 Priority Support</li>
+            </ul>
+          </div>
+          <a href="#book-demo" class="btn btn-secondary" style="width:100%;">Contact Sales</a>
+        </div>
+      </div>
+
+      <!-- Add-on note -->
+      <div style="margin-top: 2rem; text-align: center; font-size: 0.85rem; color: var(--color-ink-500);">
+        *Billed Add-ons: Website in 24h setup (₹2,999 one-time [TODO]), Extra KDS screens (₹299/mo), Bulk WhatsApp marketing message packs at official Meta rates.
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. COMPARISON TABLE -->
+  <section class="section-py" style="background: var(--color-surface-bg);">
+    <div class="container">
+      <div class="text-center" style="max-width: 650px; margin: 0 auto 3rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Why Switch?</div>
+        <h2 style="font-size: clamp(1.75rem, 3vw, 2.5rem);">How SwaadSevak Compares to Legacy POS Systems</h2>
+      </div>
+
+      <div class="table-container">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Feature / Capability</th>
+              <th class="col-highlight" style="width: 35%;">SwaadSevak Modern POS</th>
+              <th style="width: 30%;">Typical Legacy POS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Offline Reliability</strong></td>
+              <td class="col-highlight">Full offline billing & KOT with instant background cloud sync</td>
+              <td>Freezes or crashes when internet connection fluctuates</td>
+            </tr>
+            <tr>
+              <td><strong>Website in 24 Hours Offer</strong></td>
+              <td class="col-highlight">Included from ₹2,999 with 0% commission direct ordering</td>
+              <td>Requires hiring expensive 3rd party agencies (₹25k+)</td>
+            </tr>
+            <tr>
+              <td><strong>Hardware Requirements</strong></td>
+              <td class="col-highlight">Runs on any device (Android, iPad, Windows, Mac, Phone)</td>
+              <td>Locked into proprietary, expensive POS terminal hardware</td>
+            </tr>
+            <tr>
+              <td><strong>Aggregator Integration</strong></td>
+              <td class="col-highlight">Included in standard growth plan with central auto-accept</td>
+              <td>High extra monthly add-on fees per aggregator tablet</td>
+            </tr>
+            <tr>
+              <td><strong>Staff Training Time</strong></td>
+              <td class="col-highlight">Under 30 minutes (Designed for easy mobile operation)</td>
+              <td>Days of complex training on clunky 90s-style desktop software</td>
+            </tr>
+            <tr>
+              <td><strong>Data Migration Support</strong></td>
+              <td class="col-highlight">100% Free migration done by our specialists in 24 hours</td>
+              <td>Manual item-by-item entry or heavy migration charges</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. TESTIMONIALS (With Required Placeholder Markings) -->
+  <section class="section-py" style="background: #FFFFFF;">
+    <div class="container">
+      <div class="text-center" style="max-width: 650px; margin: 0 auto 3.5rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Owner Stories</div>
+        <h2 style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Built Alongside Real Indian Restaurateurs</h2>
+      </div>
+
+      <div class="grid-3">
+        <!-- Testimonial 1 -->
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <p style="font-size: 0.925rem; color: var(--color-ink-700); font-style: italic; margin-bottom: 1.5rem;">
+            "[Quote TODO: SwaadSevak cut our billing errors to near zero. Having the website ready in under 24 hours helped us launch our direct ordering before our weekend opening rush.]"
+          </p>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:42px; height:42px; border-radius:50%; background:var(--color-brand-100); color:var(--color-brand-700); display:flex; align-items:center; justify-content:center; font-weight:700;">
+              RS
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">[Rajesh Sharma TODO]</div>
+              <div style="font-size:0.75rem; color:var(--color-ink-500);">Owner, [Chai & Chaat Co. TODO, 3 Outlets, Mumbai]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <p style="font-size: 0.925rem; color: var(--color-ink-700); font-style: italic; margin-bottom: 1.5rem;">
+            "[Quote TODO: We manage 4 cloud brands under one roof. The centralized aggregator hub and automatic ingredient deduction saved us over ₹35,000 in monthly food waste.]"
+          </p>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:42px; height:42px; border-radius:50%; background:var(--color-brand-100); color:var(--color-brand-700); display:flex; align-items:center; justify-content:center; font-weight:700;">
+              AK
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">[Ananya Kapoor TODO]</div>
+              <div style="font-size:0.75rem; color:var(--color-ink-500);">Co-Founder, [Urban Bowl Kitchens TODO, Bengaluru]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <p style="font-size: 0.925rem; color: var(--color-ink-700); font-style: italic; margin-bottom: 1.5rem;">
+            "[Quote TODO: The offline mode saved us twice during heavy monsoon broadband disruptions. Our captains never stopped punching orders on their tablets.]"
+          </p>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:42px; height:42px; border-radius:50%; background:var(--color-brand-100); color:var(--color-brand-700); display:flex; align-items:center; justify-content:center; font-weight:700;">
+              VP
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">[Vikram Patel TODO]</div>
+              <div style="font-size:0.75rem; color:var(--color-ink-500);">Managing Partner, [Saffron Bistro TODO, Ahmedabad]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. FAQ (ACCORDION, 8 ITEMS) -->
+  <section id="faq" class="section-py" style="background: var(--color-surface-bg);">
+    <div class="container">
+      <div class="text-center" style="max-width: 650px; margin: 0 auto 3rem auto;">
+        <div class="badge badge-brand" style="margin-bottom:0.5rem;">Got Questions?</div>
+        <h2 style="font-size: clamp(1.75rem, 3vw, 2.5rem);">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <!-- 1 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>What hardware do I need to run SwaadSevak?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            SwaadSevak runs seamlessly on any standard device you already own — Android tablets, iPads, Windows laptops, MacBooks, and Android smartphones for captains. It connects to any standard 58mm or 80mm ESC/POS USB, Bluetooth, or WiFi thermal receipt printer.
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Does SwaadSevak work when the internet is down?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Yes. SwaadSevak has an offline-first architecture. You can punch KOTs, print receipts, and record cash/UPI payments without active internet. The moment connectivity is restored, all data automatically syncs back to your cloud dashboard.
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>How does free data migration from my old POS work?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Simply send us your menu spreadsheet, PDF, or item export from your previous POS software (Petpooja, Posist, Excel, etc.). Our onboarding team extracts your categories, dishes, modifiers, prices, and past customer logs and sets up your account within 24 hours at zero charge.
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>How do Zomato, Swiggy, and ONDC integrations work?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            All online orders from Zomato, Swiggy, and ONDC flow directly into your SwaadSevak central order dashboard. You can configure auto-acceptance, instantly toggle items in/out of stock across all portals, and route orders directly to thermal kitchen printers.
+          </div>
+        </div>
+
+        <!-- 5 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Are there any hidden transaction fees or commissions?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Zero. We charge a flat, transparent software subscription. We never take any percentage cut or transaction fee on your dine-in, takeaway, or direct website orders.
+          </div>
+        </div>
+
+        <!-- 6 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>What are your customer support hours?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Our support desk is active all 7 days a week from 9:00 AM to 1:00 AM IST. You can reach our dedicated technical team directly via phone call, WhatsApp, or screen-sharing for instant issue resolution during your service hours.
+          </div>
+        </div>
+
+        <!-- 7 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>What are the terms for the "Website in 24 Hours" guarantee?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Once you submit your restaurant name, menu items, prices, and brand logo via our online form or WhatsApp, our web team delivers your live working website URL within 24 hours. The package includes your custom domain setup, WhatsApp order integration, and 2 rounds of free revisions.
+          </div>
+        </div>
+
+        <!-- 8 -->
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Can I cancel or change my plan anytime?</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Yes. Monthly plans have no lock-in contract and can be cancelled at any time. You can export all your past sales reports, customer logs, and inventory data to Excel with a single click before closing your account.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. FINAL CTA BAND + DEMO BOOKING FORM -->
+  <section id="book-demo" class="section-py" style="background: linear-gradient(180deg, #181E24 0%, #0F172A 100%); color: #FFFFFF;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: center;">
+        <div>
+          <div class="badge badge-brand" style="background: rgba(234, 88, 12, 0.2); color: #FB923C; border-color: rgba(234, 88, 12, 0.4); margin-bottom: 1rem;">
+            Ready to Modernize?
+          </div>
+          <h2 style="font-size: clamp(2rem, 3.5vw, 2.75rem); color: #FFFFFF; margin-bottom: 1rem;">
+            Get a 10-Minute Guided Demo for Your Restaurant
+          </h2>
+          <p style="color: #94A3B8; font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem;">
+            See how SwaadSevak handles 3-click KOT billing, aggregator sync, and sets up your 24-hour restaurant website.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem; color: #CBD5E1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Personalized walkthrough customized to your specific outlet format</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>100% Free menu setup and old POS data migration</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Instant WhatsApp confirmation & live callback within 15 minutes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demo Booking Form -->
+        <div class="card" style="background: #FFFFFF; color: var(--color-ink-900); padding: 2.25rem;">
+          <h3 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Book Your Free Demo</h3>
+          <p style="font-size: 0.85rem; color: var(--color-ink-500); margin-bottom: 1.25rem;">No credit card required. Zero obligation.</p>
+
+          <form id="demo-form" onsubmit="handleDemoFormSubmit(event)">
+            <!-- Honeypot -->
+            <input type="text" name="demo_bot_check" class="hidden-trap" tabindex="-1" autocomplete="off" />
+
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" id="df-name" class="form-input" placeholder="e.g. Ramesh Verma" required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">WhatsApp Number *</label>
+                <input type="tel" id="df-phone" class="form-input" placeholder="+91 98765 43210" value="+91 " required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">City *</label>
+                <input type="text" id="df-city" class="form-input" placeholder="e.g. Mumbai" required />
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Business / Restaurant Name *</label>
+                <input type="text" id="df-business" class="form-input" placeholder="e.g. The Chai Co." required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Outlet Type *</label>
+                <select id="df-type" class="form-select" required>
+                  <option value="">Select Type</option>
+                  <option value="Cafe">Café & Bakery</option>
+                  <option value="QSR">Fast Food / QSR</option>
+                  <option value="Fine Dine">Dine-In Restaurant</option>
+                  <option value="Cloud Kitchen">Cloud Kitchen</option>
+                  <option value="Bar / Pub">Bar & Pub</option>
+                  <option value="Chain">Multi-Outlet Chain</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Which do you need? *</label>
+              <select id="df-need" class="form-select" required>
+                <option value="Both POS & Website in 24h">Both POS & Website in 24 Hours (Recommended)</option>
+                <option value="POS Billing Software only">POS Billing Software only</option>
+                <option value="Restaurant Website in 24h only">Restaurant Website in 24h only</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.95rem;" data-event="demo_form_submit">
+              🎯 Confirm Free Demo
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-wrap" style="color: #FFFFFF; margin-bottom: 0.75rem;">
+            <div class="logo-badge">S</div>
+            <span>SwaadSevak</span>
+          </div>
+          <p style="font-size: 0.85rem; color: #94A3B8; line-height: 1.5; margin-bottom: 1.25rem;">
+            Modern, production-grade restaurant POS, 3-click KOT billing, aggregator synchronization, and 24-hour website builder for Indian food establishments.
+          </p>
+          <div style="font-size: 0.85rem; color: #CBD5E1;">
+            <div>📞 Support: <a href="tel:+919876543210" style="color:#FFF;">+91 98765 43210</a> [TODO]</div>
+            <div>✉️ Email: <a href="mailto:help@swaadsevak.com" style="color:#FFF;">help@swaadsevak.com</a> [TODO]</div>
+            <div>⏰ Hours: 9:00 AM – 1:00 AM IST (All 7 Days)</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-title">Product</div>
+          <ul class="footer-links">
+            <li><a href="#features">3-Click KOT Billing</a></li>
+            <li><a href="#features">Inventory & Recipes</a></li>
+            <li><a href="#features">Zomato / Swiggy Hub</a></li>
+            <li><a href="#features">Kitchen Display (KDS)</a></li>
+            <li><a href="#features">Table QR Ordering</a></li>
+            <li><a href="#website-24h">Website in 24 Hours</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-title">Outlet Types</div>
+          <ul class="footer-links">
+            <li><a href="#outlets">Café & Bakery</a></li>
+            <li><a href="#outlets">QSR & Fast Food</a></li>
+            <li><a href="#outlets">Fine Dine & Bistro</a></li>
+            <li><a href="#outlets">Cloud Kitchens</a></li>
+            <li><a href="#outlets">Bar & Pub</a></li>
+            <li><a href="#outlets">Multi-Outlet Chains</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-title">Resources & Tools</div>
+          <ul class="footer-links">
+            <li><a href="#pricing">Pricing Plans</a></li>
+            <li><a href="#faq">Hardware Guide</a></li>
+            <li><a href="#faq">GSTR-1 GST Guide</a></li>
+            <li><a href="#integrations">Partner Integrations</a></li>
+            <li><a href="#book-demo">Book Free Demo</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-title">Company & Legal</div>
+          <ul class="footer-links">
+            <li><a href="#hero">About SwaadSevak</a></li>
+            <li><a href="#hero">Privacy Policy</a></li>
+            <li><a href="#hero">Terms of Service</a></li>
+            <li><a href="#hero">Refund & Cancellation</a></li>
+            <li><a href="#hero">Data Security Guarantee</a></li>
+            <li style="margin-top: 0.5rem; font-size: 0.75rem; color: #64748B;">
+              [HQ Address: 4th Floor, Tech Hub, Indiranagar, Bengaluru, KA 560038, India - TODO]
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 SwaadSevak Technologies Pvt. Ltd. All rights reserved.</div>
+        <div>Made with ❤️ for Indian Restaurateurs • GST Compliant • 100% Offline Ready</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FLOATING WHATSAPP BUTTON -->
+  <a href="https://wa.me/919876543210?text=Hi%20SwaadSevak,%20I%20want%20to%20know%20more%20about%20your%20restaurant%20POS%20and%2024-hour%20website" 
+     class="floating-whatsapp" 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     title="Chat with us on WhatsApp" 
+     data-event="floating_whatsapp_click"
+     aria-label="Chat on WhatsApp">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </a>
+
+  <!-- MOBILE STICKY BOTTOM BAR -->
+  <div class="mobile-sticky-bar">
+    <a href="tel:+919876543210" class="btn btn-secondary" style="flex: 1; padding: 0.65rem;" data-event="mobile_sticky_call">
+      📞 Call Us
+    </a>
+    <a href="#book-demo" class="btn btn-primary" style="flex: 2; padding: 0.65rem;" data-event="mobile_sticky_demo">
+      Book Free Demo
+    </a>
+  </div>
+
+  <!-- COOKIE CONSENT BANNER -->
+  <div id="cookie-banner" class="cookie-banner">
+    <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.35rem;">Cookie & Privacy Preferences</div>
+    <p style="font-size:0.8rem; color:var(--color-ink-700); margin-bottom:0.85rem;">
+      We use cookies to analyze site traffic and enhance your demo booking experience.
+    </p>
+    <div style="display:flex; gap:0.5rem;">
+      <button class="btn btn-primary btn-sm" onclick="acceptCookies()">Accept All</button>
+      <button class="btn btn-secondary btn-sm" onclick="rejectCookies()">Reject</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS CONFIRMATION MODAL -->
+  <div id="success-modal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div style="width:60px; height:60px; background:#ECFDF5; color:#10B981; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem auto;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 id="modal-title" style="font-size: 1.4rem; margin-bottom: 0.5rem;">Request Received!</h3>
+      <p id="modal-desc" style="color: var(--color-ink-700); font-size: 0.925rem; line-height: 1.5; margin-bottom: 1.5rem;">
+        Got it! We'll message you on WhatsApp within 2 hours to start your 24-hour delivery clock.
+      </p>
+      <button class="btn btn-primary" style="width: 100%;" onclick="closeModalDirect()">Done</button>
+    </div>
+  </div>
+
+  <!-- INTERACTION & LOGIC JAVASCRIPT -->
+  <script>
+    // 1. Language Toggle Logic
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+      document.getElementById('lang-hi').classList.toggle('active', lang === 'hi');
+
+      const strings = I18N[lang];
+      document.getElementById('hero-badge').querySelector('span').innerHTML = strings.heroBadge;
+      document.getElementById('hero-h1').innerHTML = strings.heroH1;
+      document.getElementById('hero-sub').innerText = strings.heroSub;
+      document.getElementById('hero-btn-demo').innerText = strings.btnDemo;
+      document.getElementById('hero-btn-website').innerText = strings.btnWebsite;
+      document.getElementById('hero-trust-1').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${strings.trust1}`;
+      document.getElementById('hero-trust-2').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${strings.trust2}`;
+      document.getElementById('hero-trust-3').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${strings.trust3}`;
+      
+      document.getElementById('pain-title').innerText = strings.painSolTitle;
+      document.getElementById('feat-title').innerText = strings.featTitle;
+      document.getElementById('website-sec-title').innerText = strings.websiteSecTitle;
+      document.getElementById('outlets-title').innerText = strings.outletsTitle;
+      document.getElementById('pricing-title').innerText = strings.pricingTitle;
+    }
+
+    // 2. Outlet Format Tabs
+    function switchOutletTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      btnElement.classList.add('active');
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.add('active');
+    }
+
+    // 3. Pricing Period Toggle
+    function togglePricingPeriod(isAnnual) {
+      const p = APP_CONFIG.pricing;
+      document.getElementById('price-starter').innerText = `₹${isAnnual ? p.starterAnnual : p.starterMonthly}`;
+      document.getElementById('price-growth').innerText = `₹${isAnnual ? p.growthAnnual : p.growthMonthly}`;
+      document.getElementById('price-scale').innerText = `₹${isAnnual ? p.scaleAnnual : p.scaleMonthly}`;
+    }
+
+    // 4. FAQ Accordion Toggle
+    function toggleFaq(button) {
+      const item = button.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) item.classList.add('active');
+    }
+
+    // 5. Mobile Nav Toggle
+    function toggleMobileNav() {
+      const links = document.querySelector('.nav-links');
+      if (links.style.display === 'flex') {
+        links.style.display = 'none';
+      } else {
+        links.style.display = 'flex';
+        links.style.flexDirection = 'column';
+        links.style.position = 'absolute';
+        links.style.top = '4.5rem';
+        links.style.left = '0';
+        links.style.right = '0';
+        links.style.background = '#FAF8F5';
+        links.style.padding = '1.5rem';
+        links.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+      }
+    }
+
+    // 6. Cookie Banner Logic
+    function checkCookieConsent() {
+      if (!localStorage.getItem('swaad_cookie_consent')) {
+        document.getElementById('cookie-banner').classList.add('show');
+      }
+    }
+    function acceptCookies() {
+      localStorage.setItem('swaad_cookie_consent', 'accepted');
+      document.getElementById('cookie-banner').classList.remove('show');
+    }
+    function rejectCookies() {
+      localStorage.setItem('swaad_cookie_consent', 'rejected');
+      document.getElementById('cookie-banner').classList.remove('show');
+    }
+
+    // 7. Form Validation & Submissions
+    function handleWebsiteFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      
+      // Honeypot spam check
+      if (form.website_url_trap.value) {
+        console.warn('Bot submission blocked');
+        return;
+      }
+
+      const brand = document.getElementById('wf-brand').value.trim();
+      const phone = document.getElementById('wf-phone').value.trim();
+      
+      if (!brand || phone.length < 10) {
+        alert('Please provide your restaurant name and valid WhatsApp number.');
+        return;
+      }
+
+      // TODO: Connect this payload to your backend / Google Sheets / WhatsApp API
+      const payload = {
+        type: 'WEBSITE_24H_REQUEST',
+        restaurantName: brand,
+        ownerName: document.getElementById('wf-name').value.trim(),
+        phone: phone,
+        city: document.getElementById('wf-city').value.trim(),
+        cuisine: document.getElementById('wf-cuisine').value,
+        colors: document.getElementById('wf-colors').value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      console.log('[LEAD SUBMISSION - WEBSITE 24H]:', payload);
+
+      showSuccessModal(
+        "Website Clock Started! 🚀", 
+        `Got it! We'll message ${phone} on WhatsApp within 2 hours to confirm your menu items and launch your 24-hour build.`
+      );
+      form.reset();
+      document.getElementById('wf-phone').value = "+91 ";
+    }
+
+    function handleDemoFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+
+      // Honeypot spam check
+      if (form.demo_bot_check.value) {
+        console.warn('Bot submission blocked');
+        return;
+      }
+
+      const name = document.getElementById('df-name').value.trim();
+      const phone = document.getElementById('df-phone').value.trim();
+      const business = document.getElementById('df-business').value.trim();
+
+      if (!name || phone.length < 10 || !business) {
+        alert('Please fill out all required fields with a valid contact number.');
+        return;
+      }
+
+      // TODO: Connect this payload to your backend / CRM webhook
+      const payload = {
+        type: 'DEMO_BOOKING_REQUEST',
+        name: name,
+        phone: phone,
+        city: document.getElementById('df-city').value.trim(),
+        businessName: business,
+        outletType: document.getElementById('df-type').value,
+        need: document.getElementById('df-need').value,
+        timestamp: new Date().toISOString()
+      };
+      console.log('[LEAD SUBMISSION - DEMO BOOKING]:', payload);
+
+      showSuccessModal(
+        "Demo Confirmed! 🎯", 
+        `Thank you ${name}. Our product specialist will WhatsApp/call ${phone} within 15 minutes to run your personalized demo.`
+      );
+      form.reset();
+      document.getElementById('df-phone').value = "+91 ";
+    }
+
+    // Modal Helpers
+    function showSuccessModal(title, desc) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-desc').innerText = desc;
+      document.getElementById('success-modal').classList.add('active');
+    }
+    function closeModal(event) {
+      document.getElementById('success-modal').classList.remove('active');
+    }
+    function closeModalDirect() {
+      document.getElementById('success-modal').classList.remove('active');
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkCookieConsent();
+    });
+  </script>
+</body>
+</html>

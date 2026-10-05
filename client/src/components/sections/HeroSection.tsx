@@ -124,13 +124,12 @@ export const HeroSection: React.FC = () => {
             <div className="relative w-full rounded-3xl overflow-hidden border border-walnut/60 shadow-2xl bg-[#2B1A12]/80 backdrop-blur-sm p-3 sm:p-4">
               
               {/* Main Illustration Graphic */}
-              <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-espresso">
+              <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-white">
                 <img
                   src="/brand/hero-showcase.jpg"
-                  alt="SwaadSevak Restaurant Website & POS Showcase"
+                  alt="SwaadSevak Restaurant Operating System Team Illustration"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A0F0A]/90 via-transparent to-black/20" />
               </div>
 
               {/* Floating Feature Badge 1: Custom Website Design (Top-Left) */}

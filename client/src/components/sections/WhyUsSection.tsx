@@ -46,13 +46,13 @@ export const WhyUsSection: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6">
               <div className="max-w-md">
                 <span className="text-xs uppercase font-mono font-extrabold tracking-wider block mb-1" style={{ color: '#FB923C' }}>
-                  01 • Auto Cloud Sync
+                  01 • Real-Time Cloud Engine
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: '#FFFFFF' }}>
-                  Continuous Updates &amp; 100% Offline Resilience
+                  Continuous Cloud Updates &amp; Instant Sync
                 </h3>
                 <p className="text-sm leading-relaxed font-normal" style={{ color: '#F5E9DD' }}>
-                  Automatic feature rollouts with zero downtime. Even if broadband dips during a peak dinner rush, cashiers continue billing and KOTs print locally without freezing.
+                  Automatic feature rollouts with zero downtime. Multi-terminal sync keeps your cash counters, captain tablets, and kitchen displays seamlessly synchronized in real-time.
                 </p>
               </div>
               <div className="w-full sm:w-auto shrink-0 flex justify-center">
@@ -61,7 +61,7 @@ export const WhyUsSection: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 text-xs font-medium pt-4" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
               <CheckCircle2 className="w-4 h-4 text-success" />
-              <span>Offline SQLite cache automatically syncs on reconnect</span>
+              <span>Instant real-time multi-device cloud synchronization</span>
             </div>
           </div>
 

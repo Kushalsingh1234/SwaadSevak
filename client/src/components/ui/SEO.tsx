@@ -10,8 +10,8 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'SwaadSevak — Restaurant POS, Offline KOT & 24h Custom Website',
-  description = '3-touch billing, offline thermal KOT, Zomato/Swiggy aggregator sync, automated recipe stock deduction, and your custom restaurant website live in 24 hours.',
+  title = 'SwaadSevak — Restaurant POS, Cloud KOT & 24h Custom Website',
+  description = '3-touch billing, instant thermal KOT, Zomato/Swiggy aggregator sync, automated recipe stock deduction, and your custom restaurant website live in 24 hours.',
   canonicalUrl = 'https://swaadsevak.vercel.app/',
   ogImage = 'https://swaadsevak.vercel.app/brand/og-image.png',
 }) => {

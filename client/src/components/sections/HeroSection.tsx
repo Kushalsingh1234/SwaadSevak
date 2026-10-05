@@ -1,6 +1,6 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
-import { ArrowRight, MessageSquare, ChevronDown, Zap, WifiOff, ShoppingBag, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, MessageSquare, ChevronDown, Zap, QrCode, ShoppingBag, Globe } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const HeroSection: React.FC = () => {
@@ -52,7 +52,7 @@ export const HeroSection: React.FC = () => {
           className="text-base sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed mb-10 font-medium"
           style={{ color: '#F5E9DD' }}
         >
-          Everything an Indian restaurant owner needs: 3-click POS billing, offline KOT, aggregator sync, automated recipe inventory, and rapid restaurant website advisory.
+          Everything an Indian restaurant owner needs: 3-click POS billing, instant thermal KOT, aggregator sync, automated recipe inventory, and rapid restaurant website advisory.
         </p>
 
         {/* Action CTAs */}
@@ -100,12 +100,12 @@ export const HeroSection: React.FC = () => {
             className="p-3.5 rounded-2xl text-left flex items-center gap-3 shadow-card border border-walnut/70 transition-all hover:-translate-y-1"
             style={{ backgroundColor: '#3D2519' }}
           >
-            <div className="w-9 h-9 rounded-xl bg-green-500/20 text-green-400 flex items-center justify-center shrink-0">
-              <WifiOff className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+              <QrCode className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-xs sm:text-sm text-white block">100% Offline</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Auto Cloud Sync</span>
+              <span className="font-bold text-xs sm:text-sm text-white block">Dynamic UPI QR</span>
+              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Instant Settlement</span>
             </div>
           </div>
 

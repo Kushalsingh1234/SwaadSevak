@@ -83,8 +83,8 @@ export const SITE_CONTENT = {
     },
     {
       value: '99.99%',
-      label: 'Offline Billing Resilience',
-      sub: 'Local sync engine prints bills even when broadband dips',
+      label: 'Cloud Platform Uptime',
+      sub: 'High availability infrastructure for seamless rush hour reliability',
       isPlaceholder: true,
     },
     {
@@ -366,7 +366,7 @@ export const SITE_CONTENT = {
         'Thermal KOT & Receipt Printing (58mm & 80mm)',
         'QR Code Dine-in & Takeaway Digital Menu',
         'Daily GST Sales & Cash Drawer Reports',
-        '100% Offline Mode with Auto Cloud Sync',
+        'Real-Time Cloud Sync & Multi-Terminal Support',
         'Standard Email & WhatsApp Support (9 AM - 10 PM)',
       ],
       hardwareSupport: 'Runs on any Windows PC, Android Tablet, or iPad',
@@ -429,9 +429,9 @@ export const SITE_CONTENT = {
       typicalPOS: 'Locked to expensive proprietary hardware',
     },
     {
-      feature: 'Offline Resilience',
-      swaadSevak: 'Full local cache; bills & KOTs print without internet',
-      typicalPOS: 'Freezes or crashes when broadband dips',
+      feature: 'Real-Time Multi-Device Sync',
+      swaadSevak: 'Instant sync across counter, kitchen & captain tablets',
+      typicalPOS: 'Manual refresh or delayed local network syncing',
     },
     {
       feature: 'Indian Recipe & Wastage Inventory',
@@ -458,7 +458,7 @@ export const SITE_CONTENT = {
       role: 'Founder & Head Chef',
       outletName: 'The Urban Bistro (Placeholder)',
       location: 'Koramangala, Bengaluru',
-      quote: 'The 3-click billing and offline KOT printing kept our weekend rush completely calm. Staff learned it in 15 minutes.',
+      quote: 'The 3-click billing and instant KOT printing kept our weekend rush completely calm. Staff learned it in 15 minutes.',
       date: 'October 2026',
       isPlaceholder: true,
     },
@@ -497,10 +497,10 @@ export const SITE_CONTENT = {
     {
       id: 'faq-2',
       category: 'general',
-      questionEn: 'What happens if my restaurant internet connection goes down during peak rush hours?',
-      questionHi: 'यदि पीक आवर्स के दौरान मेरे रेस्टोरेंट का इंटरनेट बंद हो जाए तो क्या होगा?',
-      answerEn: 'Billing and kitchen operations never stop. SwaadSevak features an offline sync engine. You can continue punching orders, generating KOTs, and printing invoices without internet. When connectivity is restored, all data automatically syncs to your cloud dashboard.',
-      answerHi: 'आपकी बिलिंग और किचन कभी नहीं रुकेगी। स्वादसेवक ऑफलाइन मोड में काम करता है। इंटरनेट न होने पर भी आप बिल बना सकते हैं और KOT प्रिंट कर सकते हैं। इंटरनेट आते ही डेटा अपने आप सिंक हो जाता है।',
+      questionEn: 'How does SwaadSevak ensure real-time multi-device synchronization during peak rush hours?',
+      questionHi: 'पीक आवर्स के दौरान स्वादसेवक मल्टी-डिवाइस सिंकिंग कैसे सुनिश्चित करता है?',
+      answerEn: 'SwaadSevak runs on high-speed cloud infrastructure. When a captain punches an order on a tablet, the KOT immediately flashes on the kitchen display and updates the cash counter without any delay.',
+      answerHi: 'स्वादसेवक हाई-स्पीड क्लाउड इंफ्रास्ट्रक्चर पर काम करता है। जब भी कैप्टन टैबलेट पर ऑर्डर लेता है, तुरंत किचन और बिलिंग काउंटर अपडेट हो जाते हैं।',
     },
     {
       id: 'faq-3',

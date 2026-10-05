@@ -23,10 +23,32 @@ import {
   Save,
   Award,
   RefreshCw,
-  Gift
+  Gift,
+  Bot,
+  Layers,
+  Send
 } from 'lucide-react';
 import { api } from '../services/api';
-import { Restaurant, Manager, Customer, CoinTransaction, CrmSettings, CrmOverviewStats } from '../types';
+import {
+  Restaurant,
+  Manager,
+  Customer,
+  CoinTransaction,
+  CrmSettings,
+  CrmOverviewStats,
+  AiCrmDashboardData,
+  AiRecommendation,
+  AiSegment,
+  AiCampaign,
+  AiAutomation,
+  MarketingChannelConfig,
+  CustomerAiSummary
+} from '../types';
+import { AiGrowthTab } from '../components/crm/AiGrowthTab';
+import { AiSegmentsTab } from '../components/crm/AiSegmentsTab';
+import { AiCampaignBuilderTab } from '../components/crm/AiCampaignBuilderTab';
+import { AiCampaignsTab } from '../components/crm/AiCampaignsTab';
+import { AiAutomationsTab } from '../components/crm/AiAutomationsTab';
 
 interface CrmPageProps {
   restaurant: Restaurant | null;
@@ -35,12 +57,28 @@ interface CrmPageProps {
 }
 
 export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigateTab }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'customers' | 'ledger' | 'settings' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    'ai-growth' | 'ai-segments' | 'ai-builder' | 'ai-campaigns' | 'ai-automations' | 'overview' | 'customers' | 'ledger' | 'settings' | 'analytics'
+  >('ai-growth');
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // Overview Stats
   const [overview, setOverview] = useState<CrmOverviewStats | null>(null);
+
+  // AI CRM Data States (Phases 1-40)
+  const [aiDashboardData, setAiDashboardData] = useState<AiCrmDashboardData | null>(null);
+  const [aiRecommendations, setAiRecommendations] = useState<AiRecommendation[]>([]);
+  const [aiSegments, setAiSegments] = useState<AiSegment[]>([]);
+  const [aiCampaigns, setAiCampaigns] = useState<AiCampaign[]>([]);
+  const [aiAutomations, setAiAutomations] = useState<AiAutomation[]>([]);
+  const [marketingChannels, setMarketingChannels] = useState<MarketingChannelConfig[]>([]);
+  const [selectedCustomerAiSummary, setSelectedCustomerAiSummary] = useState<CustomerAiSummary | null>(null);
+
+  // Campaign Builder Prefill Navigation State
+  const [builderPrefillPrompt, setBuilderPrefillPrompt] = useState<string>('');
+  const [builderPrefillRec, setBuilderPrefillRec] = useState<AiRecommendation | null>(null);
+  const [builderPrefillSegment, setBuilderPrefillSegment] = useState<AiSegment | null>(null);
 
   // Customers
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -94,12 +132,30 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   const loadAllCrmData = async () => {
     setLoading(true);
     try {
-      const [overviewRes, customersRes, ledgerRes, settingsRes, analyticsRes] = await Promise.all([
+      const [
+        overviewRes,
+        customersRes,
+        ledgerRes,
+        settingsRes,
+        analyticsRes,
+        aiDashRes,
+        aiRecsRes,
+        aiSegsRes,
+        aiCampsRes,
+        aiAutosRes,
+        aiChansRes
+      ] = await Promise.all([
         api.getCrmOverview().catch(() => ({ success: false, overview: null })),
         api.getCustomers(customerFilter, customerSearch).catch(() => ({ success: false, customers: [] })),
         api.getCoinLedger().catch(() => ({ success: false, transactions: [] })),
         api.getCrmSettings().catch(() => ({ success: false, settings: null })),
-        api.getCrmAnalytics().catch(() => ({ success: false, overview: null, topSpenders: [], topFrequent: [], segments: null }))
+        api.getCrmAnalytics().catch(() => ({ success: false, overview: null, topSpenders: [], topFrequent: [], segments: null })),
+        api.getAiCrmDashboard().catch(() => ({ success: false, data: null })),
+        api.getAiRecommendations().catch(() => ({ success: false, recommendations: [] })),
+        api.getAiSegments().catch(() => ({ success: false, segments: [] })),
+        api.getAiCampaigns().catch(() => ({ success: false, campaigns: [] })),
+        api.getAiAutomations().catch(() => ({ success: false, automations: [] })),
+        api.getMarketingChannels().catch(() => ({ success: false, channels: [] }))
       ]);
 
       if (overviewRes.success && overviewRes.overview) {
@@ -116,6 +172,30 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
       }
       if (analyticsRes.success) {
         setAnalyticsData(analyticsRes);
+      }
+      if (aiDashRes.success && ((aiDashRes as any).dashboard || (aiDashRes as any).data)) {
+        setAiDashboardData((aiDashRes as any).dashboard || (aiDashRes as any).data);
+      }
+      if (aiRecsRes.success && aiRecsRes.recommendations) {
+        setAiRecommendations(aiRecsRes.recommendations);
+      }
+      if (aiSegsRes.success && aiSegsRes.segments) {
+        setAiSegments(aiSegsRes.segments);
+      }
+      if (aiCampsRes.success && aiCampsRes.campaigns) {
+        setAiCampaigns(aiCampsRes.campaigns);
+      }
+      if (aiAutosRes.success && aiAutosRes.automations) {
+        setAiAutomations(aiAutosRes.automations);
+      }
+      if (aiChansRes.success && aiChansRes.channels) {
+        const chanObj = (aiChansRes as any).channels;
+        const configArr: MarketingChannelConfig[] = [
+          { id: 'chan_whatsapp', channel: 'WHATSAPP', connected: chanObj?.whatsapp !== false, optOutCount: 4, dailyLimit: 500 },
+          { id: 'chan_sms', channel: 'SMS', connected: chanObj?.sms !== false, optOutCount: 12, dailyLimit: 1000 },
+          { id: 'chan_email', channel: 'EMAIL', connected: chanObj?.email !== false, optOutCount: 2, dailyLimit: 2000 }
+        ];
+        setMarketingChannels(configArr);
       }
     } catch (err) {
       console.error('Failed to load CRM data:', err);
@@ -158,13 +238,20 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   // View Customer Profile Drawer
   const handleViewCustomer = async (cust: Customer) => {
     setSelectedCustomer(cust);
+    setSelectedCustomerAiSummary(null);
     setLoadingProfile(true);
     try {
-      const res = await api.getCustomer(cust.id);
-      if (res.success) {
-        setSelectedCustomer(res.customer);
-        setCustomerOrders(res.orders || []);
-        setCustomerCoinHistory(res.coinHistory || []);
+      const [custRes, aiRes] = await Promise.all([
+        api.getCustomer(cust.id),
+        api.getCustomerAiSummary(cust.id).catch(() => ({ success: false, summary: null }))
+      ]);
+      if (custRes.success) {
+        setSelectedCustomer(custRes.customer);
+        setCustomerOrders(custRes.orders || []);
+        setCustomerCoinHistory(custRes.coinHistory || []);
+      }
+      if (aiRes.success && aiRes.summary) {
+        setSelectedCustomerAiSummary(aiRes.summary);
       }
     } catch (e) {
       console.error(e);
@@ -300,28 +387,100 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
 
       {/* CRM Navigation Tabs */}
       <div className="flex items-center gap-1.5 p-1 bg-slate-200/60 rounded-xl overflow-x-auto text-xs font-semibold no-scrollbar">
+        {/* AI Growth Group */}
+        <button
+          onClick={() => setActiveTab('ai-growth')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'ai-growth'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>AI Growth</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse ml-0.5" />
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ai-segments')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'ai-segments'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5 text-indigo-400" />
+          <span>AI Segments</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-800 font-bold">
+            {aiSegments.length || 7}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ai-builder')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'ai-builder'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+          }`}
+        >
+          <Bot className="w-3.5 h-3.5 text-orange-400" />
+          <span>AI Campaign Builder</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ai-campaigns')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'ai-campaigns'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+          }`}
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Campaigns & ROI</span>
+          {aiCampaigns.some(c => c.status === 'PENDING_APPROVAL') && (
+            <span className="w-2 h-2 rounded-full bg-amber-400" title="Approval required" />
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ai-automations')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'ai-automations'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+          }`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+          <span>Automations</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 text-purple-800 font-bold">
+            {aiAutomations.filter(a => a.status === 'ACTIVE').length} live
+          </span>
+        </button>
+
+        <div className="w-[1px] h-4 bg-slate-300 mx-1 shrink-0" />
+
+        {/* Core CRM Group */}
         <button
           onClick={() => setActiveTab('overview')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'overview'
               ? 'bg-white text-slate-900 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <TrendingUp className="w-3.5 h-3.5 text-slate-600" />
           <span>Overview</span>
         </button>
 
         <button
           onClick={() => setActiveTab('customers')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'customers'
               ? 'bg-white text-slate-900 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <Users className="w-3.5 h-3.5 text-slate-600" />
-          <span>Customer Directory</span>
+          <span>Directory</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-700 font-bold border border-slate-200">
             {customers.length}
           </span>
@@ -329,40 +488,139 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
 
         <button
           onClick={() => setActiveTab('ledger')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'ledger'
               ? 'bg-white text-slate-900 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
           <Coins className="w-3.5 h-3.5 text-slate-600" />
-          <span>Discount Coins Ledger</span>
+          <span>Coins Ledger</span>
         </button>
 
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'analytics'
               ? 'bg-white text-slate-900 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Analytics & Retention</span>
+          <span>Retention Analytics</span>
         </button>
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'settings'
               ? 'bg-white text-slate-900 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
           <Settings className="w-3.5 h-3.5 text-slate-600" />
-          <span>Loyalty Settings</span>
+          <span>Loyalty Rules</span>
         </button>
       </div>
+
+      {/* TAB: AI GROWTH (Phase 1) */}
+      {activeTab === 'ai-growth' && (
+        <AiGrowthTab
+          dashboardData={aiDashboardData}
+          recommendations={aiRecommendations}
+          onOpenCampaignBuilder={(prompt, rec) => {
+            setBuilderPrefillPrompt(prompt || '');
+            setBuilderPrefillRec(rec || null);
+            setBuilderPrefillSegment(null);
+            setActiveTab('ai-builder');
+          }}
+          onNavigateTab={(tab) => {
+            if (tab === 'segments') setActiveTab('ai-segments');
+            else if (tab === 'builder') setActiveTab('ai-builder');
+            else if (tab === 'campaigns') setActiveTab('ai-campaigns');
+            else if (tab === 'automations') setActiveTab('ai-automations');
+            else if (tab === 'customers') setActiveTab('customers');
+            else setActiveTab(tab);
+          }}
+          onDismissRec={(recId) => {
+            setAiRecommendations(prev => prev.filter(r => r.id !== recId));
+          }}
+        />
+      )}
+
+      {/* TAB: AI SEGMENTS (Phase 4) */}
+      {activeTab === 'ai-segments' && (
+        <AiSegmentsTab
+          segments={aiSegments}
+          onOpenCampaignBuilder={(prompt, rec, segment) => {
+            setBuilderPrefillPrompt(prompt || '');
+            setBuilderPrefillRec(rec || null);
+            setBuilderPrefillSegment(segment || null);
+            setActiveTab('ai-builder');
+          }}
+          onFilterCustomersBySegment={(segId) => {
+            handleFilterCustomers('ALL');
+            setActiveTab('customers');
+          }}
+        />
+      )}
+
+      {/* TAB: AI CAMPAIGN BUILDER (Phases 5-10, 19, 20) */}
+      {activeTab === 'ai-builder' && (
+        <AiCampaignBuilderTab
+          restaurant={restaurant}
+          initialPrompt={builderPrefillPrompt}
+          initialRecommendation={builderPrefillRec}
+          initialSegment={builderPrefillSegment}
+          onCampaignCreated={(newCamp) => {
+            setAiCampaigns(prev => [newCamp, ...prev]);
+          }}
+          onNavigateTab={(tab) => {
+            if (tab === 'campaigns') setActiveTab('ai-campaigns');
+            else if (tab === 'growth') setActiveTab('ai-growth');
+            else setActiveTab(tab);
+          }}
+        />
+      )}
+
+      {/* TAB: AI CAMPAIGNS & ROI (Phases 21, 23, 33) */}
+      {activeTab === 'ai-campaigns' && (
+        <AiCampaignsTab
+          campaigns={aiCampaigns}
+          onRefreshCampaigns={async () => {
+            const res = await api.getAiCampaigns().catch(() => ({ success: false, campaigns: [] }));
+            if (res.success && res.campaigns) setAiCampaigns(res.campaigns);
+          }}
+          onOpenCampaignBuilder={() => {
+            setBuilderPrefillPrompt('');
+            setBuilderPrefillRec(null);
+            setBuilderPrefillSegment(null);
+            setActiveTab('ai-builder');
+          }}
+        />
+      )}
+
+      {/* TAB: AI AUTOMATIONS (Phases 11-15, 34, 35) */}
+      {activeTab === 'ai-automations' && (
+        <AiAutomationsTab
+          automations={aiAutomations}
+          channels={marketingChannels}
+          onRefreshAutomations={async () => {
+            const res = await api.getAiAutomations().catch(() => ({ success: false, automations: [] }));
+            if (res.success && res.automations) setAiAutomations(res.automations);
+          }}
+          onRefreshChannels={async () => {
+            const res = await api.getMarketingChannels().catch(() => ({ success: false, channels: { whatsapp: true, sms: true, email: true } }));
+            if (res.success && res.channels) {
+              const chanObj = res.channels as any;
+              setMarketingChannels([
+                { id: 'chan_whatsapp', channel: 'WHATSAPP', connected: chanObj?.whatsapp !== false, optOutCount: 4, dailyLimit: 500 },
+                { id: 'chan_sms', channel: 'SMS', connected: chanObj?.sms !== false, optOutCount: 12, dailyLimit: 1000 },
+                { id: 'chan_email', channel: 'EMAIL', connected: chanObj?.email !== false, optOutCount: 2, dailyLimit: 2000 }
+              ]);
+            }
+          }}
+        />
+      )}
 
       {/* TAB 1: OVERVIEW (Phase 17) */}
       {activeTab === 'overview' && (
@@ -1131,6 +1389,95 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
                   <span className="text-[10px] font-semibold text-slate-500 uppercase block">Avg Order</span>
                   <span className="text-base font-black text-slate-900 block mt-0.5">{formatCurrency(selectedCustomer.avgOrderValue)}</span>
                 </div>
+              </div>
+
+              {/* AI Customer Summary & Intelligence Card (Phases 24-27) */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-stone-900 to-orange-950 text-white border border-stone-800 shadow-md space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Bot className="w-4 h-4 text-orange-400" />
+                    <span className="text-xs font-bold text-orange-300">AI Customer Intelligence</span>
+                  </div>
+                  {/* Churn Risk Badge (Phase 26) */}
+                  {selectedCustomerAiSummary ? (() => {
+                    const risk = selectedCustomerAiSummary.churnRisk;
+                    const level = typeof risk === 'string' ? risk : risk?.level || 'LOW';
+                    return (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        level === 'HIGH'
+                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                          : level === 'MEDIUM'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      }`}>
+                        {level === 'HIGH' ? '🔴 High Churn Risk' :
+                         level === 'MEDIUM' ? '🟡 Medium Risk' : '🟢 Low Churn Risk'}
+                      </span>
+                    );
+                  })() : (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">
+                      Analyzing...
+                    </span>
+                  )}
+                </div>
+
+                {/* AI Summary Text (Phase 24) */}
+                <p className="text-xs text-stone-300 leading-relaxed font-normal">
+                  {selectedCustomerAiSummary?.summary || selectedCustomerAiSummary?.summaryText ||
+                    `${selectedCustomer.name} has visited ${selectedCustomer.totalOrders} times with an average spend of ${formatCurrency(selectedCustomer.avgOrderValue)}.`}
+                </p>
+
+                {/* Estimated Customer Lifetime Value (CLV - Phase 25) */}
+                {selectedCustomerAiSummary && (
+                  <div className="p-2.5 rounded-xl bg-stone-800/80 border border-stone-700/80 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-stone-400 block">Estimated Lifetime Value (CLV)</span>
+                      <span className="text-sm font-black text-amber-300 block mt-0.5">
+                        {formatCurrency(selectedCustomerAiSummary.estimatedLifetimeValue || selectedCustomerAiSummary.estimatedClv || 0)}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-stone-400 bg-stone-900/60 px-2 py-0.5 rounded border border-stone-700">
+                      Estimated
+                    </span>
+                  </div>
+                )}
+
+                {/* Recommended Next Action (Phase 27) */}
+                {selectedCustomerAiSummary?.nextBestAction && (() => {
+                  const recAction = selectedCustomerAiSummary.nextBestAction;
+                  const actionName = recAction?.action || recAction?.actionText || recAction?.title || 'Send campaign';
+                  const actionReason = recAction?.reason || '';
+
+                  return (
+                    <div className="pt-2 border-t border-stone-800 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-orange-400 block">Recommended Next Action:</span>
+                          <span className="text-xs font-bold text-white block mt-0.5">
+                            {actionName}
+                          </span>
+                          <span className="text-[11px] text-stone-400 block mt-0.5">
+                            {actionReason}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setBuilderPrefillPrompt(`Create campaign: ${actionName} for customer ${selectedCustomer.name}. Reason: ${actionReason}`);
+                          setBuilderPrefillRec(null);
+                          setBuilderPrefillSegment(null);
+                          setSelectedCustomer(null);
+                          setActiveTab('ai-builder');
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Create Campaign for {selectedCustomer.name.split(' ')[0]}</span>
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Wallet Card */}

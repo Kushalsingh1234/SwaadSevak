@@ -1,10 +1,26 @@
 import { Order, Restaurant, PrinterConfig, OrderAddition } from '../types';
+import { api } from '../services/api';
 
 export interface UsbDeviceInfo {
   name: string;
   vendorId?: number;
   productId?: number;
 }
+
+export const getOrderDisplayTitle = (order?: { source?: any; tableNumber?: string } | null): string => {
+  if (!order) return 'Order';
+  if (order.source === 'SWIGGY' || order.tableNumber?.toLowerCase().includes('swiggy')) {
+    return 'Swiggy Order';
+  }
+  if (order.source === 'ZOMATO' || order.tableNumber?.toLowerCase().includes('zomato')) {
+    return 'Zomato Order';
+  }
+  if (order.source === 'OTHER' || order.tableNumber?.toLowerCase().includes('online')) {
+    return 'Online Order';
+  }
+  if (!order.tableNumber) return 'Counter Order';
+  return order.tableNumber.toLowerCase().startsWith('table') ? order.tableNumber : `Table ${order.tableNumber}`;
+};
 
 class KotPrinterManager {
   private activeUsbDevice: any = null;
@@ -87,6 +103,42 @@ class KotPrinterManager {
   }
 
   /**
+   * Directly sends raw ESC/POS commands to connected WebUSB thermal printer
+   */
+  async printToUsbDevice(text: string): Promise<boolean> {
+    if (!this.activeUsbDevice) return false;
+    try {
+      if (!this.activeUsbDevice.opened) {
+        await this.activeUsbDevice.open();
+      }
+      if (this.activeUsbDevice.configuration === null) {
+        await this.activeUsbDevice.selectConfiguration(1);
+      }
+      const conf = this.activeUsbDevice.configuration;
+      const iface = conf?.interfaces?.find((i: any) =>
+        i.alternates?.some((a: any) => a.endpoints?.some((e: any) => e.direction === 'out'))
+      );
+      if (iface) {
+        await this.activeUsbDevice.claimInterface(iface.interfaceNumber);
+        const endpoint = iface.alternates[0].endpoints.find((e: any) => e.direction === 'out');
+        const encoder = new TextEncoder();
+        const initCmd = new Uint8Array([0x1B, 0x40]); // ESC @ (initialize printer)
+        const cutCmd = new Uint8Array([0x1D, 0x56, 0x41, 0x10]); // GS V A (cut paper)
+        const bodyData = encoder.encode(text);
+        const fullData = new Uint8Array(initCmd.length + bodyData.length + cutCmd.length);
+        fullData.set(initCmd, 0);
+        fullData.set(bodyData, initCmd.length);
+        fullData.set(cutCmd, initCmd.length + bodyData.length);
+        await this.activeUsbDevice.transferOut(endpoint.endpointNumber, fullData);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[KotPrinter] WebUSB direct write error:', err);
+    }
+    return false;
+  }
+
+  /**
    * Generate clean text receipt representation for ESC/POS
    */
   generateEscPosText(
@@ -115,6 +167,24 @@ class KotPrinterManager {
     const items = addition ? addition.items : order.items;
     const notes = addition ? addition.customerNotes : order.customerNotes;
 
+    const isOnline =
+      order.source === 'SWIGGY' ||
+      order.source === 'ZOMATO' ||
+      order.source === 'OTHER' ||
+      order.tableNumber?.toLowerCase().includes('swiggy') ||
+      order.tableNumber?.toLowerCase().includes('zomato');
+
+    const channelTitle =
+      order.source === 'SWIGGY' || order.tableNumber?.toLowerCase().includes('swiggy')
+        ? 'SWIGGY ORDER'
+        : order.source === 'ZOMATO' || order.tableNumber?.toLowerCase().includes('zomato')
+        ? 'ZOMATO ORDER'
+        : order.source === 'OTHER' || order.tableNumber?.toLowerCase().includes('online')
+        ? 'ONLINE ORDER'
+        : order.tableNumber?.toLowerCase().startsWith('table')
+        ? order.tableNumber.toUpperCase()
+        : `TABLE: ${order.tableNumber || 'COUNTER'}`;
+
     let ticket = '';
     ticket += `${doubleDivider}\n`;
     ticket += `${center((restaurant?.name || 'SWAAD SEVAK').toUpperCase())}\n`;
@@ -129,10 +199,18 @@ class KotPrinterManager {
     }
 
     ticket += `${doubleDivider}\n`;
-    ticket += `TABLE: ${(order.tableNumber || 'Counter').padEnd(16)} TIME: ${orderTime}\n`;
-    ticket += `SOURCE: ${order.source || 'DINE_IN'}\n`;
-    if (isAddition) {
-      ticket += `STATUS: DISPATCH TO ACTIVE TABLE\n`;
+    if (isOnline) {
+      ticket += `CHANNEL: ${channelTitle.padEnd(16)} TIME: ${orderTime}\n`;
+      ticket += `DELIVERY: ${order.source} ONLINE PARTNER\n`;
+      if (order.estimatedPrepTime) {
+        ticket += `TARGET PREP: ${order.estimatedPrepTime} MINS\n`;
+      }
+    } else {
+      ticket += `TABLE: ${(order.tableNumber || 'Counter').padEnd(16)} TIME: ${orderTime}\n`;
+      ticket += `SOURCE: ${order.source || 'DINE_IN'}\n`;
+      if (isAddition) {
+        ticket += `STATUS: DISPATCH TO ACTIVE TABLE\n`;
+      }
     }
     ticket += `${divider}\n`;
     ticket += `QTY   ITEM DESCRIPTION\n`;
@@ -173,7 +251,8 @@ class KotPrinterManager {
     restaurant: Restaurant | null,
     order: Order,
     paperWidth: '58mm' | '80mm' = '80mm',
-    addition?: OrderAddition
+    addition?: OrderAddition,
+    triggerPrintDialog: boolean = false
   ): boolean {
     try {
       const is80mm = paperWidth === '80mm';
@@ -189,9 +268,23 @@ class KotPrinterManager {
         hour12: true
       });
 
-      const tableLabel = order.tableNumber?.toLowerCase().startsWith('table')
-        ? order.tableNumber
-        : `Table ${order.tableNumber || 'Counter'}`;
+      const isOnline =
+        order.source === 'SWIGGY' ||
+        order.source === 'ZOMATO' ||
+        order.source === 'OTHER' ||
+        order.tableNumber?.toLowerCase().includes('swiggy') ||
+        order.tableNumber?.toLowerCase().includes('zomato');
+
+      const channelTitle =
+        order.source === 'SWIGGY' || order.tableNumber?.toLowerCase().includes('swiggy')
+          ? 'SWIGGY ORDER'
+          : order.source === 'ZOMATO' || order.tableNumber?.toLowerCase().includes('zomato')
+          ? 'ZOMATO ORDER'
+          : order.source === 'OTHER' || order.tableNumber?.toLowerCase().includes('online')
+          ? 'ONLINE ORDER'
+          : order.tableNumber?.toLowerCase().startsWith('table')
+          ? order.tableNumber
+          : `Table ${order.tableNumber || 'Counter'}`;
 
       const orderNum = order.orderNumber.startsWith('#') ? order.orderNumber : `#${order.orderNumber}`;
 
@@ -277,12 +370,13 @@ class KotPrinterManager {
   `}
 
   <div class="border-b py-1" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold;">
-    <span>TABLE: ${tableLabel}</span>
+    <span>${isOnline ? channelTitle : `TABLE: ${channelTitle}`}</span>
     <span>${orderTime}</span>
   </div>
 
   <div style="font-size: 10px; color: #333; margin: 2px 0;">
-    TYPE: ${order.source || 'DINE_IN'} ${isAddition ? '• (TABLE ADD-ON)' : ''}
+    TYPE: ${isOnline ? `${order.source} ONLINE DELIVERY` : (order.source || 'DINE_IN')} ${isAddition ? '• (TABLE ADD-ON)' : ''}
+    ${order.estimatedPrepTime ? `• PREP TARGET: ${order.estimatedPrepTime}m` : ''}
   </div>
 
   <div class="border-b" style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; padding: 3px 0;">
@@ -349,19 +443,21 @@ class KotPrinterManager {
         doc.write(htmlContent);
         doc.close();
 
-        setTimeout(() => {
-          try {
-            if (iframe.contentWindow) {
-              iframe.contentWindow.focus();
-              iframe.contentWindow.print();
-            } else {
+        if (triggerPrintDialog) {
+          setTimeout(() => {
+            try {
+              if (iframe.contentWindow) {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+              } else {
+                window.print();
+              }
+            } catch (e) {
+              console.warn('[KotPrinter] Spooler print trigger fallback:', e);
               window.print();
             }
-          } catch (e) {
-            console.warn('[KotPrinter] Spooler print trigger fallback:', e);
-            window.print();
-          }
-        }, 250);
+          }, 250);
+        }
 
         return true;
       }
@@ -374,38 +470,107 @@ class KotPrinterManager {
 
   /**
    * Main Dispatch: Prints an Order KOT
+   * Dispatches silently to connected hardware (WebUSB thermal printer or Network IP printer or Capacitor)
+   * If in browser mode with no physical hardware, does not popup window.print() unless explicitly requested via interactiveModal
    */
-  printOrderKot(
+  async printOrderKot(
     restaurant: Restaurant | null,
     order: Order,
-    printerConfig?: PrinterConfig
-  ): boolean {
+    printerConfig?: PrinterConfig,
+    options?: { interactiveModal?: boolean }
+  ): Promise<boolean> {
     const paperWidth = printerConfig?.paperWidth || '80mm';
-    return this.printViaInternalSpooler(restaurant, order, paperWidth);
+
+    // 1. WebUSB connected printer
+    if (this.activeUsbDevice) {
+      try {
+        const text = this.generateEscPosText(restaurant, order, paperWidth);
+        const ok = await this.printToUsbDevice(text);
+        if (ok) return true;
+      } catch (err) {
+        console.warn('[KotPrinter] USB print error:', err);
+      }
+    }
+
+    // 2. Network IP thermal printer via backend socket
+    if (printerConfig?.printerType === 'NETWORK' && printerConfig?.printerIp) {
+      try {
+        await api.printKotNetwork(order.id);
+        return true;
+      } catch (err) {
+        console.warn('[KotPrinter] Network printer dispatch failed:', err);
+      }
+    }
+
+    // 3. Capacitor Native Mobile Bridge
+    const capacitor = (window as any).Capacitor;
+    if (capacitor?.Plugins?.Printer?.print) {
+      return this.printViaInternalSpooler(restaurant, order, paperWidth, undefined, false);
+    }
+
+    // 4. Browser fallback:
+    // Only open the browser's native print preview dialog IF the user explicitly clicked
+    // "Print Ticket" / "Print KOT" (options?.interactiveModal = true).
+    // On automatic order acceptance, do NOT open the modal print view!
+    if (options?.interactiveModal) {
+      return this.printViaInternalSpooler(restaurant, order, paperWidth, undefined, true);
+    }
+
+    return true;
   }
 
   /**
    * Main Dispatch: Prints a New Addition KOT
    * Formats with prominent "TABLE ADD-ON KOT / NEW ADDITION" heading
    */
-  printAdditionKot(
+  async printAdditionKot(
     restaurant: Restaurant | null,
     order: Order,
     addition: OrderAddition,
-    printerConfig?: PrinterConfig
-  ): boolean {
+    printerConfig?: PrinterConfig,
+    options?: { interactiveModal?: boolean }
+  ): Promise<boolean> {
     const paperWidth = printerConfig?.paperWidth || '80mm';
-    return this.printViaInternalSpooler(restaurant, order, paperWidth, addition);
+
+    if (this.activeUsbDevice) {
+      try {
+        const text = this.generateEscPosText(restaurant, order, paperWidth, addition);
+        const ok = await this.printToUsbDevice(text);
+        if (ok) return true;
+      } catch (err) {
+        console.warn('[KotPrinter] USB print error:', err);
+      }
+    }
+
+    if (printerConfig?.printerType === 'NETWORK' && printerConfig?.printerIp) {
+      try {
+        await api.printKotNetwork(order.id, true, addition.id);
+        return true;
+      } catch (err) {
+        console.warn('[KotPrinter] Network printer dispatch failed:', err);
+      }
+    }
+
+    const capacitor = (window as any).Capacitor;
+    if (capacitor?.Plugins?.Printer?.print) {
+      return this.printViaInternalSpooler(restaurant, order, paperWidth, addition, false);
+    }
+
+    if (options?.interactiveModal) {
+      return this.printViaInternalSpooler(restaurant, order, paperWidth, addition, true);
+    }
+
+    return true;
   }
 
   /**
    * Test Print: Dispatches sample KOT to test connected printer
    */
-  testPrint(
+  async testPrint(
     restaurant: Restaurant | null,
     paperWidth: '58mm' | '80mm' = '80mm',
     isAddition = false
-  ): boolean {
+  ): Promise<boolean> {
     const sampleOrder: Order = {
       id: 'test_order',
       restaurantId: restaurant?.id || 'rest_demo',
@@ -466,22 +631,33 @@ class KotPrinterManager {
           }
         ]
       };
-      return this.printAdditionKot(restaurant, sampleOrder, sampleAddition, {
+      return this.printAdditionKot(
+        restaurant,
+        sampleOrder,
+        sampleAddition,
+        {
+          id: 'cfg',
+          printerName: 'Thermal',
+          paperWidth,
+          autoPrintKot: true,
+          printerType: 'BROWSER'
+        },
+        { interactiveModal: true }
+      );
+    }
+
+    return this.printOrderKot(
+      restaurant,
+      sampleOrder,
+      {
         id: 'cfg',
         printerName: 'Thermal',
         paperWidth,
         autoPrintKot: true,
         printerType: 'BROWSER'
-      });
-    }
-
-    return this.printOrderKot(restaurant, sampleOrder, {
-      id: 'cfg',
-      printerName: 'Thermal',
-      paperWidth,
-      autoPrintKot: true,
-      printerType: 'BROWSER'
-    });
+      },
+      { interactiveModal: true }
+    );
   }
 }
 

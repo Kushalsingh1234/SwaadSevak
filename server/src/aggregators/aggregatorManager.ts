@@ -5,6 +5,7 @@ import {
   AggregatorConnection,
   AggregatorSyncLog,
   MenuItemChannelOverrides,
+  MenuItemChannelConfig,
   AggregatorOutletStatusUpdate
 } from './types.js';
 
@@ -132,13 +133,21 @@ export class AggregatorManager {
     return defaultOverrides;
   }
 
-  setItemOverrides(menuItemId: string, overrides: Partial<MenuItemChannelOverrides>) {
+  setItemOverrides(
+    menuItemId: string,
+    overrides: {
+      menuItemId?: string;
+      priceMode?: 'SAME_EVERYWHERE' | 'SEPARATE_CHANNELS';
+      swiggy?: Partial<MenuItemChannelConfig>;
+      zomato?: Partial<MenuItemChannelConfig>;
+    }
+  ) {
     const current = this.getItemOverrides(menuItemId);
     const updated: MenuItemChannelOverrides = {
       ...current,
       ...overrides,
-      swiggy: { ...current.swiggy, ...overrides.swiggy },
-      zomato: { ...current.zomato, ...overrides.zomato }
+      swiggy: { ...current.swiggy, ...(overrides.swiggy || {}) },
+      zomato: { ...current.zomato, ...(overrides.zomato || {}) }
     };
     this.channelOverrides.set(menuItemId, updated);
     return updated;

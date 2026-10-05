@@ -11,6 +11,7 @@ import { BillsManagementPage } from './pages/BillsManagementPage';
 import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AggregatorHubPage } from './pages/AggregatorHubPage';
+import { GrowthEnginePage } from './pages/GrowthEnginePage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
@@ -305,10 +306,10 @@ export function App() {
   };
 
   // Order Lifecycle Handlers
-  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+  const handleUpdateOrderStatus = async (orderId: string, status: string, rejectionReason?: string, estimatedPrepTime?: number) => {
     try {
-      const res = await api.updateOrderStatus(orderId, status);
-      if (res.success) {
+      const res = await api.updateOrderStatus(orderId, status, rejectionReason, estimatedPrepTime);
+      if (res.success && res.order) {
         setOrders(prev => prev.map(o => o.id === orderId ? res.order : o));
       }
     } catch (e) {
@@ -547,6 +548,14 @@ export function App() {
           />
         )}
 
+        {currentTab === 'growth' && (
+          <GrowthEnginePage
+            restaurant={restaurant}
+            manager={manager}
+            onNavigateTab={handleTabChange}
+          />
+        )}
+
         {currentTab === 'analytics' && (
           <AnalyticsPage
             restaurant={restaurant}
@@ -573,6 +582,7 @@ export function App() {
             orders={orders}
             onRefreshOrders={refreshAllData}
             onNavigateTab={handleTabChange}
+            printerConfig={printerConfig}
           />
         )}
 

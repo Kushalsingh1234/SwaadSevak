@@ -5,6 +5,7 @@ import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 import { emitMenuStockChange } from '../realtime/socket.js';
 import { parseMenuPdfBuffer } from '../services/aiMenuParser.js';
 import { ExtractedMenuItem } from '../types/index.js';
+import { aggregatorManager } from '../aggregators/aggregatorManager.js';
 
 const router = Router();
 const upload = multer({
@@ -69,7 +70,7 @@ router.get('/items', (req: AuthenticatedRequest, res: Response) => {
 
 router.post('/items', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
-  let { name, description, price, categoryId, newCategoryName, portion, isVeg, tags } = req.body;
+  let { name, description, price, categoryId, newCategoryName, portion, isVeg, tags, channels, publishSwiggy, publishZomato } = req.body;
 
   if (!name || price === undefined) {
     return res.status(400).json({ success: false, message: 'Dish name and price are required' });
@@ -92,10 +93,11 @@ router.post('/items', (req: AuthenticatedRequest, res: Response) => {
     return res.status(400).json({ success: false, message: 'Please select an existing category or enter a new category name' });
   }
 
+  const numericPrice = parseFloat(price) || 0;
   const item = db.createItem(restaurantId, {
     name: name.trim(),
     description: description || '',
-    price: parseFloat(price) || 0,
+    price: numericPrice,
     categoryId,
     portion: portion || 'Standard',
     isVeg: isVeg !== undefined ? Boolean(isVeg) : true,
@@ -103,12 +105,52 @@ router.post('/items', (req: AuthenticatedRequest, res: Response) => {
     tags: Array.isArray(tags) ? tags : []
   });
 
+  // Sync to aggregator channels if selected
+  const syncSwiggy = Boolean(
+    publishSwiggy !== false &&
+    (!Array.isArray(channels) || channels.includes('SWIGGY'))
+  );
+  const syncZomato = Boolean(
+    publishZomato !== false &&
+    (!Array.isArray(channels) || channels.includes('ZOMATO'))
+  );
+
+  aggregatorManager.setItemOverrides(item.id, {
+    menuItemId: item.id,
+    priceMode: 'SEPARATE_CHANNELS',
+    swiggy: {
+      enabled: syncSwiggy,
+      price: numericPrice,
+      isAvailable: true,
+      syncStatus: 'SYNCED'
+    },
+    zomato: {
+      enabled: syncZomato,
+      price: numericPrice,
+      isAvailable: true,
+      syncStatus: 'SYNCED'
+    }
+  });
+
   return res.status(201).json({ success: true, item, createdCategory });
 });
 
 router.put('/items/:id', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
-  const { name, description, price, categoryId, portion, isVeg, tags, isAvailable } = req.body;
+  const {
+    name,
+    description,
+    price,
+    categoryId,
+    portion,
+    isVeg,
+    tags,
+    isAvailable,
+    channels,
+    publishSwiggy,
+    publishZomato,
+    syncPriceToAggregators
+  } = req.body;
 
   const updated = db.updateItem(restaurantId, req.params.id as string, {
     ...(name !== undefined && { name: name.trim() }),
@@ -125,9 +167,66 @@ router.put('/items/:id', (req: AuthenticatedRequest, res: Response) => {
     return res.status(404).json({ success: false, message: 'Menu item not found' });
   }
 
-  // If availability changed, broadcast to tables
+  // If price is updated, sync new price to Swiggy & Zomato when selected
+  if (price !== undefined) {
+    const numericPrice = parseFloat(price);
+    const syncSwiggy = Boolean(
+      publishSwiggy ||
+      (Array.isArray(channels) && channels.includes('SWIGGY')) ||
+      syncPriceToAggregators
+    );
+    const syncZomato = Boolean(
+      publishZomato ||
+      (Array.isArray(channels) && channels.includes('ZOMATO')) ||
+      syncPriceToAggregators
+    );
+
+    if (syncSwiggy) {
+      aggregatorManager.setItemOverrides(updated.id, {
+        swiggy: {
+          enabled: true,
+          price: numericPrice,
+          isAvailable: updated.isAvailable,
+          syncStatus: 'SYNCED'
+        }
+      });
+      aggregatorManager.logSyncEvent(
+        restaurantId,
+        'SWIGGY',
+        'PRICE_UPDATE',
+        'PRICE',
+        'SUCCESS',
+        `Master menu updated "${updated.name}" price to ₹${numericPrice} on Swiggy`
+      );
+    }
+
+    if (syncZomato) {
+      aggregatorManager.setItemOverrides(updated.id, {
+        zomato: {
+          enabled: true,
+          price: numericPrice,
+          isAvailable: updated.isAvailable,
+          syncStatus: 'SYNCED'
+        }
+      });
+      aggregatorManager.logSyncEvent(
+        restaurantId,
+        'ZOMATO',
+        'PRICE_UPDATE',
+        'PRICE',
+        'SUCCESS',
+        `Master menu updated "${updated.name}" price to ₹${numericPrice} on Zomato`
+      );
+    }
+  }
+
+  // If availability changed, broadcast to tables & aggregators
   if (isAvailable !== undefined) {
     emitMenuStockChange(restaurantId, updated.id, updated.isAvailable);
+    aggregatorManager.setItemOverrides(updated.id, {
+      swiggy: { isAvailable: Boolean(isAvailable) },
+      zomato: { isAvailable: Boolean(isAvailable) }
+    });
   }
 
   return res.json({ success: true, item: updated });

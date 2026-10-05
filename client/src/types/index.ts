@@ -57,7 +57,7 @@ export interface OrderItem {
 }
 
 export type OrderSource = 'DINE_IN' | 'SWIGGY' | 'ZOMATO' | 'OTHER';
-export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'SERVED' | 'COMPLETED' | 'REJECTED';
+export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'SERVED' | 'COMPLETED' | 'REJECTED' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
 
 export interface OrderAddition {
   id: string;
@@ -90,6 +90,8 @@ export interface Order {
   billRequested: boolean;
   rejectionReason?: string;
   additions?: OrderAddition[];
+  estimatedPrepTime?: number;
+  settled?: boolean;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -403,6 +405,147 @@ export interface KitchenIntelligence {
   pendingOrdersCount: number;
   recommendedPrepTime: number;
   statusLabel: 'HIGH_LOAD' | 'MODERATE' | 'NORMAL';
+}
+
+// ==========================================
+// GROWTH ENGINE TYPES & MODELS
+// ==========================================
+
+export type BusinessType = 'Café' | 'Restaurant' | 'Fast Food' | 'Bakery / Café' | 'QSR' | 'Other';
+
+export type GrowthDataMode = 'swaad' | 'pos' | 'combined';
+
+export type RecommendationPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+export type RecommendationBadge = '🔥 High opportunity' | '💡 Worth trying' | '⚠️ Needs attention';
+export type ConfidenceLevel = 'High confidence' | 'Moderate confidence' | 'Limited data';
+
+export type RecommendationCategory =
+  | 'REVENUE'
+  | 'MENU'
+  | 'PRICING'
+  | 'TIMING'
+  | 'INVENTORY'
+  | 'CUSTOMER';
+
+export interface GrowthRecommendation {
+  id: string;
+  category: RecommendationCategory;
+  title: string;
+  badge: RecommendationBadge;
+  priority: RecommendationPriority;
+  confidence: ConfidenceLevel;
+  confidenceNote?: string;
+  found: string;           // "What we found"
+  impact: string;          // "Why it matters"
+  action: string;          // "What the owner can do / Try this"
+  expectedImpact?: string; // "Potential opportunity"
+  actionType: 'CREATE_OFFER' | 'UPDATE_PRICE' | 'REVIEW_MENU' | 'ADJUST_INVENTORY' | 'SET_COST' | 'DISMISS';
+  targetItemName?: string;
+  currentPrice?: number;
+  suggestedPrice?: number;
+  suggestedComboWith?: string;
+  suggestedTimeSlot?: string;
+  implemented?: boolean;
+}
+
+export interface PosReportItem {
+  name: string;
+  category?: string;
+  quantity: number;
+  totalSales: number;
+  unitPrice?: number;
+  estimatedCost?: number;
+}
+
+export interface PosReport {
+  id: string;
+  restaurantId: string;
+  fileName: string;
+  posProvider: string;
+  fileType: 'csv' | 'xlsx' | 'pdf';
+  uploadedAt: string;
+  periodStart: string;
+  periodEnd: string;
+  periodLabel: string;
+  totalOrders: number;
+  totalSales: number;
+  totalProducts: number;
+  items: PosReportItem[];
+  hourlyDistribution?: Record<number, number>;
+  dowDistribution?: Record<number, number>;
+  overlapDetectedWithSwaad?: boolean;
+  overlapNotes?: string;
+}
+
+export interface GrowthEngineData {
+  businessType: BusinessType;
+  dataMode: GrowthDataMode;
+  period: {
+    label: string;
+    startDate: string;
+    endDate: string;
+  };
+  sources: {
+    swaad: {
+      available: boolean;
+      orders: number;
+      sales: number;
+      dateRange?: string;
+    };
+    pos: {
+      available: boolean;
+      reportId?: string;
+      reportName?: string;
+      provider?: string;
+      orders: number;
+      sales: number;
+      dateRange?: string;
+    };
+    totalAnalyzedSales: number;
+    totalAnalyzedOrders: number;
+    overlapDetected: boolean;
+    overlapMessage?: string;
+  };
+  confidence: {
+    level: ConfidenceLevel;
+    message: string;
+    daysCount: number;
+    ordersCount: number;
+  };
+  snapshot: {
+    revenue: number;
+    orders: number;
+    averageOrderValue: number;
+    bestsellerItem: string;
+    bestsellerSales: number;
+    bestsellerQty: number;
+    comparison?: {
+      periodLabel: string;
+      previousRevenue: number;
+      currentRevenue: number;
+      percentChange: number;
+      explanation: string;
+    };
+  };
+  topOpportunities: GrowthRecommendation[];
+  menuOpportunities: GrowthRecommendation[];
+  timingOpportunities: GrowthRecommendation[];
+  pricingOpportunities: GrowthRecommendation[];
+  inventoryOpportunities: GrowthRecommendation[];
+  customerOpportunities: GrowthRecommendation[];
+  allRecommendations: GrowthRecommendation[];
+  inventoryAvailable: boolean;
+  costsConfiguredCount: number;
+  totalItemsCount: number;
+  availableReports: {
+    id: string;
+    fileName: string;
+    posProvider: string;
+    periodLabel: string;
+    totalOrders: number;
+    totalSales: number;
+    uploadedAt: string;
+  }[];
 }
 
 

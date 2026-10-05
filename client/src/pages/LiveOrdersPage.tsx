@@ -18,23 +18,25 @@ import {
   AlertTriangle,
   FileText,
   Bell,
-  Sparkles
+  Sparkles,
+  Send
 } from 'lucide-react';
-import { Order, Restaurant, Manager, PrinterConfig, Bill, OrderAddition } from '../types';
+import { Order, Restaurant, Manager, PrinterConfig, Bill, OrderAddition, OrderSource } from '../types';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
 import { soundManager } from '../utils/sound';
-import { kotPrinter } from '../utils/kotPrinter';
+import { kotPrinter, getOrderDisplayTitle } from '../utils/kotPrinter';
 import { SoundBanner } from '../components/SoundBanner';
 import { KotModal } from '../components/KotModal';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { SettleBillModal } from '../components/SettleBillModal';
+import { AcceptOnlineOrderModal } from '../components/AcceptOnlineOrderModal';
 
 interface LiveOrdersPageProps {
   restaurant: Restaurant | null;
   manager: Manager | null;
   orders: Order[];
-  onUpdateOrderStatus: (orderId: string, status: string) => Promise<void>;
+  onUpdateOrderStatus: (orderId: string, status: string, rejectionReason?: string, estimatedPrepTime?: number) => Promise<void>;
   onRefreshOrders: () => void;
   printerConfig?: PrinterConfig;
 }
@@ -50,9 +52,8 @@ interface AdditionToast {
   time: string;
 }
 
-const formatTableLabel = (tableNumber?: string) => {
-  if (!tableNumber) return 'Counter';
-  return tableNumber.toLowerCase().startsWith('table') ? tableNumber : `Table ${tableNumber}`;
+const formatTableLabel = (tableNumber?: string, source?: OrderSource) => {
+  return getOrderDisplayTitle({ source, tableNumber });
 };
 
 const formatOrderNumber = (orderNumber?: string) => {
@@ -101,7 +102,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
     const handleAddition = (data: { order: Order; addition: any }) => {
       const { order, addition } = data;
-      const tableLabel = formatTableLabel(order.tableNumber);
+      const tableLabel = formatTableLabel(order.tableNumber, order.source);
       const itemSummary = addition.items?.map((i: any) => `${i.quantity}× ${i.name}`).join(', ') || 'Additional dishes';
       const newToast: AdditionToast = {
         id: `toast_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -129,6 +130,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
+  const [orderToAcceptOnline, setOrderToAcceptOnline] = useState<Order | null>(null);
+
   const handleAcceptOrder = async (order: Order) => {
     try {
       await onUpdateOrderStatus(order.id, 'ACCEPTED');
@@ -138,6 +141,25 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       }
     } catch (e) {
       console.error('Failed to accept order:', e);
+    }
+  };
+
+  const handleInitiateAccept = (order: Order) => {
+    if (order.source === 'SWIGGY' || order.source === 'ZOMATO') {
+      setOrderToAcceptOnline(order);
+    } else {
+      handleAcceptOrder(order);
+    }
+  };
+
+  const handleConfirmOnlineAccept = async (order: Order, prepTime: number) => {
+    try {
+      await onUpdateOrderStatus(order.id, 'ACCEPTED', undefined, prepTime);
+      if (printerConfig?.autoPrintKot ?? true) {
+        kotPrinter.printOrderKot(restaurant, { ...order, estimatedPrepTime: prepTime }, printerConfig);
+      }
+    } catch (e) {
+      console.error('Failed to accept online order:', e);
     }
   };
 
@@ -227,6 +249,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
   // Filter orders by source and search
   const filteredOrders = orders.filter((order) => {
+    if (order.status === 'COMPLETED' || order.status === 'REJECTED' || order.status === 'DELIVERED') return false;
     const matchesSource = filterSource === 'ALL' || order.source === filterSource;
     const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -239,12 +262,12 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   // Pipeline Stages (Preserve the clean 3 sections: Incoming -> Cooking -> Ready & Served)
   const pendingOrders = filteredOrders.filter(o => o.status === 'PENDING');
   const preparingOrders = filteredOrders.filter(o => o.status === 'ACCEPTED' || o.status === 'PREPARING');
-  const readyAndServedOrders = filteredOrders.filter(o => o.status === 'READY' || o.status === 'SERVED');
-  const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+  const readyAndServedOrders = filteredOrders.filter(o => o.status === 'READY' || o.status === 'SERVED' || o.status === 'OUT_FOR_DELIVERY');
+  const completedOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'DELIVERED');
 
   // Active table orders that have pending additions (displayed in the Incoming section)
   const activeOrdersWithPendingAdditions = filteredOrders.filter(
-    o => o.status !== 'PENDING' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' &&
+    o => o.status !== 'PENDING' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED' &&
          o.additions && o.additions.some(a => a.status === 'PENDING')
   );
 
@@ -478,8 +501,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                             <div className="flex items-start justify-between pb-2 border-b border-stone-100">
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
-                                    {formatTableLabel(order.tableNumber)}
+                                  <span className={`px-2 py-0.5 rounded-md font-bold text-xs tracking-tight ${
+                                    order.source === 'SWIGGY'
+                                      ? 'bg-[#FC8019] text-white'
+                                      : order.source === 'ZOMATO'
+                                      ? 'bg-[#E23744] text-white'
+                                      : 'bg-slate-900 text-white'
+                                  }`}>
+                                    {formatTableLabel(order.tableNumber, order.source)}
                                   </span>
                                   <span className="text-[11px] text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                                     Add-on to {formatOrderNumber(order.orderNumber)}
@@ -593,21 +622,18 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                           <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
-                                  {formatTableLabel(order.tableNumber)}
+                                <span className={`px-2 py-0.5 rounded-md font-bold text-xs tracking-tight ${
+                                  order.source === 'SWIGGY'
+                                    ? 'bg-[#FC8019] text-white'
+                                    : order.source === 'ZOMATO'
+                                    ? 'bg-[#E23744] text-white'
+                                    : 'bg-slate-900 text-white'
+                                }`}>
+                                  {formatTableLabel(order.tableNumber, order.source)}
                                 </span>
                                 <span className="text-[11px] text-slate-500 font-mono font-medium">
                                   {formatOrderNumber(order.orderNumber)}
                                 </span>
-                                {order.source && order.source !== 'DINE_IN' && (
-                                  <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                                    order.source === 'SWIGGY'
-                                      ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                      : 'bg-red-50 text-red-700 border border-red-200'
-                                  }`}>
-                                    {order.source}
-                                  </span>
-                                )}
                               </div>
                               <span className="text-[10px] text-slate-400 block mt-1">
                                 Ordered at {orderTime}
@@ -663,7 +689,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                 Reject
                               </button>
                               <button
-                                onClick={() => handleAcceptOrder(order)}
+                                onClick={() => handleInitiateAccept(order)}
                                 className="min-h-[38px] px-4 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                               >
                                 <Check className="w-3.5 h-3.5" />
@@ -709,8 +735,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                             <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
-                                    {formatTableLabel(order.tableNumber)}
+                                  <span className={`px-2 py-0.5 rounded-md font-bold text-xs tracking-tight ${
+                                    order.source === 'SWIGGY'
+                                      ? 'bg-[#FC8019] text-white'
+                                      : order.source === 'ZOMATO'
+                                      ? 'bg-[#E23744] text-white'
+                                      : 'bg-slate-900 text-white'
+                                  }`}>
+                                    {formatTableLabel(order.tableNumber, order.source)}
                                   </span>
                                   <span className="text-[11px] text-slate-500 font-mono font-medium">
                                     {formatOrderNumber(order.orderNumber)}
@@ -770,6 +802,18 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               </div>
                             )}
 
+                            {order.source && order.source !== 'DINE_IN' && (
+                              <div className="mb-2 p-2 rounded-lg bg-orange-50 border border-orange-200 text-[11px] text-orange-900 flex items-center justify-between font-semibold">
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-orange-600" />
+                                  <span>Target Prep: {order.estimatedPrepTime || 25} mins</span>
+                                </span>
+                                <span className="text-[10px] text-orange-700 bg-white px-1.5 py-0.5 rounded border border-orange-200">
+                                  {order.source} Delivery
+                                </span>
+                              </div>
+                            )}
+
                             <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
                               <div>
                                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
@@ -784,13 +828,23 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                 >
                                   <Printer className="w-4 h-4 text-slate-500" />
                                 </button>
-                                <button
-                                  onClick={() => onUpdateOrderStatus(order.id, 'READY')}
-                                  className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
-                                >
-                                  <Check className="w-3.5 h-3.5" />
-                                  <span>Mark Ready</span>
-                                </button>
+                                {order.source && order.source !== 'DINE_IN' ? (
+                                  <button
+                                    onClick={() => onUpdateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}
+                                    className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                    <span>Dispatch / Out for Delivery</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => onUpdateOrderStatus(order.id, 'READY')}
+                                    className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>Mark Ready</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -837,8 +891,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                             <div className="flex items-start justify-between pb-2.5 border-b border-stone-100">
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold text-xs tracking-tight">
-                                    {formatTableLabel(order.tableNumber)}
+                                  <span className={`px-2 py-0.5 rounded-md font-bold text-xs tracking-tight ${
+                                    order.source === 'SWIGGY'
+                                      ? 'bg-[#FC8019] text-white'
+                                      : order.source === 'ZOMATO'
+                                      ? 'bg-[#E23744] text-white'
+                                      : 'bg-slate-900 text-white'
+                                  }`}>
+                                    {formatTableLabel(order.tableNumber, order.source)}
                                   </span>
                                   <span className="text-[11px] text-slate-500 font-mono font-medium">
                                     {formatOrderNumber(order.orderNumber)}
@@ -876,6 +936,18 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                 </span>
                                 <span className="text-[10px] text-emerald-700 bg-white px-1.5 py-0.5 rounded border border-emerald-200">
                                   Can add dishes
+                                </span>
+                              </div>
+                            )}
+
+                            {order.status === 'OUT_FOR_DELIVERY' && (
+                              <div className="my-2 p-2 rounded-lg bg-indigo-50 border border-indigo-200 text-[11px] text-indigo-900 flex items-center justify-between font-semibold">
+                                <span className="flex items-center gap-1.5">
+                                  <Send className="w-3.5 h-3.5 text-indigo-600" />
+                                  <span>Out for Delivery • Delivery Partner En Route</span>
+                                </span>
+                                <span className="text-[10px] text-indigo-700 bg-white px-1.5 py-0.5 rounded border border-indigo-200 font-bold">
+                                  Dispatched
                                 </span>
                               </div>
                             )}
@@ -971,6 +1043,17 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                       <span>Settle Bill</span>
                                     </button>
                                   </>
+                                )}
+
+                                {/* When OUT_FOR_DELIVERY: Deliver & Settle order */}
+                                {order.status === 'OUT_FOR_DELIVERY' && (
+                                  <button
+                                    onClick={() => onUpdateOrderStatus(order.id, 'DELIVERED')}
+                                    className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Mark Delivered & Settled</span>
+                                  </button>
                                 )}
                               </div>
                             </div>
@@ -1087,7 +1170,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                 <div key={order.id} className="p-3 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-stone-50 transition-colors">
                   <div className="flex items-center justify-between pb-1.5 border-b border-stone-200/60">
                     <div>
-                      <span className="font-bold text-xs text-slate-900">{formatTableLabel(order.tableNumber)}</span>
+                      <span className="font-bold text-xs text-slate-900">{formatTableLabel(order.tableNumber, order.source)}</span>
                       <span className="text-[10px] text-slate-400 font-mono ml-2">{formatOrderNumber(order.orderNumber)}</span>
                     </div>
                     <span className="text-xs font-bold text-slate-900 tabular-nums">₹{order.total?.toFixed(0)}</span>
@@ -1147,6 +1230,13 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         isOpen={Boolean(settleOrder)}
         onClose={() => setSettleOrder(null)}
         onSettle={handleSettleBill}
+      />
+
+      <AcceptOnlineOrderModal
+        isOpen={Boolean(orderToAcceptOnline)}
+        order={orderToAcceptOnline}
+        onClose={() => setOrderToAcceptOnline(null)}
+        onConfirmAccept={handleConfirmOnlineAccept}
       />
     </div>
   );

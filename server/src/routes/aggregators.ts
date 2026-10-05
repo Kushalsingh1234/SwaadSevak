@@ -497,7 +497,7 @@ router.post('/simulate-order', (req: AuthenticatedRequest, res: Response) => {
     // Find or pick a table for the order record
     const tables = db.getTables(restaurantId);
     const tableId = tables.length > 0 ? tables[0].id : 'online_delivery';
-    const tableNumber = orderProvider === 'SWIGGY' ? 'Swiggy Delivery' : 'Zomato Delivery';
+    const tableNumber = orderProvider === 'SWIGGY' ? 'Swiggy' : 'Zomato';
 
     const order = db.createOrder({
       restaurantId,

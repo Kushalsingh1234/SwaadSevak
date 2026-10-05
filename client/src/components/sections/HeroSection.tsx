@@ -1,16 +1,16 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
-import { ArrowRight, MessageSquare } from 'lucide-react';
+import { ArrowRight, MessageSquare, ChevronDown } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const HeroSection: React.FC = () => {
   return (
     <section
-      className="relative pt-12 sm:pt-20 pb-20 sm:pb-32 text-center font-sans overflow-hidden"
+      className="relative min-h-[calc(100vh-73px)] flex flex-col justify-center items-center text-center font-sans overflow-hidden py-16 sm:py-20"
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       {/* Background radial glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[550px] bg-orange-500/20 rounded-full blur-[140px] pointer-events-none -z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-orange-500/20 rounded-full blur-[140px] pointer-events-none -z-0" />
       
       {/* High-Visibility Warm Sand Dot Grid */}
       <div
@@ -21,7 +21,7 @@ export const HeroSection: React.FC = () => {
         }}
       />
 
-      <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10 flex-1 flex flex-col justify-center items-center">
         {/* Top Pill Label */}
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold shadow-soft mb-6"
@@ -43,14 +43,14 @@ export const HeroSection: React.FC = () => {
 
         {/* Short Sub-line in Crisp High-Contrast Sand */}
         <p
-          className="text-base sm:text-xl max-w-2xl mx-auto leading-relaxed mb-8 font-medium"
+          className="text-base sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 font-medium"
           style={{ color: '#F5E9DD' }}
         >
           Everything an Indian restaurant owner needs: 3-click POS billing, offline KOT, aggregator sync, automated recipe inventory, and rapid restaurant website advisory.
         </p>
 
         {/* Actions: Primary Orange CTA + Secondary Text Link */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href={SITE_CONTENT.links.demo}
             data-event="hero_primary_demo_click"
@@ -74,6 +74,18 @@ export const HeroSection: React.FC = () => {
             <span className="group-hover:translate-x-1 transition-transform">→</span>
           </a>
         </div>
+      </div>
+
+      {/* Subtle Scroll Down Prompt at the very bottom */}
+      <div className="relative z-10 pt-8 pb-2">
+        <a
+          href="#products"
+          aria-label="Scroll to explore features"
+          className="inline-flex flex-col items-center gap-1 text-[11px] font-mono uppercase tracking-widest text-sand-100/70 hover:text-orange-400 transition-colors"
+        >
+          <span className="font-bold">Explore Features</span>
+          <ChevronDown className="w-4 h-4 animate-bounce text-orange-400" />
+        </a>
       </div>
     </section>
   );

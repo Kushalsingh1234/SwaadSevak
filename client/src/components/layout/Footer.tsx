@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
           {/* Brand Column (2 Cols) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="inline-block">
-              <SwaadSevakLogo size="md" />
+              <SwaadSevakLogo size="md" onOrangeBg />
             </div>
             <p className="text-xs sm:text-sm text-espresso max-w-sm leading-relaxed font-semibold">
               {SITE_CONTENT.brand.tagline}. Built specifically for Indian restaurants, cafés, cloud kitchens, and multi-outlet chains.

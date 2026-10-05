@@ -22,6 +22,61 @@ export const HeroSection: React.FC = () => {
         }}
       />
 
+      {/* Signature SwaadSevak Logo Mark Silhouette Glimpse in Background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[48%] w-[520px] sm:w-[680px] h-[520px] sm:h-[680px] pointer-events-none -z-0 opacity-20 select-none">
+        <svg
+          viewBox="0 0 100 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
+          aria-hidden="true"
+        >
+          {/* Subtle Outer Squircle Contour */}
+          <rect x="2" y="2" width="96" height="96" rx="26" stroke="#F97316" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.5" />
+          
+          {/* 3 Rising Saffron Steam Waves */}
+          <path
+            d="M 33 38 C 29 27 41 20 35 10"
+            stroke="#F97316"
+            strokeWidth="5.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 50 38 C 46 27 58 20 52 10"
+            stroke="#FB923C"
+            strokeWidth="6"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 67 38 C 63 27 75 20 69 10"
+            stroke="#F97316"
+            strokeWidth="5.5"
+            strokeLinecap="round"
+          />
+
+          {/* Saffron Bowl Rim */}
+          <rect x="16" y="47" width="68" height="7.5" rx="3.75" fill="#F97316" />
+
+          {/* Translucent Glowing Bowl Body */}
+          <path
+            d="M 19 54.5 C 21 75 35 86 50 86 C 65 86 79 75 81 54.5 Z"
+            fill="url(#hero-logo-glow)"
+            stroke="#FAF4ED"
+            strokeWidth="1.5"
+          />
+
+          {/* Bowl Pedestal Stand */}
+          <rect x="36" y="86" width="28" height="4.5" rx="2.25" fill="#FAF4ED" opacity="0.8" />
+
+          <defs>
+            <linearGradient id="hero-logo-glow" x1="50" y1="54.5" x2="50" y2="86" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#F97316" stopOpacity="0.4" />
+              <stop stopColor="#FAF4ED" stopOpacity="0.08" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
       {/* Main Big Content Container */}
       <div className="max-w-5xl mx-auto relative z-10 flex-1 flex flex-col justify-center items-center py-4">
         

@@ -639,4 +639,235 @@ export interface GrowthEngineData {
   }[];
 }
 
+// ==========================================
+// SWAADSEVAK AI CRM TYPES & MODELS
+// ==========================================
+
+export type AiRecommendationCategory =
+  | 'WIN_BACK'
+  | 'NEW_RETENTION'
+  | 'VIP_PROTECTION'
+  | 'INCREASE_AOV'
+  | 'PRODUCT_BASED'
+  | 'LOW_FREQ_HIGH_VALUE'
+  | 'FEEDBACK_RECOVERY'
+  | 'BIRTHDAY'
+  | 'NO_DISCOUNT';
+
+export interface AiRecommendation {
+  id: string;
+  category: AiRecommendationCategory;
+  title: string;
+  explanation: string;
+  recommendedAction: string;
+  expectedObjective: string;
+  targetAudienceLabel?: string;
+  targetAudienceCount?: number;
+  targetAudience?: {
+    label: string;
+    count: number;
+    description: string;
+  };
+  estimatedValue?: string;
+  historicalAov?: number;
+  recommendedCoins?: number;
+  recommendedOffer?: {
+    type: string;
+    coins: number;
+    validityDays: number;
+  };
+  validityDays?: number;
+  badge: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  suggestedTemplate?: string;
+  actionPayload?: {
+    audienceFilter: string;
+    coinsReward: number;
+    validityDays: number;
+    channel: CampaignChannel;
+    defaultTone: CampaignTone;
+    defaultLanguage: CampaignLanguage;
+  };
+}
+
+export interface AiSegment {
+  id: string;
+  name: string;
+  description: string;
+  characteristics: string[];
+  customerCount: number;
+  avgOrderValue: number;
+  averageOrder: number;
+  avgVisitsPerMonth: number;
+  averageVisitsPerMonth: number;
+  totalRevenue: number;
+  suggestedCampaignIdea?: string;
+  icon?: string;
+}
+
+export type CampaignStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'SCHEDULED'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'PAUSED'
+  | 'CANCELLED';
+
+export type CampaignMode = 'RECOMMENDATION_ONLY' | 'APPROVAL_REQUIRED' | 'AUTOMATIC';
+export type CampaignChannel = 'WHATSAPP' | 'SMS' | 'EMAIL';
+export type CampaignPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+export type CampaignTone = 'FRIENDLY' | 'PREMIUM' | 'CASUAL' | 'URGENT' | 'FESTIVE' | 'PROFESSIONAL';
+export type CampaignLanguage = 'ENGLISH' | 'HINDI' | 'HINGLISH' | 'EN' | 'HI';
+export type CampaignOfferType = 'DISCOUNT_COINS' | 'FLAT_DISCOUNT' | 'FREE_ITEM' | 'NO_DISCOUNT' | 'DISCOUNT_PERCENT';
+
+export interface CampaignStats {
+  sent: number;
+  delivered: number;
+  clicks?: number;
+  redeemed: number;
+  conversionRate: number;
+  revenueGenerated: number;
+  discountCost: number;
+  netRevenue: number;
+  averageOrderValue?: number;
+  controlGroup?: {
+    groupSize?: number;
+    campaignGroupSize?: number;
+    controlGroupSize?: number;
+    returnCount?: number;
+    campaignGroupReturns?: number;
+    controlGroupReturns?: number;
+    returnRate?: number;
+    incrementalVisits?: number;
+    incrementalRevenue: number;
+  };
+}
+
+export interface AiCampaign {
+  id: string;
+  restaurantId?: string;
+  name: string;
+  description?: string;
+  objective?: string;
+  audienceSegment?: string;
+  targetSegment?: string;
+  audienceConditions?: string;
+  audienceFilterDesc?: string;
+  targetCount: number;
+  channel: CampaignChannel;
+  mode?: CampaignMode;
+  priority?: CampaignPriority;
+  status: CampaignStatus;
+  tone?: CampaignTone;
+  language?: CampaignLanguage;
+  offerType: CampaignOfferType;
+  offerValue: number;
+  offerPerkText?: string;
+  validityDays: number;
+  minOrderValue?: number;
+  messageTemplate?: string;
+  message?: string;
+  resolvedMessagePreview?: string;
+  reasoning?: string;
+  scheduleType?: 'IMMEDIATE' | 'AI_OPTIMIZED' | 'SCHEDULED';
+  aiOptimizedTime?: string;
+  scheduledFor?: string;
+  scheduledAt?: string;
+  sentAt?: string;
+  maxRewardCost?: number;
+  estimatedCost?: number;
+  maxBudget?: number;
+  requiresApproval?: boolean;
+  frequencyGuard?: {
+    maxPerMonth: number;
+    minGapDays: number;
+  };
+  stats?: CampaignStats;
+  performance?: CampaignStats;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AiAutomation {
+  id: string;
+  restaurantId?: string;
+  name: string;
+  trigger: any;
+  conditions: any;
+  action: any;
+  channel: CampaignChannel;
+  frequencyLimitDays: number;
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  autoApprove?: boolean;
+  lastRun?: string;
+  customersReached?: number;
+  revenueAttributed?: number;
+  stats?: {
+    lastRun?: string;
+    customersReached: number;
+    revenueAttributed: number;
+  };
+  createdAt?: string;
+}
+
+export interface CustomerAiSummary {
+  customerId: string;
+  customerName: string;
+  summaryText: string;
+  summary?: string;
+  churnRisk: 'LOW' | 'MEDIUM' | 'HIGH' | { level: 'LOW' | 'MEDIUM' | 'HIGH'; score?: number };
+  churnRiskLabel?: string;
+  estimatedClv: number;
+  estimatedLifetimeValue?: number;
+  normalVisitIntervalDays?: number;
+  daysSinceLastVisit?: number;
+  favoriteItems?: string[];
+  discountDependence?: 'LOW' | 'MEDIUM' | 'HIGH';
+  nextBestAction?: {
+    title: string;
+    actionText?: string;
+    action?: string;
+    reason: string;
+    coinsOffer?: number;
+  };
+  marketingPreferences?: {
+    sms: boolean;
+    whatsapp: boolean;
+    email: boolean;
+  };
+}
+
+export interface MarketingChannelConfig {
+  id: string;
+  channel: 'WHATSAPP' | 'SMS' | 'EMAIL';
+  connected: boolean;
+  optOutCount: number;
+  dailyLimit: number;
+}
+
+export interface AiCrmDashboardData {
+  winBackCard: {
+    customerCount: number;
+    potentialRevenue: number;
+  };
+  vipCard: {
+    customerCount: number;
+    lifetimeSpend: number;
+  };
+  opportunitiesCard: {
+    count: number;
+  };
+  automationsCard: {
+    activeCount: number;
+    recentRunsCount: number;
+    totalAttributedRevenue: number;
+  };
+  topRecommendations: AiRecommendation[];
+  recentCampaigns: AiCampaign[];
+}
+
+
 

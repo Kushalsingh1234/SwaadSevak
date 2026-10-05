@@ -23,7 +23,9 @@ import {
   CoinTransactionType,
   CrmSettings,
   CrmEvent,
-  CrmEventType
+  CrmEventType,
+  AiCampaign,
+  AiAutomation
 } from '../types/index.js';
 
 class DatabaseStore {
@@ -41,6 +43,12 @@ class DatabaseStore {
   coinTransactions: Map<string, CoinTransaction> = new Map();
   crmSettings: Map<string, CrmSettings> = new Map();
   crmEvents: CrmEvent[] = [];
+
+  // AI CRM Maps
+  aiCampaigns: Map<string, AiCampaign> = new Map();
+  aiAutomations: Map<string, AiAutomation> = new Map();
+  marketingChannels: Map<string, { whatsapp: boolean; sms: boolean; email: boolean }> = new Map();
+  customerMarketingPreferences: Map<string, { sms: boolean; whatsapp: boolean; email: boolean }> = new Map();
 
   // Growth Engine Maps
   posReports: Map<string, PosReport> = new Map();
@@ -1041,6 +1049,199 @@ class DatabaseStore {
         recentOrders[2].coinDiscount = 20;
         recentOrders[2].coinsEarned = 76;
       }
+    }
+
+    // Seed Marketing Channels
+    this.marketingChannels.set(restaurantId, {
+      whatsapp: true,
+      sms: true,
+      email: false
+    });
+
+    // Seed AI Automations (Phase 34, 35)
+    const initialAutomations: AiAutomation[] = [
+      {
+        id: 'auto-winback-30d',
+        restaurantId,
+        name: 'Win Back Inactive Diners',
+        trigger: 'Customer inactive for 30 days',
+        conditions: 'Orders >= 2 and total spend >= ₹500',
+        action: '₹75 Discount Coins + personalized message',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 45,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 86400000).toISOString(),
+        customersReached: 42,
+        revenueAttributed: 24800,
+        createdAt: new Date(Date.now() - 14 * 86400000)
+      },
+      {
+        id: 'auto-first-order-followup',
+        restaurantId,
+        name: 'New Customer 2nd-Visit Follow-Up',
+        trigger: '7 days after first order completed',
+        conditions: 'Total orders == 1',
+        action: '₹50 Second-Visit Coins + thank-you note',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 90,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 2 * 86400000).toISOString(),
+        customersReached: 26,
+        revenueAttributed: 14200,
+        createdAt: new Date(Date.now() - 21 * 86400000)
+      },
+      {
+        id: 'auto-vip-protection',
+        restaurantId,
+        name: 'VIP Falling Frequency Shield',
+        trigger: 'VIP guest visit gap > 25 days',
+        conditions: 'VIP status or spend > ₹8,000',
+        action: 'Chef Tasting Invitation + 150 VIP Coins',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 30,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 3 * 86400000).toISOString(),
+        customersReached: 8,
+        revenueAttributed: 9800,
+        createdAt: new Date(Date.now() - 30 * 86400000)
+      },
+      {
+        id: 'auto-feedback-recovery',
+        restaurantId,
+        name: 'Feedback Recovery Apology',
+        trigger: 'Customer rating < 3/5 or service complaint',
+        conditions: 'Identified phone number recorded',
+        action: 'Personal apology note + 100 Compensation Coins',
+        channel: 'SMS',
+        frequencyLimitDays: 14,
+        status: 'PAUSED',
+        lastRun: new Date(Date.now() - 6 * 86400000).toISOString(),
+        customersReached: 4,
+        revenueAttributed: 2100,
+        createdAt: new Date(Date.now() - 45 * 86400000)
+      },
+      {
+        id: 'auto-weekend-combo-boost',
+        restaurantId,
+        name: 'Weekend Beverage Combo Boost',
+        trigger: 'Friday 4:00 PM pre-dinner trigger',
+        conditions: 'Past weekend dinner visitors',
+        action: 'Free Kulhad Chai unlock on ₹499+ order',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 14,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 4 * 86400000).toISOString(),
+        customersReached: 34,
+        revenueAttributed: 18600,
+        createdAt: new Date(Date.now() - 10 * 86400000)
+      }
+    ];
+
+    for (const a of initialAutomations) {
+      this.aiAutomations.set(a.id, a);
+    }
+
+    // Seed AI Campaigns (Completed with performance analytics + Pending Approval draft)
+    const initialCampaigns: AiCampaign[] = [
+      {
+        id: 'camp-weekend-kickoff-01',
+        restaurantId,
+        name: 'Chai & Chaat Weekend Kickoff',
+        description: 'Special weekend re-engagement campaign for snack lovers',
+        objective: 'Re-engage weekend diners with signature chai pairings',
+        audienceSegment: 'WEEKEND_DINERS',
+        audienceConditions: 'Visited on weekend in last 60 days',
+        targetCount: 127,
+        channel: 'WHATSAPP',
+        mode: 'AUTOMATIC',
+        priority: 'MEDIUM',
+        status: 'COMPLETED',
+        tone: 'FRIENDLY',
+        language: 'HINGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 75,
+        validityDays: 7,
+        messageTemplate: 'Hey {{customer_name}}! We haven\'t seen you in a while at {{restaurant_name}}. Here\'s ₹75 in SwaadSevak Coins for your next visit. We\'d love to have you back! ❤️',
+        resolvedMessagePreview: 'Hey Rahul! We haven\'t seen you in a while at The Chai & Chaat Co. Here\'s ₹75 in SwaadSevak Coins for your next visit. We\'d love to have you back! ❤️',
+        sentAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+        maxRewardCost: 9525,
+        requiresApproval: false,
+        frequencyGuard: { maxPerMonth: 3, minGapDays: 5 },
+        stats: {
+          sent: 127,
+          delivered: 121,
+          clicks: 84,
+          redeemed: 38,
+          conversionRate: 31.4,
+          revenueGenerated: 24800,
+          discountCost: 2850,
+          netRevenue: 21950,
+          controlGroup: {
+            groupSize: 100,
+            returnCount: 9,
+            returnRate: 9.0,
+            incrementalRevenue: 18200
+          }
+        },
+        createdAt: new Date(Date.now() - 6 * 86400000),
+        updatedAt: new Date(Date.now() - 5 * 86400000)
+      },
+      {
+        id: 'camp-winback-draft-02',
+        restaurantId,
+        name: 'Win Back Inactive Diners',
+        description: 'Targeted win-back for diners with 30+ days inactivity',
+        objective: 'Re-activate 43 inactive diners with time-bound reward',
+        audienceSegment: 'AT_RISK',
+        audienceConditions: 'Last visit > 30 days ago, total orders >= 2',
+        targetCount: 43,
+        channel: 'WHATSAPP',
+        mode: 'APPROVAL_REQUIRED',
+        priority: 'HIGH',
+        status: 'PENDING_APPROVAL',
+        tone: 'FRIENDLY',
+        language: 'HINGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 75,
+        validityDays: 7,
+        messageTemplate: 'Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit ke liye ₹75 Discount Coins ready hain. Jaldi aao!',
+        resolvedMessagePreview: 'Hey Rahul! Kaafi time ho gaya aapse mile hue at The Chai & Chaat Co. ❤️ Aapke next visit ke liye ₹75 Discount Coins ready hain. Jaldi aao!',
+        maxRewardCost: 3225,
+        requiresApproval: true,
+        frequencyGuard: { maxPerMonth: 3, minGapDays: 5 },
+        createdAt: new Date(Date.now() - 86400000),
+        updatedAt: new Date(Date.now() - 86400000)
+      },
+      {
+        id: 'camp-vip-draft-03',
+        restaurantId,
+        name: 'VIP Patron Appreciation Reserve',
+        description: 'Exclusive reward for top 15% lifetime spenders',
+        objective: 'Reward top VIP guests and prevent high-value churn',
+        audienceSegment: 'VIP',
+        audienceConditions: 'Total spend >= ₹8,000 or status = VIP',
+        targetCount: 18,
+        channel: 'WHATSAPP',
+        mode: 'APPROVAL_REQUIRED',
+        priority: 'HIGH',
+        status: 'DRAFT',
+        tone: 'PREMIUM',
+        language: 'ENGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 150,
+        validityDays: 14,
+        messageTemplate: 'Dear {{customer_name}}, as one of our most valued patrons at {{restaurant_name}}, your VIP reserve of 150 Discount Coins is active for your next dinner. We look forward to hosting you.',
+        resolvedMessagePreview: 'Dear Amit, as one of our most valued patrons at The Chai & Chaat Co., your VIP reserve of 150 Discount Coins is active for your next dinner. We look forward to hosting you.',
+        maxRewardCost: 2700,
+        requiresApproval: true,
+        frequencyGuard: { maxPerMonth: 2, minGapDays: 10 },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    for (const c of initialCampaigns) {
+      this.aiCampaigns.set(c.id, c);
     }
   }
 
@@ -2555,6 +2756,103 @@ class DatabaseStore {
   getImplementedRecommendations(restaurantId: string): string[] {
     const set = this.implementedRecommendations.get(restaurantId);
     return set ? Array.from(set) : [];
+  }
+
+  // ==========================================
+  // SWAADSEVAK AI CRM METHODS
+  // ==========================================
+
+  saveAiCampaign(campaign: AiCampaign): AiCampaign {
+    this.aiCampaigns.set(campaign.id, campaign);
+    return campaign;
+  }
+
+  getAiCampaigns(restaurantId: string): AiCampaign[] {
+    return Array.from(this.aiCampaigns.values())
+      .filter(c => c.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  getAiCampaignById(restaurantId: string, campaignId: string): AiCampaign | undefined {
+    const c = this.aiCampaigns.get(campaignId);
+    if (c && c.restaurantId === restaurantId) return c;
+    return undefined;
+  }
+
+  updateAiCampaign(restaurantId: string, campaignId: string, updates: Partial<AiCampaign>): AiCampaign | null {
+    const existing = this.getAiCampaignById(restaurantId, campaignId);
+    if (!existing) return null;
+    const updated: AiCampaign = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.aiCampaigns.set(campaignId, updated);
+    return updated;
+  }
+
+  deleteAiCampaign(restaurantId: string, campaignId: string): boolean {
+    const existing = this.getAiCampaignById(restaurantId, campaignId);
+    if (!existing) return false;
+    return this.aiCampaigns.delete(campaignId);
+  }
+
+  saveAiAutomation(automation: AiAutomation): AiAutomation {
+    this.aiAutomations.set(automation.id, automation);
+    return automation;
+  }
+
+  getAiAutomations(restaurantId: string): AiAutomation[] {
+    return Array.from(this.aiAutomations.values())
+      .filter(a => a.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  getAiAutomationById(restaurantId: string, automationId: string): AiAutomation | undefined {
+    const a = this.aiAutomations.get(automationId);
+    if (a && a.restaurantId === restaurantId) return a;
+    return undefined;
+  }
+
+  updateAiAutomation(restaurantId: string, automationId: string, updates: Partial<AiAutomation>): AiAutomation | null {
+    const existing = this.getAiAutomationById(restaurantId, automationId);
+    if (!existing) return null;
+    const updated: AiAutomation = {
+      ...existing,
+      ...updates
+    };
+    this.aiAutomations.set(automationId, updated);
+    return updated;
+  }
+
+  deleteAiAutomation(restaurantId: string, automationId: string): boolean {
+    const existing = this.getAiAutomationById(restaurantId, automationId);
+    if (!existing) return false;
+    return this.aiAutomations.delete(automationId);
+  }
+
+  getMarketingChannels(restaurantId: string): { whatsapp: boolean; sms: boolean; email: boolean } {
+    return this.marketingChannels.get(restaurantId) || { whatsapp: true, sms: true, email: false };
+  }
+
+  setMarketingChannelStatus(restaurantId: string, channel: 'whatsapp' | 'sms' | 'email', connected: boolean) {
+    const current = this.getMarketingChannels(restaurantId);
+    this.marketingChannels.set(restaurantId, {
+      ...current,
+      [channel]: connected
+    });
+  }
+
+  getCustomerMarketingPreferences(restaurantId: string, customerId: string): { sms: boolean; whatsapp: boolean; email: boolean } {
+    return this.customerMarketingPreferences.get(customerId) || { sms: true, whatsapp: true, email: true };
+  }
+
+  setCustomerMarketingPreferences(restaurantId: string, customerId: string, prefs: { sms?: boolean; whatsapp?: boolean; email?: boolean }) {
+    const current = this.getCustomerMarketingPreferences(restaurantId, customerId);
+    this.customerMarketingPreferences.set(customerId, {
+      ...current,
+      ...prefs
+    });
   }
 }
 

@@ -1,4 +1,13 @@
-import { AnalyticsData, AnalyticsQueryOptions } from '../types';
+import {
+  AnalyticsData,
+  AnalyticsQueryOptions,
+  AiCrmDashboardData,
+  AiRecommendation,
+  AiSegment,
+  AiCampaign,
+  AiAutomation,
+  CustomerAiSummary
+} from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
@@ -219,6 +228,83 @@ export const api = {
     request<{ success: boolean; overview: any; topSpenders: any[]; topFrequent: any[]; segments: any }>('/crm/analytics'),
   getCrmEvents: () =>
     request<{ success: boolean; events: any[] }>('/crm/events'),
+
+  // AI CRM APIs (Phase 1 to 40)
+  getAiCrmDashboard: () =>
+    request<{ success: boolean; dashboard: import('../types').AiCrmDashboardData }>('/crm/ai/dashboard'),
+  getAiRecommendations: () =>
+    request<{ success: boolean; recommendations: import('../types').AiRecommendation[] }>('/crm/ai/recommendations'),
+  getAiSegments: () =>
+    request<{ success: boolean; segments: import('../types').AiSegment[] }>('/crm/ai/segments'),
+  parseAiCampaignPrompt: (prompt: string) =>
+    request<{
+      success: boolean;
+      campaignDraft: Partial<import('../types').AiCampaign>;
+      explanation: string;
+      matchedAudienceCount: number;
+      estimatedCost: number;
+      audienceReason: string;
+    }>('/crm/ai/builder/parse', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  parseAiCampaign: (prompt: string) =>
+    request<{
+      success: boolean;
+      message?: string;
+      draft?: any;
+      campaignDraft?: any;
+    }>('/crm/ai/builder/parse', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  getAiCampaigns: () =>
+    request<{ success: boolean; campaigns: import('../types').AiCampaign[] }>('/crm/ai/campaigns'),
+  createAiCampaign: (payload: Partial<import('../types').AiCampaign>) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>('/crm/ai/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  approveAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>(`/crm/ai/campaigns/${id}/approve`, {
+      method: 'POST'
+    }),
+  executeAiCampaign: (id: string) =>
+    request<{
+      success: boolean;
+      message: string;
+      campaign?: import('../types').AiCampaign;
+      sentCount: number;
+      deliveredCount: number;
+    }>(`/crm/ai/campaigns/${id}/execute`, { method: 'POST' }),
+  cancelAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>(`/crm/ai/campaigns/${id}/cancel`, {
+      method: 'POST'
+    }),
+  deleteAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string }>(`/crm/ai/campaigns/${id}`, { method: 'DELETE' }),
+  getAiAutomations: () =>
+    request<{ success: boolean; automations: import('../types').AiAutomation[] }>('/crm/ai/automations'),
+  createAiAutomation: (payload: Partial<import('../types').AiAutomation>) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>('/crm/ai/automations', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  toggleAiAutomation: (id: string, status?: string) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>(`/crm/ai/automations/${id}/toggle`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    }),
+  deleteAiAutomation: (id: string) =>
+    request<{ success: boolean; message: string }>(`/crm/ai/automations/${id}`, { method: 'DELETE' }),
+  getCustomerAiSummary: (id: string) =>
+    request<{ success: boolean; summary: import('../types').CustomerAiSummary }>(`/crm/ai/customers/${id}/summary`),
+  updateCustomerMarketingPrefs: (id: string, prefs: { sms?: boolean; whatsapp?: boolean; email?: boolean }) =>
+    request<{ success: boolean; message: string; preferences: any }>(`/crm/ai/customers/${id}/preferences`, {
+      method: 'PUT',
+      body: JSON.stringify(prefs)
+    }),
+  getMarketingChannels: () =>
+    request<{ success: boolean; channels: { whatsapp: boolean; sms: boolean; email: boolean } }>('/crm/ai/channels'),
+  toggleMarketingChannel: (channel: 'whatsapp' | 'sms' | 'email', connected: boolean) =>
+    request<{ success: boolean; message: string; channels: any }>('/crm/ai/channels/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ channel, connected })
+    }),
 
   // Pre-warm server ping
   pingServer: async (): Promise<boolean> => {

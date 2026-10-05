@@ -4,27 +4,17 @@
 
 @layer base {
   :root {
-    --bg-page: #FAF6F0; /* Warm Sand Linen */
-    --bg-surface: #FFFFFF;
-    --bg-card: #FFFFFF;
-    --border-subtle: #E5D8CC; /* Warm Brown border */
-    --text-primary: #170C08; /* Deep Mocha Brown */
-    --text-body: #544336; /* Warm Espresso body text */
-    --text-muted: #7D5B46;
-    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #D9480F 100%);
-    --color-indigo: #4F46E5;
-  }
-
-  .dark {
-    --bg-page: #140A06; /* Deep Roast Coffee */
-    --bg-surface: #1E120B; /* Dark Warm Mocha */
-    --bg-card: #26170E;
-    --border-subtle: #3A2418;
-    --text-primary: #FAF6F0;
-    --text-body: #D4C1B3;
-    --text-muted: #A78672;
-    --color-ember-gradient: linear-gradient(135deg, #FF7A1A 0%, #D9480F 100%);
-    --color-indigo: #818CF8;
+    --color-espresso: #2B1A12;
+    --color-cocoa: #3D2519;
+    --color-walnut: #5A3A28;
+    --color-white: #FFFFFF;
+    --color-cream: #FFF8F1;
+    --color-sand: #F5E9DD;
+    --color-orange: #F97316;
+    --color-orange-hover: #EA580C;
+    --color-orange-dark: #C2410C;
+    --color-body-text: #6B5444;
+    --color-success: #16A34A;
   }
 
   html {
@@ -34,21 +24,21 @@
   }
 
   body {
-    background-color: var(--bg-page);
-    color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-cream);
+    color: var(--color-espresso);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 
   /* Fluid typography clamp sizes */
   h1, .h1-fluid {
-    font-size: clamp(2.25rem, 4.5vw + 0.5rem, 3.75rem);
+    font-size: clamp(2.35rem, 5vw + 0.5rem, 3.85rem);
     line-height: 1.1;
     letter-spacing: -0.03em;
     font-weight: 800;
   }
 
   h2, .h2-fluid {
-    font-size: clamp(1.85rem, 3vw + 0.5rem, 2.75rem);
+    font-size: clamp(1.85rem, 3.2vw + 0.5rem, 2.75rem);
     line-height: 1.18;
     letter-spacing: -0.025em;
     font-weight: 700;
@@ -58,50 +48,62 @@
     font-size: clamp(1.25rem, 2vw + 0.25rem, 1.75rem);
     line-height: 1.25;
     letter-spacing: -0.015em;
-    font-weight: 600;
+    font-weight: 700;
   }
 }
 
 @layer utilities {
-  /* Warm dot grid background for hero */
-  .bg-grid-pattern {
-    background-image: radial-gradient(#D4C1B3 0.9px, transparent 0.9px);
-    background-size: 24px 24px;
-  }
-  .dark .bg-grid-pattern {
-    background-image: radial-gradient(#3A2418 0.9px, transparent 0.9px);
+  /* Subtle Device Frame Shadow & Gloss */
+  .device-laptop-frame {
+    background: #1F120C;
+    border: 12px solid #2B1A12;
+    border-radius: 24px 24px 8px 8px;
+    box-shadow: 0 24px 60px -12px rgba(43, 26, 18, 0.45);
   }
 
-  /* Spotlight cursor effect wrapper */
-  .spotlight-card {
+  .device-laptop-base {
+    background: linear-gradient(180deg, #3D2519 0%, #2B1A12 100%);
+    border-radius: 0 0 16px 16px;
+    height: 14px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .device-phone-frame {
+    background: #1F120C;
+    border: 8px solid #2B1A12;
+    border-radius: 36px;
+    box-shadow: 0 20px 48px -10px rgba(43, 26, 18, 0.4);
+  }
+
+  /* Button Shine on Hover */
+  .btn-shine {
     position: relative;
     overflow: hidden;
   }
-  .spotlight-card::before {
+  .btn-shine::after {
     content: '';
     position: absolute;
-    top: var(--mouse-y, -1000px);
-    left: var(--mouse-x, -1000px);
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 122, 26, 0.12), transparent 70%);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
   }
-  .spotlight-card:hover::before {
-    opacity: 1;
+  .btn-shine:hover::after {
+    transform: translateX(100%);
   }
 
   /* Focus ring for WCAG AA compliance */
   .focus-ring:focus-visible {
-    outline: 2px solid #FF7A1A;
+    outline: 2px solid #F97316;
     outline-offset: 2px;
   }
 }
 
-/* Reduced Motion Override */
+/* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

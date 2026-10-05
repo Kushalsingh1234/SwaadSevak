@@ -2,19 +2,18 @@ import React from 'react';
 import { SEO } from './components/ui/SEO';
 import { Header } from './components/layout/Header';
 import { HeroSection } from './components/sections/HeroSection';
-import { ProofStripSection } from './components/sections/ProofStripSection';
-import { ProblemSolutionSection } from './components/sections/ProblemSolutionSection';
-import { ProductTourSection } from './components/sections/ProductTourSection';
-import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
+import { ProductTabsSection } from './components/sections/ProductTabsSection';
+import { TrustStripSection } from './components/sections/TrustStripSection';
+import { WhyUsSection } from './components/sections/WhyUsSection';
+import { EcosystemSection } from './components/sections/EcosystemSection';
+import { MetricsBandSection } from './components/sections/MetricsBandSection';
+import { AccordionBenefitsSection } from './components/sections/AccordionBenefitsSection';
 import { WebsiteInquirySection } from './components/sections/WebsiteInquirySection';
-import { OutletTypesSection } from './components/sections/OutletTypesSection';
 import { SavingsCalculatorSection } from './components/sections/SavingsCalculatorSection';
-import { IntegrationsSection } from './components/sections/IntegrationsSection';
-import { SwitchingSection } from './components/sections/SwitchingSection';
 import { PricingSection } from './components/sections/PricingSection';
 import { TestimonialsSection } from './components/sections/TestimonialsSection';
 import { FAQSection } from './components/sections/FAQSection';
-import { FinalCTASection } from './components/sections/FinalCTASection';
+import { BookDemoSection } from './components/sections/BookDemoSection';
 import { Footer } from './components/layout/Footer';
 import { CookieBanner } from './components/ui/CookieBanner';
 import { FloatingWhatsApp } from './components/ui/FloatingWhatsApp';
@@ -22,62 +21,59 @@ import { MobileBottomBar } from './components/ui/MobileBottomBar';
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950 text-ink-950 dark:text-ink-50 transition-colors duration-200">
-      {/* 0. SEO Helmet & Structured Schema */}
+    <div className="min-h-screen flex flex-col bg-cream text-espresso antialiased selection:bg-orange-500 selection:text-espresso font-sans">
+      {/* 0. SEO Meta & Structured JSON-LD */}
       <SEO />
 
-      {/* 1. Header (Sticky with blur-and-shrink on scroll) */}
+      {/* 1. Header (Slim espresso, sticky with blur-and-shrink on scroll) */}
       <Header />
 
-      {/* Main Content Sections */}
+      {/* Main Sections in Exact Rhythm */}
       <main id="main-content" className="flex-1">
-        {/* 2. Hero Section */}
+        {/* 2. Dark Espresso Hero */}
         <HeroSection />
 
-        {/* 3. Proof Strip */}
-        <ProofStripSection />
+        {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
+        <ProductTabsSection />
 
-        {/* 4. Problem to Solution (3 Pains & Fixes) */}
-        <ProblemSolutionSection />
+        {/* 4. Trust Strip on Cream Band (Infinite Marquee) */}
+        <TrustStripSection />
 
-        {/* 5. Product Tour (4-Moment Scroll Story with React Mockups) */}
-        <ProductTourSection />
+        {/* 5. Dark "Why Us" Section (Asymmetric 2+1/1+2 Grid) */}
+        <WhyUsSection />
 
-        {/* 6. Features Bento Grid (8 Tiles with Mini Demos) */}
-        <FeaturesBentoSection />
+        {/* 6. Ecosystem on White (2x2 Grid of Sand-Tinted Cards) */}
+        <EcosystemSection />
 
-        {/* 7. Website Inquiry Section (Dark Ink Band, 24h Response Scope) */}
+        {/* 7. Espresso Metrics Band (How We Build Trust) */}
+        <MetricsBandSection />
+
+        {/* 8. Accordion Benefits (What SwaadSevak Can Do For You + Team Illustration) */}
+        <AccordionBenefitsSection />
+
+        {/* 9. Website Inquiry Section (Dark Espresso Band, 24h Response Guarantee) */}
         <WebsiteInquirySection />
 
-        {/* 8. Outlet Types (8 Tabs) */}
-        <OutletTypesSection />
-
-        {/* 9. Savings Calculator */}
+        {/* 10. Savings Calculator on White (Visible Formula) */}
         <SavingsCalculatorSection />
 
-        {/* 10. Integrations */}
-        <IntegrationsSection />
-
-        {/* 11. Switching Made Easy (3 Steps with Timeline) */}
-        <SwitchingSection />
-
-        {/* 12. Pricing & Comparison Table */}
+        {/* 11. Pricing on Cream (Starter, Growth, Scale) */}
         <PricingSection />
 
-        {/* 13. Testimonials (Marked TODO Placeholders) */}
+        {/* 12. Testimonials on White (3 Cards + Carousel Arrows) */}
         <TestimonialsSection />
 
-        {/* 14. FAQ (8 Accessible Accordion Items) */}
+        {/* 13. FAQ (8 Accessible Accordion Items) */}
         <FAQSection />
 
-        {/* 15. Final CTA Demo Form (Dark Ink Band) */}
-        <FinalCTASection />
+        {/* 14. Book a Free Demo (Cream Panel with Choice Chips) */}
+        <BookDemoSection />
       </main>
 
-      {/* 16. Footer */}
+      {/* 15. Footer on Espresso */}
       <Footer />
 
-      {/* Global Utilities */}
+      {/* Global Action Utilities */}
       <CookieBanner />
       <FloatingWhatsApp />
       <MobileBottomBar />

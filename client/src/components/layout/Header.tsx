@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { SwaadSevakLogo } from '../ui/SwaadSevakLogo';
-import { Button } from '../ui/Button';
 import { useTranslation } from '../../i18n';
-import { useTheme } from '../../hooks/useTheme';
 import { SITE_CONTENT } from '../../content/site';
-import { Phone, Globe, Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
+import { Globe, Menu, X, ArrowRight } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const Header: React.FC = () => {
   const { t, language, toggleLanguage } = useTranslation();
-  const { theme, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -23,119 +20,93 @@ export const Header: React.FC = () => {
 
   const handleNavClick = (section: string) => {
     setMobileMenuOpen(false);
-    trackEvent('demo_cta_click', { navSection: section });
+    trackEvent('nav_click', { navSection: section });
   };
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? 'py-2.5 bg-cream-50/95 dark:bg-ink-950/95 backdrop-blur-md shadow-soft border-b border-ink-200 dark:border-ink-800'
-          : 'py-4 bg-cream-50/80 dark:bg-ink-950/80 backdrop-blur-sm'
+          ? 'py-2.5 bg-espresso-900/95 backdrop-blur-md shadow-card border-b border-walnut'
+          : 'py-4 bg-espresso-900/80 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-container mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Brand Logo */}
-        <a href="#" className="focus-ring rounded-lg shrink-0">
-          <SwaadSevakLogo size={isScrolled ? 'sm' : 'md'} />
+        <a href="#" className="focus-ring rounded-lg shrink-0 flex items-center gap-3">
+          <SwaadSevakLogo size={isScrolled ? 'sm' : 'md'} lightText />
         </a>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-ink-600 dark:text-ink-300 font-sans">
+        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-sand-100 font-sans">
           <a
-            href={SITE_CONTENT.links.product}
-            onClick={() => handleNavClick('product')}
-            className="hover:text-ink-950 dark:hover:text-white transition-colors focus-ring rounded"
+            href="#products"
+            onClick={() => handleNavClick('products')}
+            className="hover:text-orange-500 transition-colors focus-ring rounded"
           >
-            {t.nav.features}
-          </a>
-          <a
-            href={SITE_CONTENT.links.websiteInquiry}
-            onClick={() => handleNavClick('website')}
-            className="flex items-center gap-1.5 hover:text-ink-950 dark:hover:text-white transition-colors focus-ring rounded group"
-          >
-            <span>{t.nav.website24h}</span>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-ember-50 dark:bg-ember-950/80 text-ember-600 dark:text-ember-400 group-hover:bg-ember-500 group-hover:text-ink-950 transition-colors">
-              24h Quote
-            </span>
-          </a>
-          <a
-            href="#outlets"
-            onClick={() => handleNavClick('outlets')}
-            className="hover:text-ink-950 dark:hover:text-white transition-colors focus-ring rounded"
-          >
-            {t.nav.outletTypes}
+            Products
           </a>
           <a
             href={SITE_CONTENT.links.pricing}
             onClick={() => handleNavClick('pricing')}
-            className="hover:text-ink-950 dark:hover:text-white transition-colors focus-ring rounded"
+            className="hover:text-orange-500 transition-colors focus-ring rounded"
           >
-            {t.nav.pricing}
+            Pricing
+          </a>
+          <a
+            href={SITE_CONTENT.links.websiteInquiry}
+            onClick={() => handleNavClick('website')}
+            className="flex items-center gap-1.5 hover:text-orange-500 transition-colors focus-ring rounded group"
+          >
+            <span>Website</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-espresso-950 transition-colors">
+              24h Quote
+            </span>
+          </a>
+          <a
+            href="#why-us"
+            onClick={() => handleNavClick('why-us')}
+            className="hover:text-orange-500 transition-colors focus-ring rounded"
+          >
+            Resources
           </a>
           <a
             href={SITE_CONTENT.links.faq}
             onClick={() => handleNavClick('faq')}
-            className="hover:text-ink-950 dark:hover:text-white transition-colors focus-ring rounded"
+            className="hover:text-orange-500 transition-colors focus-ring rounded"
           >
-            {t.nav.faq}
+            FAQ
           </a>
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-3">
           {/* Language Switch */}
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-ink-200 dark:border-ink-800 text-xs font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900 transition-colors focus-ring cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-walnut text-xs font-bold text-sand-100 hover:bg-cocoa transition-colors focus-ring cursor-pointer"
             aria-label={`Switch to ${language === 'en' ? 'Hindi' : 'English'}`}
           >
-            <Globe className="w-3.5 h-3.5 text-ember-500" />
+            <Globe className="w-3.5 h-3.5 text-orange-500" />
             <span>{language === 'en' ? 'हिन्दी' : 'EN'}</span>
           </button>
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg border border-ink-200 dark:border-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900 transition-colors focus-ring cursor-pointer"
-            aria-label="Toggle dark/light theme"
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-ember-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-ink-900" />
-            )}
-          </button>
-
-          {/* Support Phone (Desktop) */}
+          {/* Orange Primary Button with AA contrast Espresso text */}
           <a
-            href={`tel:${SITE_CONTENT.brand.supportPhoneRaw}`}
-            className="hidden xl:flex items-center gap-1.5 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white px-2 py-1 focus-ring rounded"
+            href={SITE_CONTENT.links.demo}
+            data-event="header_get_started_click"
+            onClick={() => trackEvent('header_get_started_click')}
+            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-orange-500 text-espresso-950 hover:bg-orange-600 transition-all duration-200 shadow-soft focus-ring"
           >
-            <Phone className="w-3.5 h-3.5 text-ember-500" />
-            <span>{SITE_CONTENT.brand.supportPhone}</span>
+            <span>Get started</span>
+            <ArrowRight className="w-4 h-4" />
           </a>
 
-          {/* Book Demo CTA Button */}
-          <div className="hidden sm:block">
-            <a href={SITE_CONTENT.links.demo}>
-              <Button
-                variant="ember"
-                size={isScrolled ? 'sm' : 'md'}
-                analyticsEvent="demo_cta_click"
-                eventPayload={{ location: 'header' }}
-                icon={<ArrowRight className="w-3.5 h-3.5" />}
-              >
-                {t.nav.bookDemo}
-              </Button>
-            </a>
-          </div>
-
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-ink-50 focus-ring cursor-pointer"
-            aria-label="Open mobile navigation menu"
+            className="lg:hidden p-2 rounded-lg border border-walnut text-sand-100 hover:bg-cocoa transition-colors focus-ring cursor-pointer"
+            aria-label="Toggle mobile menu"
             aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -145,67 +116,59 @@ export const Header: React.FC = () => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-ink-200 dark:border-ink-800 bg-white dark:bg-ink-950 px-6 py-5 shadow-card space-y-4 font-sans text-left">
-          <nav className="flex flex-col space-y-3 font-semibold text-sm text-ink-900 dark:text-ink-100">
+        <div className="lg:hidden bg-espresso-950 border-b border-walnut px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
+          <nav className="flex flex-col space-y-2 text-sm font-semibold text-sand-100">
             <a
-              href={SITE_CONTENT.links.product}
-              onClick={() => handleNavClick('product')}
-              className="py-1 hover:text-ember-500"
+              href="#products"
+              onClick={() => handleNavClick('products')}
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
             >
-              {t.nav.features}
-            </a>
-            <a
-              href={SITE_CONTENT.links.websiteInquiry}
-              onClick={() => handleNavClick('website')}
-              className="py-1 flex items-center justify-between text-ember-600 dark:text-ember-400"
-            >
-              <span>{t.nav.website24h}</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-ember-50 dark:bg-ember-950">
-                24h Response
-              </span>
-            </a>
-            <a
-              href="#outlets"
-              onClick={() => handleNavClick('outlets')}
-              className="py-1 hover:text-ember-500"
-            >
-              {t.nav.outletTypes}
-            </a>
-            <a
-              href={SITE_CONTENT.links.calculator}
-              onClick={() => handleNavClick('calculator')}
-              className="py-1 hover:text-ember-500"
-            >
-              Savings Calculator
+              Products
             </a>
             <a
               href={SITE_CONTENT.links.pricing}
               onClick={() => handleNavClick('pricing')}
-              className="py-1 hover:text-ember-500"
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
             >
-              {t.nav.pricing}
+              Pricing
+            </a>
+            <a
+              href={SITE_CONTENT.links.websiteInquiry}
+              onClick={() => handleNavClick('website')}
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors flex items-center justify-between"
+            >
+              <span>Website</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">
+                24h Quote
+              </span>
+            </a>
+            <a
+              href="#why-us"
+              onClick={() => handleNavClick('why-us')}
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+            >
+              Resources
             </a>
             <a
               href={SITE_CONTENT.links.faq}
               onClick={() => handleNavClick('faq')}
-              className="py-1 hover:text-ember-500"
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
             >
-              {t.nav.faq}
+              FAQ
             </a>
           </nav>
 
-          <div className="pt-3 border-t border-ink-200 dark:border-ink-800 flex flex-col gap-3">
+          <div className="pt-2">
             <a
-              href={`tel:${SITE_CONTENT.brand.supportPhoneRaw}`}
-              className="flex items-center gap-2 text-xs font-semibold text-ink-700 dark:text-ink-300"
+              href={SITE_CONTENT.links.demo}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                trackEvent('mobile_menu_demo_click');
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso-950 hover:bg-orange-600 transition-colors shadow-soft"
             >
-              <Phone className="w-3.5 h-3.5 text-ember-500" />
-              <span>Call Support: {SITE_CONTENT.brand.supportPhone}</span>
-            </a>
-            <a href={SITE_CONTENT.links.demo} onClick={() => setMobileMenuOpen(false)}>
-              <Button fullWidth variant="ember" size="md">
-                {t.nav.bookDemo}
-              </Button>
+              <span>Get started</span>
+              <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         </div>

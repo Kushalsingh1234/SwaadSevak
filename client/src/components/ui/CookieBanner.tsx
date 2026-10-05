@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './Button';
 import { ShieldCheck, X } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
@@ -27,7 +26,7 @@ export const CookieBanner: React.FC = () => {
     } catch {
       // Ignore
     }
-    trackEvent('pricing_plan_select', { consent: 'accepted_all' });
+    trackEvent('cookie_consent', { consent: 'accepted_all' });
     setIsVisible(false);
   };
 
@@ -55,31 +54,31 @@ export const CookieBanner: React.FC = () => {
     <aside
       role="region"
       aria-label="Cookie Preferences"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 p-5 rounded-2xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 shadow-elevated text-ink-950 dark:text-ink-50 font-sans"
+      className="fixed bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 p-5 rounded-2xl bg-espresso text-white border border-walnut shadow-elevated font-sans"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-ember-500 shrink-0" />
-          <h4 className="font-bold text-sm">Privacy & Cookie Settings</h4>
+          <ShieldCheck className="w-5 h-5 text-orange-400 shrink-0" />
+          <h4 className="font-bold text-sm text-white">Privacy &amp; Cookie Preferences</h4>
         </div>
         <button
           onClick={handleReject}
           aria-label="Close cookie banner"
-          className="text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 focus-ring rounded"
+          className="text-sand-300 hover:text-white focus-ring rounded"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-        We use essential cookies to maintain secure sessions, and anonymous privacy-friendly metrics to ensure fast page loads.
+      <p className="text-xs text-sand-200 leading-relaxed mb-4">
+        We use essential cookies for security and anonymous performance metrics to provide faster order routing.
       </p>
 
       {showCustomize && (
-        <div className="mb-4 p-3 rounded-xl bg-ink-50 dark:bg-ink-950 border border-ink-200 dark:border-ink-800 space-y-2 text-xs">
+        <div className="mb-4 p-3 rounded-xl bg-cocoa border border-walnut space-y-2 text-xs text-sand-100">
           <div className="flex items-center justify-between">
             <span className="font-semibold">Essential (Required)</span>
-            <span className="text-[10px] uppercase font-bold text-success-600">Always Active</span>
+            <span className="text-[10px] uppercase font-bold text-success">Always Active</span>
           </div>
           <div className="flex items-center justify-between">
             <label htmlFor="analytics-consent-checkbox" className="font-medium cursor-pointer">
@@ -90,7 +89,7 @@ export const CookieBanner: React.FC = () => {
               type="checkbox"
               checked={analyticsConsent}
               onChange={(e) => setAnalyticsConsent(e.target.checked)}
-              className="accent-ember-500 w-4 h-4 rounded cursor-pointer"
+              className="accent-orange-500 w-4 h-4 rounded cursor-pointer"
             />
           </div>
         </div>
@@ -101,21 +100,30 @@ export const CookieBanner: React.FC = () => {
           <>
             <button
               onClick={() => setShowCustomize(true)}
-              className="text-xs font-semibold text-ink-500 hover:text-ink-900 dark:hover:text-ink-100 hover:underline px-2 py-1 focus-ring"
+              className="px-3 py-1.5 text-xs font-semibold text-sand-300 hover:text-white cursor-pointer"
             >
               Customise
             </button>
-            <Button size="sm" variant="outline" onClick={handleReject}>
-              Reject Non-Essential
-            </Button>
-            <Button size="sm" variant="ember" onClick={handleAccept}>
+            <button
+              onClick={handleReject}
+              className="px-3 py-1.5 rounded-lg border border-walnut text-xs font-bold text-sand-100 hover:bg-cocoa cursor-pointer"
+            >
+              Reject
+            </button>
+            <button
+              onClick={handleAccept}
+              className="btn-shine px-4 py-1.5 rounded-lg bg-orange-500 text-espresso text-xs font-bold hover:bg-orange-600 shadow-soft cursor-pointer"
+            >
               Accept All
-            </Button>
+            </button>
           </>
         ) : (
-          <Button size="sm" variant="ember" onClick={handleSaveCustom}>
+          <button
+            onClick={handleSaveCustom}
+            className="btn-shine px-4 py-1.5 rounded-lg bg-orange-500 text-espresso text-xs font-bold hover:bg-orange-600 shadow-soft cursor-pointer"
+          >
             Save Preferences
-          </Button>
+          </button>
         )}
       </div>
     </aside>

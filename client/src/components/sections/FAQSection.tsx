@@ -1,12 +1,11 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
 import { useTranslation } from '../../i18n';
-import { Badge } from '../ui/Badge';
 import { Accordion } from '../ui/Accordion';
 import { HelpCircle } from 'lucide-react';
 
 export const FAQSection: React.FC = () => {
-  const { t, language } = useTranslation();
+  const { language } = useTranslation();
 
   const accordionItems = SITE_CONTENT.faqs.map((faq) => ({
     id: faq.id,
@@ -15,24 +14,24 @@ export const FAQSection: React.FC = () => {
   }));
 
   return (
-    <section id="faq" className="py-16 sm:py-24 font-sans bg-ink-50/50 dark:bg-ink-900/30 border-t border-ink-200/80 dark:border-ink-800">
+    <section id="faq" className="py-20 sm:py-28 font-sans bg-sand-50/50 text-espresso border-b border-sand-200">
       <div className="max-w-container mx-auto px-4 sm:px-6">
         
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="neutral" className="mb-3">
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>{t.faq.badge}</span>
-          </Badge>
-          <h2 className="h2-fluid font-bold text-ink-950 dark:text-ink-50 mb-3">
-            {t.faq.title}
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sand-100 border border-sand-200 text-xs font-semibold text-espresso shadow-soft mb-4">
+            <HelpCircle className="w-3.5 h-3.5 text-orange-500" />
+            <span>Frequently Asked Questions</span>
+          </div>
+          <h2 className="h2-fluid font-extrabold text-espresso tracking-tight mb-4">
+            Everything You Need to Know
           </h2>
-          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
-            {t.faq.subtitle}
+          <p className="text-base sm:text-lg text-bodyText leading-relaxed">
+            Straight answers to the most common questions from Indian restaurant operators.
           </p>
         </div>
 
-        {/* 8-Item Accordion */}
+        {/* 8-Item Accessible Accordion */}
         <div className="max-w-3xl mx-auto text-left">
           <Accordion items={accordionItems} allowMultiple={false} />
         </div>

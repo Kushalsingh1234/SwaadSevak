@@ -4,17 +4,19 @@ interface SwaadSevakLogoProps {
   className?: string;
   iconOnly?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  lightText?: boolean;
 }
 
 export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
   className = '',
   iconOnly = false,
   size = 'md',
+  lightText = false,
 }) => {
   const iconDimensions = {
-    sm: 'w-6 h-6',
-    md: 'w-8 h-8',
-    lg: 'w-10 h-10',
+    sm: 'w-7 h-7',
+    md: 'w-9 h-9',
+    lg: 'w-11 h-11',
   }[size];
 
   const textDimensions = {
@@ -25,9 +27,9 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-2.5 select-none font-sans ${className}`}>
-      {/* Modern B2B SaaS Mark: Stylized Serving Plate & Ladle Rupee Mark in Ember Gradient */}
+      {/* Modern B2B SaaS Mark: Stylized Serving Plate & Ladle in Vibrant Orange */}
       <div
-        className={`relative flex items-center justify-center rounded-xl bg-gradient-ember shadow-soft p-1.5 text-ink-950 shrink-0 ${iconDimensions}`}
+        className={`relative flex items-center justify-center rounded-xl bg-orange-500 shadow-soft p-1.5 text-espresso-950 shrink-0 ${iconDimensions}`}
       >
         <svg
           viewBox="0 0 32 32"
@@ -51,15 +53,15 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
             strokeWidth="2.5"
             strokeLinecap="round"
           />
-          {/* Center core pulse */}
+          {/* Center core */}
           <circle cx="16" cy="16" r="2.5" fill="currentColor" />
         </svg>
       </div>
 
       {!iconOnly && (
-        <div className="flex items-center gap-1.5 leading-none">
-          <span className={`font-bold tracking-tight text-ink-950 dark:text-ink-50 ${textDimensions}`}>
-            Swaad<span className="text-ember-500">Sevak</span>
+        <div className="flex items-center gap-1 leading-none">
+          <span className={`font-extrabold tracking-tight ${lightText ? 'text-white' : 'text-espresso-900'} ${textDimensions}`}>
+            Swaad<span className="text-orange-500">Sevak</span>
           </span>
         </div>
       )}

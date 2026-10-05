@@ -117,79 +117,15 @@ export const HeroSection: React.FC = () => {
 
           </div>
 
-          {/* Right Column: Visual Showcase Collage (6 Cols) */}
+          {/* Right Column: Visual Showcase Illustration (6 Cols) */}
           <div className="lg:col-span-6 relative flex justify-center items-center">
-            
-            {/* Visual Container Card */}
-            <div className="relative w-full rounded-3xl overflow-hidden border border-walnut/60 shadow-2xl bg-[#2B1A12]/80 backdrop-blur-sm p-3 sm:p-4">
-              
-              {/* Main Illustration Graphic */}
-              <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-white">
-                <img
-                  src="/brand/hero-showcase.jpg"
-                  alt="SwaadSevak Restaurant Operating System Team Illustration"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Floating Feature Badge 1: Custom Website Design (Top-Left) */}
-              <div
-                className="hidden sm:flex absolute top-6 left-6 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
-                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF' }}
-              >
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <Monitor className="w-4 h-4" />
-                </div>
-                <div className="text-left text-xs pr-2">
-                  <span className="font-extrabold text-white block">Custom</span>
-                  <span className="text-[10px] text-sand-100">Website Design</span>
-                </div>
-              </div>
-
-              {/* Floating Feature Badge 2: Online Ordering (Top-Right) */}
-              <div
-                className="hidden sm:flex absolute top-6 right-6 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
-                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '1.5s' }}
-              >
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <ShoppingBag className="w-4 h-4" />
-                </div>
-                <div className="text-left text-xs pr-2">
-                  <span className="font-extrabold text-white block">Online</span>
-                  <span className="text-[10px] text-sand-100">Ordering</span>
-                </div>
-              </div>
-
-              {/* Floating Feature Badge 3: Digital Menu (Middle-Left) */}
-              <div
-                className="hidden md:flex absolute top-1/2 -left-2 -translate-y-1/2 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
-                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '2.5s' }}
-              >
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div className="text-left text-xs pr-2">
-                  <span className="font-extrabold text-white block">Digital</span>
-                  <span className="text-[10px] text-sand-100">Menu</span>
-                </div>
-              </div>
-
-              {/* Floating Feature Badge 4: Table Reservation (Middle-Right) */}
-              <div
-                className="hidden md:flex absolute top-1/2 -right-2 -translate-y-1/2 p-2.5 rounded-xl shadow-elevated items-center gap-2.5 z-20 animate-float-slow backdrop-blur-md"
-                style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '3s' }}
-              >
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div className="text-left text-xs pr-2">
-                  <span className="font-extrabold text-white block">Table</span>
-                  <span className="text-[10px] text-sand-100">Reservation</span>
-                </div>
-              </div>
-
+            <div className="relative w-full overflow-hidden rounded-2xl flex items-center justify-center">
+              <img
+                src="/brand/hero-showcase.jpg"
+                alt="SwaadSevak Restaurant Team Illustration"
+                className="w-full h-auto object-cover rounded-2xl"
+              />
             </div>
-
           </div>
 
         </div>

@@ -31,7 +31,6 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
         className={`${heightClass} w-auto select-none shrink-0 ${className}`}
         aria-label="SwaadSevak Logo"
       >
-        <rect width="48" height="48" rx="12" fill="#1A0F0A" stroke="#5A3A28" strokeWidth="1.5" />
         {/* 3 Rising Saffron Steam Waves */}
         <path d="M 16 19 C 14 13 20 10 17 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
         <path d="M 24 19 C 22 13 28 10 25 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
@@ -58,9 +57,8 @@ export const SwaadSevakLogo: React.FC<SwaadSevakLogoProps> = ({
       className={`${heightClass} w-auto select-none shrink-0 ${className}`}
       aria-label="SwaadSevak"
     >
-      {/* App Icon Mark (Left) */}
+      {/* App Icon Mark (Left - Clean without container box/border) */}
       <g transform="translate(1, 1)">
-        <rect width="48" height="48" rx="12" fill="#1A0F0A" stroke="#5A3A28" strokeWidth="1.5" />
         {/* 3 Rising Saffron Steam Waves */}
         <path d="M 16 19 C 14 13 20 10 17 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />
         <path d="M 24 19 C 22 13 28 10 25 5" stroke="#F97316" strokeWidth="3.2" strokeLinecap="round" />

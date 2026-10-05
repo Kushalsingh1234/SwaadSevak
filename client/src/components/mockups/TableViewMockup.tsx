@@ -168,25 +168,6 @@ export const TableViewMockup: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Floating Order Notification Chips */}
-      <div
-        className="hidden md:flex absolute -top-5 left-8 p-3 rounded-xl shadow-elevated text-xs items-center gap-2.5 z-20 animate-float-slow"
-        style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
-      >
-        <span className="w-2.5 h-2.5 rounded-full bg-success" />
-        <span className="font-mono font-extrabold text-orange-400">Zomato #492</span>
-        <span className="text-sand-100 text-[11px] font-medium">1x Dum Biryani • Auto-Accepted</span>
-      </div>
-
-      <div
-        className="hidden md:flex absolute bottom-12 -left-6 p-3 rounded-xl shadow-elevated text-xs items-center gap-2.5 z-20 animate-float-slow"
-        style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF', animationDelay: '2s' }}
-      >
-        <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-        <span className="font-mono font-extrabold text-white">Table 09</span>
-        <span className="text-sand-100 text-[11px] font-medium">QR Order Dispatched to Barista</span>
-      </div>
-
     </div>
   );
 };

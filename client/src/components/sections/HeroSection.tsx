@@ -1,7 +1,7 @@
 import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
 import { TableViewMockup } from '../mockups/TableViewMockup';
-import { ArrowRight, MessageSquare, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, MessageSquare } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
 export const HeroSection: React.FC = () => {
@@ -68,38 +68,10 @@ export const HeroSection: React.FC = () => {
           </a>
         </div>
 
-        {/* Floating Order Notification Chips & Device Mockup Straddling hero base */}
+        {/* Device Mockup Straddling hero base */}
         <div className="relative pt-4 max-w-5xl mx-auto">
           {/* Ambient Glow */}
           <div className="absolute inset-0 bg-orange-500/20 rounded-3xl blur-2xl -z-10" />
-
-          {/* Floating Order Chip Left */}
-          <div
-            className="hidden md:flex absolute -top-4 -left-6 z-20 items-center gap-3 backdrop-blur-md p-3.5 rounded-2xl shadow-elevated animate-float-slow"
-            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div className="text-left text-xs">
-              <span className="font-extrabold text-white block">KOT #128 Printed</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Table 04 • 3 Items</span>
-            </div>
-          </div>
-
-          {/* Floating Payment Chip Right */}
-          <div
-            className="hidden md:flex absolute -top-2 -right-4 z-20 items-center gap-3 backdrop-blur-md p-3.5 rounded-2xl shadow-elevated animate-float-slow [animation-delay:1.5s]"
-            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-success/20 border border-success/40 flex items-center justify-center text-success">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div className="text-left text-xs">
-              <span className="font-extrabold text-white block">₹1,680 Settled</span>
-              <span className="text-[11px] font-medium" style={{ color: '#F5E9DD' }}>Dynamic UPI QR</span>
-            </div>
-          </div>
 
           {/* Laptop & Phone Device Mockup */}
           <TableViewMockup />

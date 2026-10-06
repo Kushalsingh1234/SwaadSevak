@@ -124,100 +124,100 @@ export const WebsiteInquirySection: React.FC = () => {
   return (
     <section
       id="website-inquiry"
-      className="py-12 sm:py-16 font-sans border-b border-walnut relative overflow-hidden"
+      className="py-6 sm:py-8 font-sans border-b border-walnut relative overflow-hidden"
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       {/* Background Soft Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[400px] bg-orange-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[240px] bg-orange-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-      <div className="max-w-container mx-auto px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+        <div className="text-center max-w-lg mx-auto mb-4 sm:mb-6">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-3 shadow-soft"
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold mb-1.5 shadow-soft"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FB923C' }}
           >
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3 h-3" />
             <span>Guaranteed 24-Hour Inquiry Response</span>
           </div>
 
-          <h2 className="h2-fluid font-extrabold tracking-tight mb-3" style={{ color: '#FFFFFF' }}>
+          <h2 className="h2-fluid font-extrabold tracking-tight mb-1.5" style={{ color: '#FFFFFF' }}>
             Need a Website for Your Restaurant? Tell Us, We Reply Within 24 Hours.
           </h2>
 
-          <p className="text-sm sm:text-base leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
+          <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
             Launch your branded online ordering portal with 1-tap WhatsApp checkout and 0% commission on direct neighbourhood orders.
           </p>
         </div>
 
         {/* 3-Step Process & Explicit 24h Response SLA */}
         <div
-          className="mb-8 p-5 sm:p-6 rounded-card-lg shadow-elevated"
+          className="mb-4 p-3.5 sm:p-4 rounded-card-lg shadow-elevated"
           style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pb-5 text-left" style={{ borderBottom: '1px solid #5A3A28' }}>
-            <div className="flex items-start gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-3 text-left" style={{ borderBottom: '1px solid #5A3A28' }}>
+            <div className="flex items-start gap-2">
               <span
-                className="flex items-center justify-center w-7 h-7 rounded-lg font-mono font-extrabold text-xs shrink-0 mt-0.5"
+                className="flex items-center justify-center w-5.5 h-5.5 rounded font-mono font-extrabold text-[10px] shrink-0 mt-0.5"
                 style={{ backgroundColor: '#F97316', color: '#1A0F0A' }}
               >
                 01
               </span>
               <div>
-                <h4 className="font-bold text-xs sm:text-sm text-white mb-0.5">Send inquiry</h4>
-                <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>Share your restaurant name, cuisine style, and optional menu PDF.</p>
+                <h4 className="font-bold text-[11px] text-white mb-0.5">Send inquiry</h4>
+                <p className="text-[9.5px] sm:text-[10.5px] leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>Share your restaurant name, cuisine style, and optional menu PDF.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-2">
               <span
-                className="flex items-center justify-center w-7 h-7 rounded-lg font-mono font-extrabold text-xs shrink-0 mt-0.5"
+                className="flex items-center justify-center w-5.5 h-5.5 rounded font-mono font-extrabold text-[10px] shrink-0 mt-0.5"
                 style={{ backgroundColor: '#F97316', color: '#1A0F0A' }}
               >
                 02
               </span>
               <div>
-                <h4 className="font-bold text-xs sm:text-sm text-white mb-0.5">We reply within 24 hours</h4>
-                <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>We send a tailored proposal with full scope, exact price quote, and delivery timeline directly to your WhatsApp.</p>
+                <h4 className="font-bold text-[11px] text-white mb-0.5">We reply within 24 hours</h4>
+                <p className="text-[9.5px] sm:text-[10.5px] leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>We send a tailored proposal with full scope, exact price quote, and delivery timeline directly to your WhatsApp.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-success text-white font-mono font-extrabold text-xs shrink-0 mt-0.5">
+            <div className="flex items-start gap-2">
+              <span className="flex items-center justify-center w-5.5 h-5.5 rounded bg-success text-white font-mono font-extrabold text-[10px] shrink-0 mt-0.5">
                 03
               </span>
               <div>
-                <h4 className="font-bold text-xs sm:text-sm text-white mb-0.5">Build starts after you approve</h4>
-                <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>Once you review and approve the proposal, our design engineers begin development.</p>
+                <h4 className="font-bold text-[11px] text-white mb-0.5">Build starts after you approve</h4>
+                <p className="text-[9.5px] sm:text-[10.5px] leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>Once you review and approve the proposal, our design engineers begin development.</p>
               </div>
             </div>
           </div>
 
           {/* Explicit Visible Fine Print */}
-          <div className="pt-3 flex items-start gap-2 text-xs text-left" style={{ color: '#F5E9DD' }}>
-            <ShieldCheck className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
-            <p className="leading-relaxed font-mono text-[10px] sm:text-[11px]" style={{ color: '#F5E9DD' }}>
+          <div className="pt-2 flex items-start gap-1.5 text-xs text-left" style={{ color: '#F5E9DD' }}>
+            <ShieldCheck className="w-3 h-3 text-orange-400 shrink-0 mt-0.5" />
+            <p className="leading-relaxed font-mono text-[9px] sm:text-[10px]" style={{ color: '#F5E9DD' }}>
               {SITE_CONTENT.websiteConfigurator.honestNote}
             </p>
           </div>
         </div>
 
         {/* 2-Column: Configurator Controls Left, Form Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           
           {/* Left Configurator & Deliverables (5 Cols) */}
           <div
-            className="lg:col-span-5 p-5 sm:p-6 rounded-card-lg text-left space-y-5 shadow-card"
+            className="lg:col-span-5 p-3.5 sm:p-4 rounded-card-lg text-left space-y-3 shadow-card"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
           >
-            <div className="flex items-center justify-between pb-3.5" style={{ borderBottom: '1px solid #5A3A28' }}>
+            <div className="flex items-center justify-between pb-2.5" style={{ borderBottom: '1px solid #5A3A28' }}>
               <div>
-                <span className="text-[11px] uppercase font-mono font-extrabold text-orange-400 block">Starting From</span>
-                <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">{formatINR(SITE_CONTENT.websiteConfigurator.startingPrice)}</span>
+                <span className="text-[9.5px] uppercase font-mono font-extrabold text-orange-400 block">Starting From</span>
+                <span className="text-lg sm:text-xl font-extrabold text-white font-mono">{formatINR(SITE_CONTENT.websiteConfigurator.startingPrice)}</span>
               </div>
               <span
-                className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded-md"
+                className="text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md"
                 style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FAF4ED' }}
               >
                 Scope Advisory
@@ -225,28 +225,28 @@ export const WebsiteInquirySection: React.FC = () => {
             </div>
 
             {/* Deliverables Checklist */}
-            <div className="space-y-2 text-xs" style={{ color: '#F5E9DD' }}>
-              <span className="font-bold text-white uppercase text-[10px] font-mono block mb-1.5">What is Included:</span>
+            <div className="space-y-1 text-xs" style={{ color: '#F5E9DD' }}>
+              <span className="font-bold text-white uppercase text-[9px] font-mono block mb-1">What is Included:</span>
               {SITE_CONTENT.websiteConfigurator.deliverables.map((item, idx) => (
-                <div key={idx} className="flex items-start gap-2">
+                <div key={idx} className="flex items-start gap-1.5">
                   <Check className="w-3 h-3 text-orange-400 shrink-0 mt-0.5" />
-                  <span className="font-medium text-[11px] sm:text-xs" style={{ color: '#F5E9DD' }}>{item}</span>
+                  <span className="font-medium text-[10px] sm:text-[11px]" style={{ color: '#F5E9DD' }}>{item}</span>
                 </div>
               ))}
             </div>
 
             {/* Cuisine Selector for preview */}
             <div className="pt-2" style={{ borderTop: '1px solid #5A3A28' }}>
-              <label className="block text-[11px] font-mono uppercase tracking-wider font-bold mb-1.5" style={{ color: '#FAF4ED' }}>
+              <label className="block text-[9.5px] font-mono uppercase tracking-wider font-bold mb-1" style={{ color: '#FAF4ED' }}>
                 Select Cuisine Theme
               </label>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-1">
                 {cuisines.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => handleCuisineSelect(c.id)}
-                    className={`px-2.5 py-1.5 text-[11px] font-bold rounded-lg border text-left transition-all cursor-pointer ${
+                    className={`px-2 py-1 text-[10px] font-bold rounded-lg border text-left transition-all cursor-pointer ${
                       selectedCuisineId === c.id
                         ? 'border-orange-500 bg-orange-500/20 text-orange-300'
                         : 'border-walnut text-sand-100 hover:bg-espresso'
@@ -261,7 +261,7 @@ export const WebsiteInquirySection: React.FC = () => {
 
           {/* Right Inquiry Form (7 Cols) */}
           <div
-            className="lg:col-span-7 p-5 sm:p-6 rounded-card-lg text-left shadow-card"
+            className="lg:col-span-7 p-3.5 sm:p-4 rounded-card-lg text-left shadow-card"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
           >
             {submissionSuccess ? (

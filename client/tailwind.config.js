@@ -61,7 +61,7 @@ export default {
         'glow-hero': '0 0 80px -10px rgba(249, 115, 22, 0.25)',
       },
       maxWidth: {
-        'container': '1200px',
+        'container': '980px',
       },
       keyframes: {
         'float-slow': {

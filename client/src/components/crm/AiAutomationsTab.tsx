@@ -31,13 +31,15 @@ interface AiAutomationsTabProps {
   channels: MarketingChannelConfig[];
   onRefreshAutomations: () => void;
   onRefreshChannels?: () => void;
+  onOpenWhatsAppModal?: () => void;
 }
 
 export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
   automations,
   channels,
   onRefreshAutomations,
-  onRefreshChannels
+  onRefreshChannels,
+  onOpenWhatsAppModal
 }) => {
   const [toggleLoadingId, setToggleLoadingId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -159,6 +161,16 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          {onOpenWhatsAppModal && (
+            <button
+              onClick={onOpenWhatsAppModal}
+              className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Link Restaurant WhatsApp</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowChannelModal(true)}
             className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"

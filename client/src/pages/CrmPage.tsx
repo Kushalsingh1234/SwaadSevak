@@ -49,6 +49,7 @@ import { AiSegmentsTab } from '../components/crm/AiSegmentsTab';
 import { AiCampaignBuilderTab } from '../components/crm/AiCampaignBuilderTab';
 import { AiCampaignsTab } from '../components/crm/AiCampaignsTab';
 import { AiAutomationsTab } from '../components/crm/AiAutomationsTab';
+import { WhatsAppDeviceModal } from '../components/crm/WhatsAppDeviceModal';
 
 interface CrmPageProps {
   restaurant: Restaurant | null;
@@ -62,6 +63,11 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   >('ai-growth');
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // WhatsApp Device Connection State
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState<boolean>(false);
+  const [isWhatsAppConnected, setIsWhatsAppConnected] = useState<boolean>(false);
+  const [whatsAppPhoneNumber, setWhatsAppPhoneNumber] = useState<string | null>(null);
 
   // Overview Stats
   const [overview, setOverview] = useState<CrmOverviewStats | null>(null);
@@ -357,6 +363,22 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Restaurant WhatsApp Device Link */}
+          <button
+            onClick={() => setShowWhatsAppModal(true)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+              isWhatsAppConnected
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+            }`}
+            title="Connect your restaurant WhatsApp phone for automated campaign messaging"
+          >
+            <span className={`w-2 h-2 rounded-full ${isWhatsAppConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span>
+              {isWhatsAppConnected ? `WhatsApp: ${whatsAppPhoneNumber || 'Connected'}` : '📱 Link Restaurant WhatsApp'}
+            </span>
+          </button>
+
           {/* Quick Active Switch */}
           <button
             onClick={() => {
@@ -604,6 +626,7 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         <AiAutomationsTab
           automations={aiAutomations}
           channels={marketingChannels}
+          onOpenWhatsAppModal={() => setShowWhatsAppModal(true)}
           onRefreshAutomations={async () => {
             const res = await api.getAiAutomations().catch(() => ({ success: false, automations: [] }));
             if (res.success && res.automations) setAiAutomations(res.automations);
@@ -1696,6 +1719,16 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         </div>,
         document.body
       )}
+
+      {/* WhatsApp Device Connection Modal */}
+      <WhatsAppDeviceModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        onStatusChange={(connected, phone) => {
+          setIsWhatsAppConnected(connected);
+          if (phone) setWhatsAppPhoneNumber(phone);
+        }}
+      />
     </div>
   );
 };

@@ -16,6 +16,8 @@ import webhooksRoutes from './routes/webhooks.js';
 import growthRoutes from './routes/growthEngine.js';
 import crmRoutes from './routes/crm.js';
 import aiCrmRoutes from './routes/aiCrm.js';
+import whatsappRoutes from './routes/whatsapp.js';
+import { CampaignScheduler } from './services/campaignScheduler.js';
 import { initializeSocket } from './realtime/socket.js';
 
 dotenv.config();
@@ -51,6 +53,7 @@ app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/growth', growthRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/crm/ai', aiCrmRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check endpoints (for uptime monitors like cron-job.org / UptimeRobot and pre-warming)
 const handleHealth = (req: express.Request, res: express.Response) => {
@@ -64,10 +67,25 @@ const handleHealth = (req: express.Request, res: express.Response) => {
 app.get('/health', handleHealth);
 app.get('/api/health', handleHealth);
 
+// Start Automated CRM Campaign Scheduler (Runs every 30 minutes)
+const AUTOMATION_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+setTimeout(() => {
+  CampaignScheduler.processAutomations().catch(err => {
+    console.error('[Scheduler] Initial automation tick error:', err);
+  });
+  setInterval(() => {
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Scheduler] Periodic automation tick error:', err);
+    });
+  }, AUTOMATION_INTERVAL_MS);
+}, 15000); // 15s after startup to ensure DB is initialized
+
 server.listen(PORT, () => {
   console.log(`=========================================`);
   console.log(`  SWAAD SEVAK - RESTAURANT OS BACKEND    `);
   console.log(`  Running on: http://localhost:${PORT}      `);
   console.log(`  Socket.IO: Ready for real-time orders  `);
+  console.log(`  WhatsApp Engine: Multi-tenant ready    `);
   console.log(`=========================================`);
 });
+

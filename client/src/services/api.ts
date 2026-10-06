@@ -429,6 +429,16 @@ export const api = {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-  }
+  },
+
+  // WhatsApp Device Automation
+  getWhatsAppStatus: () => request<{ success: boolean; data: any }>('/whatsapp/status'),
+  connectWhatsApp: () => request<{ success: boolean; message: string; data: any }>('/whatsapp/connect', { method: 'POST' }),
+  disconnectWhatsApp: () => request<{ success: boolean; message: string }>('/whatsapp/disconnect', { method: 'POST' }),
+  testSendWhatsApp: (targetPhone?: string) =>
+    request<{ success: boolean; message: string; messageId?: string }>('/whatsapp/test-send', {
+      method: 'POST',
+      body: JSON.stringify({ targetPhone })
+    })
 };
 

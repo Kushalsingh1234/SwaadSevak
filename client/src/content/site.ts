@@ -61,6 +61,7 @@ export const SITE_CONTENT = {
   },
 
   links: {
+    login: 'https://app.swaadsevak.in/login',
     demo: '#book-demo',
     websiteInquiry: '#website-inquiry',
     pricing: '#pricing',

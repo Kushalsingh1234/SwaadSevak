@@ -209,27 +209,39 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     setSubmitSuccess('');
 
     try {
+      const campaignName = (name && name.trim()) || 'Customer Retention Campaign';
+      const effectiveObjective = (reasoning && reasoning.trim()) || (category ? `${category.replace(/_/g, ' ')} customer retention` : '') || 'Boost customer retention and drive repeat visits';
+
       const payload: any = {
-        name,
+        name: campaignName,
+        objective: effectiveObjective,
+        description: reasoning || effectiveObjective,
+        reasoning: reasoning || effectiveObjective,
         category,
         channel,
         status,
-        targetSegment,
-        targetCount,
-        audienceFilterDesc,
+        audienceSegment: targetSegment || 'ALL',
+        targetSegment: targetSegment || 'ALL',
+        audienceConditions: audienceFilterDesc || 'Targeted customer cohort',
+        audienceFilterDesc: audienceFilterDesc || 'Targeted customer cohort',
+        targetCount: Number(targetCount) || 20,
         offerType,
-        offerValue,
-        validityDays,
-        minOrderValue,
+        offerValue: Number(offerValue) || 50,
+        validityDays: Number(validityDays) || 7,
+        minOrderValue: Number(minOrderValue) || 0,
         tone,
         language,
+        messageTemplate: message,
         message,
-        reasoning,
+        resolvedMessagePreview: previewText,
         scheduleType,
         aiOptimizedTime,
+        scheduledFor: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
         scheduledAt: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
-        requiresApproval,
+        requiresApproval: status === 'APPROVED' ? false : requiresApproval,
+        mode: status === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED',
         estimatedCost: estimatedCostLiability,
+        maxRewardCost: estimatedCostLiability,
         maxBudget: estimatedCostLiability * 1.2
       };
 

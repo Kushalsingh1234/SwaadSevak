@@ -46,6 +46,29 @@ export class WhatsAppService {
   }
 
   /**
+   * Auto-resume all previously linked WhatsApp sessions across restaurants
+   */
+  public static async autoResumeAllSessions(): Promise<void> {
+    try {
+      if (!fs.existsSync(SESSIONS_DIR)) return;
+      const entries = fs.readdirSync(SESSIONS_DIR, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const credsPath = path.join(SESSIONS_DIR, entry.name, 'creds.json');
+          if (fs.existsSync(credsPath)) {
+            console.log(`[WhatsApp] Auto-resuming session for restaurant: ${entry.name}`);
+            await this.initSession(entry.name).catch(err => {
+              console.warn(`[WhatsApp] Failed to auto-resume ${entry.name}:`, err);
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[WhatsApp] autoResumeAllSessions error:', e);
+    }
+  }
+
+  /**
    * Get current connection status for a restaurant
    */
   public static getStatus(restaurantId: string): WhatsAppSessionState {

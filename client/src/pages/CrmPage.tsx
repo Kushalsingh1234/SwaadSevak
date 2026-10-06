@@ -64,10 +64,14 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  // WhatsApp Device Connection State
+  // WhatsApp Device Connection State (Cached in localStorage for instant restoration)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState<boolean>(false);
-  const [isWhatsAppConnected, setIsWhatsAppConnected] = useState<boolean>(false);
-  const [whatsAppPhoneNumber, setWhatsAppPhoneNumber] = useState<string | null>(null);
+  const [isWhatsAppConnected, setIsWhatsAppConnected] = useState<boolean>(() => {
+    return localStorage.getItem('swaad_wa_connected') === 'true';
+  });
+  const [whatsAppPhoneNumber, setWhatsAppPhoneNumber] = useState<string | null>(() => {
+    return localStorage.getItem('swaad_wa_phone') || null;
+  });
 
   // Overview Stats
   const [overview, setOverview] = useState<CrmOverviewStats | null>(null);
@@ -149,7 +153,8 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         aiSegsRes,
         aiCampsRes,
         aiAutosRes,
-        aiChansRes
+        aiChansRes,
+        whatsAppRes
       ] = await Promise.all([
         api.getCrmOverview().catch(() => ({ success: false, overview: null })),
         api.getCustomers(customerFilter, customerSearch).catch(() => ({ success: false, customers: [] })),
@@ -161,7 +166,8 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         api.getAiSegments().catch(() => ({ success: false, segments: [] })),
         api.getAiCampaigns().catch(() => ({ success: false, campaigns: [] })),
         api.getAiAutomations().catch(() => ({ success: false, automations: [] })),
-        api.getMarketingChannels().catch(() => ({ success: false, channels: [] }))
+        api.getMarketingChannels().catch(() => ({ success: false, channels: [] })),
+        api.getWhatsAppStatus().catch(() => ({ success: false, data: null }))
       ]);
 
       if (overviewRes.success && overviewRes.overview) {
@@ -202,6 +208,16 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
           { id: 'chan_email', channel: 'EMAIL', connected: chanObj?.email !== false, optOutCount: 2, dailyLimit: 2000 }
         ];
         setMarketingChannels(configArr);
+      }
+      if (whatsAppRes && (whatsAppRes as any).success && (whatsAppRes as any).data) {
+        const waData = (whatsAppRes as any).data;
+        const isConn = waData.status === 'CONNECTED';
+        const phone = waData.phoneNumber || null;
+        setIsWhatsAppConnected(isConn);
+        setWhatsAppPhoneNumber(phone);
+        localStorage.setItem('swaad_wa_connected', isConn ? 'true' : 'false');
+        if (phone) localStorage.setItem('swaad_wa_phone', phone);
+        else localStorage.removeItem('swaad_wa_phone');
       }
     } catch (err) {
       console.error('Failed to load CRM data:', err);
@@ -626,6 +642,8 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         <AiAutomationsTab
           automations={aiAutomations}
           channels={marketingChannels}
+          isWhatsAppConnected={isWhatsAppConnected}
+          whatsAppPhoneNumber={whatsAppPhoneNumber}
           onOpenWhatsAppModal={() => setShowWhatsAppModal(true)}
           onRefreshAutomations={async () => {
             const res = await api.getAiAutomations().catch(() => ({ success: false, automations: [] }));
@@ -1726,7 +1744,10 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
         onClose={() => setShowWhatsAppModal(false)}
         onStatusChange={(connected, phone) => {
           setIsWhatsAppConnected(connected);
-          if (phone) setWhatsAppPhoneNumber(phone);
+          setWhatsAppPhoneNumber(phone || null);
+          localStorage.setItem('swaad_wa_connected', connected ? 'true' : 'false');
+          if (phone) localStorage.setItem('swaad_wa_phone', phone);
+          else localStorage.removeItem('swaad_wa_phone');
         }}
       />
     </div>

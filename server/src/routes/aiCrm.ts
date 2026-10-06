@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 import { AiCrmService } from '../services/aiCrmService.js';
+import { CampaignScheduler } from '../services/campaignScheduler.js';
 import { AiCampaign, AiAutomation } from '../types/index.js';
 import crypto from 'crypto';
 
@@ -57,41 +58,63 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
   const payload = req.body;
 
-  if (!payload.name || !payload.objective) {
-    return res.status(400).json({ success: false, message: 'Campaign name and objective are required.' });
+  const name = String(payload.name || '').trim();
+  const objective = String(
+    payload.objective ||
+    payload.reasoning ||
+    payload.description ||
+    payload.audienceFilterDesc ||
+    (payload.category ? `${payload.category.replace(/_/g, ' ')} retention campaign` : '') ||
+    'Drive repeat customer visits and loyalty'
+  ).trim();
+
+  if (!name) {
+    return res.status(400).json({ success: false, message: 'Campaign name is required.' });
   }
 
   const campaignId = `camp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+  const status = payload.status || 'PENDING_APPROVAL';
+  const requiresApproval = status === 'APPROVED' ? false : (payload.requiresApproval !== false);
+  const mode = payload.mode || (status === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED');
+
   const campaign: AiCampaign = {
     id: campaignId,
     restaurantId,
-    name: payload.name,
-    description: payload.description || '',
-    objective: payload.objective,
-    audienceSegment: payload.audienceSegment || 'ALL',
-    audienceConditions: payload.audienceConditions || 'All customers',
+    name,
+    description: payload.description || payload.reasoning || '',
+    objective,
+    audienceSegment: payload.audienceSegment || payload.targetSegment || 'ALL',
+    audienceConditions: payload.audienceConditions || payload.audienceFilterDesc || 'All customers',
     targetCount: Number(payload.targetCount) || 20,
     channel: payload.channel || 'WHATSAPP',
-    mode: payload.mode || 'APPROVAL_REQUIRED',
+    mode,
     priority: payload.priority || 'MEDIUM',
-    status: payload.status || 'PENDING_APPROVAL',
+    status,
     tone: payload.tone || 'FRIENDLY',
     language: payload.language || 'HINGLISH',
     offerType: payload.offerType || 'DISCOUNT_COINS',
     offerValue: Number(payload.offerValue) || 50,
     offerPerkText: payload.offerPerkText || '',
     validityDays: Number(payload.validityDays) || 7,
-    messageTemplate: payload.messageTemplate || '',
-    resolvedMessagePreview: payload.resolvedMessagePreview || payload.messageTemplate || '',
-    scheduledFor: payload.scheduledFor,
-    maxRewardCost: Number(payload.maxRewardCost) || Math.round((Number(payload.targetCount) || 20) * ((Number(payload.offerValue) || 50) / 10)),
-    requiresApproval: payload.requiresApproval !== false,
+    messageTemplate: payload.messageTemplate || payload.message || '',
+    resolvedMessagePreview: payload.resolvedMessagePreview || payload.message || payload.messageTemplate || '',
+    scheduledFor: payload.scheduledFor || payload.scheduledAt,
+    maxRewardCost: Number(payload.maxRewardCost || payload.estimatedCost) || Math.round((Number(payload.targetCount) || 20) * ((Number(payload.offerValue) || 50) / 10)),
+    requiresApproval,
     frequencyGuard: payload.frequencyGuard || { maxPerMonth: 3, minGapDays: 5 },
     createdAt: new Date(),
     updatedAt: new Date()
   };
 
   db.saveAiCampaign(campaign);
+
+  // If approved or running, trigger immediate automation execution in the background
+  if (status === 'APPROVED' || status === 'RUNNING') {
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Campaigns] Immediate execution error:', err);
+    });
+  }
+
   return res.json({ success: true, message: 'Campaign created successfully.', campaign });
 });
 
@@ -108,6 +131,11 @@ router.post('/campaigns/:id/approve', (req: AuthenticatedRequest, res: Response)
   if (!updated) {
     return res.status(404).json({ success: false, message: 'Campaign not found.' });
   }
+
+  // Trigger automation processor immediately
+  CampaignScheduler.processAutomations().catch(err => {
+    console.error('[Campaigns] Immediate approve execution error:', err);
+  });
 
   return res.json({ success: true, message: 'Campaign approved successfully.', campaign: updated });
 });

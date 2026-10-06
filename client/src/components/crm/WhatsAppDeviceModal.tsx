@@ -97,6 +97,17 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
     }
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (isOpen) {
       fetchStatus();
@@ -112,12 +123,20 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl bg-[#1C130D] border border-white/[0.12] shadow-2xl text-stone-100 overflow-hidden font-sans">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-3xl bg-[#1C130D] border border-white/[0.12] shadow-2xl text-stone-100 overflow-hidden font-sans my-auto animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-white/[0.08] bg-white/[0.02]">
+        <div className="shrink-0 flex items-center justify-between p-4 sm:p-5 border-b border-white/[0.08] bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
@@ -140,14 +159,16 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+            aria-label="Close"
+            className="p-2 rounded-xl text-stone-300 hover:text-white hover:bg-white/[0.08] transition-colors border border-white/[0.08] cursor-pointer"
+            title="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 space-y-5">
           {status === 'CONNECTED' ? (
             /* Connected State */
             <div className="space-y-5">
@@ -184,7 +205,7 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
                   <button
                     type="submit"
                     disabled={testStatus?.loading}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     Send Test
@@ -205,7 +226,7 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
                 <button
                   onClick={handleDisconnect}
                   disabled={isLoading}
-                  className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1.5 font-medium"
+                  className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1.5 font-medium cursor-pointer"
                 >
                   <Unlink className="w-3.5 h-3.5" />
                   Unlink Device
@@ -248,14 +269,14 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
                   <button
                     onClick={handleConnect}
                     disabled={isLoading}
-                    className="text-[11px] text-[#FF9E58] hover:text-[#FFB87E] flex items-center gap-1 transition-colors"
+                    className="text-[11px] text-[#FF9E58] hover:text-[#FFB87E] flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
                     Refresh QR code
                   </button>
                 </div>
               ) : (
-                <div className="text-center p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
+                <div className="text-center p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
                   <div className="w-12 h-12 mx-auto rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
                     <Smartphone className="w-6 h-6" />
                   </div>
@@ -266,7 +287,7 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
                   <button
                     onClick={handleConnect}
                     disabled={isLoading}
-                    className="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/20 transition-all disabled:opacity-50 inline-flex items-center gap-2 mt-2"
+                    className="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/20 transition-all disabled:opacity-50 inline-flex items-center gap-2 mt-2 cursor-pointer"
                   >
                     {isLoading ? (
                       <>
@@ -301,10 +322,16 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/[0.08] bg-white/[0.02] flex justify-end">
+        <div className="shrink-0 p-3 sm:p-4 border-t border-white/[0.08] bg-[#140D08] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs">
+            <span className={`w-2 h-2 rounded-full ${status === 'CONNECTED' ? 'bg-emerald-400 animate-pulse' : 'bg-stone-500'}`} />
+            <span className="text-stone-400 text-[11px]">
+              {status === 'CONNECTED' ? `Linked (${phoneNumber || 'Active'})` : 'Device Not Linked'}
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-stone-300 transition-colors"
+            className="px-5 py-2 rounded-xl bg-white/[0.1] hover:bg-white/[0.18] text-xs font-bold text-white transition-all cursor-pointer shadow-sm active:scale-95"
           >
             Close
           </button>
@@ -313,3 +340,4 @@ export const WhatsAppDeviceModal: React.FC<WhatsAppDeviceModalProps> = ({
     </div>
   );
 };
+

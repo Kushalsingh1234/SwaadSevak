@@ -32,6 +32,8 @@ interface AiAutomationsTabProps {
   onRefreshAutomations: () => void;
   onRefreshChannels?: () => void;
   onOpenWhatsAppModal?: () => void;
+  isWhatsAppConnected?: boolean;
+  whatsAppPhoneNumber?: string | null;
 }
 
 export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
@@ -39,7 +41,9 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
   channels,
   onRefreshAutomations,
   onRefreshChannels,
-  onOpenWhatsAppModal
+  onOpenWhatsAppModal,
+  isWhatsAppConnected,
+  whatsAppPhoneNumber
 }) => {
   const [toggleLoadingId, setToggleLoadingId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -164,10 +168,16 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
           {onOpenWhatsAppModal && (
             <button
               onClick={onOpenWhatsAppModal}
-              className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              className={`px-3.5 py-2 rounded-xl border font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                isWhatsAppConnected
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+              }`}
             >
-              <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Link Restaurant WhatsApp</span>
+              <Smartphone className={`w-3.5 h-3.5 ${isWhatsAppConnected ? 'text-emerald-600' : 'text-amber-600'}`} />
+              <span>
+                {isWhatsAppConnected ? `WhatsApp: ${whatsAppPhoneNumber || 'Connected'}` : '📱 Link Restaurant WhatsApp'}
+              </span>
             </button>
           )}
 

@@ -1,144 +1,143 @@
 import React from 'react';
-import { UpdateIllustration } from '../illustrations/UpdateIllustration';
-import { PricingIllustration } from '../illustrations/PricingIllustration';
-import { SimpleLearnIllustration } from '../illustrations/SimpleLearnIllustration';
-import { SupportAgentIllustration } from '../illustrations/SupportAgentIllustration';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Megaphone, Layers, FileX, Lock } from 'lucide-react';
 
 export const WhyUsSection: React.FC = () => {
   return (
     <section
       id="why-us"
-      className="py-12 sm:py-16 font-sans border-b border-walnut/40 relative overflow-hidden"
+      className="py-6 sm:py-8 font-sans relative overflow-hidden"
       style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
     >
       {/* Background glow & subtle patterns */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Centered Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+        <div className="text-center max-w-lg mx-auto mb-5 sm:mb-7">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold shadow-soft mb-3"
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-[13px] font-bold shadow-soft mb-2.5"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FAF4ED' }}
           >
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
             <span>Why SwaadSevak</span>
           </div>
-          <h2 className="h2-fluid font-extrabold tracking-tight mb-3" style={{ color: '#FFFFFF' }}>
+          <h2 className="h2-fluid font-extrabold tracking-tight mb-1.5" style={{ color: '#FFFFFF' }}>
             Built for the Reality of Indian Restaurant Rush Hours
           </h2>
-          <p className="text-sm sm:text-base leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
+          <p className="text-[11px] sm:text-xs leading-relaxed font-medium" style={{ color: '#F5E9DD' }}>
             No proprietary hardware locks, no hidden maintenance fees, and no complicated menus. Just dependable software that runs smoothly through your busiest shifts.
           </p>
         </div>
 
-        {/* 4-Card Asymmetric Grid: 2+1 / 1+2 Layout (Wide, Narrow, Narrow, Wide) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 text-left">
+        {/* 4 Cards in One Line (4-Column Grid) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-left">
           
-          {/* Card 1: Continuous Updates (Wide: 7 cols) */}
+          {/* Card 1: Kitchen Chaos */}
           <div
-            className="md:col-span-7 rounded-card-lg p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group"
-            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 mb-5">
-              <div className="max-w-md">
-                <span className="text-[11px] uppercase font-mono font-extrabold tracking-wider block mb-1" style={{ color: '#FB923C' }}>
-                  01 • Real-Time Cloud Engine
-                </span>
-                <h3 className="text-lg sm:text-xl font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
-                  Continuous Cloud Updates &amp; Instant Sync
-                </h3>
-                <p className="text-xs sm:text-sm leading-relaxed font-normal" style={{ color: '#F5E9DD' }}>
-                  Automatic feature rollouts with zero downtime. Multi-terminal sync keeps your cash counters, captain tablets, and kitchen displays seamlessly synchronized in real-time.
-                </p>
-              </div>
-              <div className="w-full sm:w-auto shrink-0 flex justify-center">
-                <UpdateIllustration className="w-36 h-auto" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium pt-3.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
-              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-              <span>Instant real-time multi-device cloud synchronization</span>
-            </div>
-          </div>
-
-          {/* Card 2: Transparent Pricing (Narrow: 5 cols) */}
-          <div
-            className="md:col-span-5 rounded-card-lg p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group"
+            className="rounded-card-lg p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group min-h-[220px]"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
           >
             <div>
-              <span className="text-[11px] uppercase font-mono font-extrabold tracking-wider block mb-1" style={{ color: '#FB923C' }}>
-                02 • Honest Numbers
-              </span>
-              <h3 className="text-lg sm:text-xl font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
-                Transparent Pricing
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
+                  <Megaphone className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider" style={{ color: '#FB923C' }}>
+                  01 • Kitchen Chaos
+                </span>
+              </div>
+              <h3 className="text-sm font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
+                Orders shouted across the counter
               </h3>
-              <p className="text-xs sm:text-sm leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
-                Zero setup fees, zero annual maintenance contracts (AMC), and no lock-in. Pay month-to-month or save 20% on annual plans.
+              <p className="text-[11px] leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
+                Paper slips get lost, food is delayed, and the wrong dishes end up on customer tables during the peak rush.
               </p>
             </div>
-            <div className="flex justify-center my-1.5">
-              <PricingIllustration className="w-32 h-auto" />
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium pt-3.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
-              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-              <span>No proprietary hardware fees</span>
+            <div className="flex items-start gap-1.5 text-[10.5px] font-medium pt-2.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
+              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
+              <span className="leading-snug">Solved with automated thermal KOT routing &amp; live screen sync</span>
             </div>
           </div>
 
-          {/* Card 3: Simple to Learn (Narrow: 5 cols) */}
+          {/* Card 2: Delivery Overload */}
           <div
-            className="md:col-span-5 rounded-card-lg p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group"
+            className="rounded-card-lg p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group min-h-[220px]"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
           >
             <div>
-              <span className="text-[11px] uppercase font-mono font-extrabold tracking-wider block mb-1" style={{ color: '#FB923C' }}>
-                03 • 15-Minute Onboarding
-              </span>
-              <h3 className="text-lg sm:text-xl font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
-                Simple to Learn
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider" style={{ color: '#FB923C' }}>
+                  02 • Delivery Overload
+                </span>
+              </div>
+              <h3 className="text-sm font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
+                Multiple screens and a notebook
               </h3>
-              <p className="text-xs sm:text-sm leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
-                Designed for high staff turnover. Cashiers and captains learn the 3-touch billing system in under 15 minutes with our interactive walkthrough simulator.
+              <p className="text-[11px] leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
+                Dine-in tokens on paper, Swiggy on one tablet, Zomato on another. Your kitchen staff is overwhelmed switching screens.
               </p>
             </div>
-            <div className="flex justify-center my-1.5">
-              <SimpleLearnIllustration className="w-32 h-auto" />
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium pt-3.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
-              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-              <span>Zero technical training required for new waiters</span>
+            <div className="flex items-start gap-1.5 text-[10.5px] font-medium pt-2.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
+              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
+              <span className="leading-snug">Solved with unified single-screen Swiggy, Zomato &amp; QR hub</span>
             </div>
           </div>
 
-          {/* Card 4: Support that Responds (Wide: 7 cols) */}
+          {/* Card 3: Revenue Leakage */}
           <div
-            className="md:col-span-7 rounded-card-lg p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group"
+            className="rounded-card-lg p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group min-h-[220px]"
             style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 mb-5">
-              <div className="max-w-md">
-                <span className="text-[11px] uppercase font-mono font-extrabold tracking-wider block mb-1" style={{ color: '#FB923C' }}>
-                  04 • Dedicated Helpdesk
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
+                  <FileX className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider" style={{ color: '#FB923C' }}>
+                  03 • Revenue Leakage
                 </span>
-                <h3 className="text-lg sm:text-xl font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
-                  Support that Actually Responds
-                </h3>
-                <p className="text-xs sm:text-sm leading-relaxed font-normal" style={{ color: '#F5E9DD' }}>
-                  Direct WhatsApp bridge and phone support with under 5-minute response times during peak lunch and dinner hours. No ticketing bots or endless queues.
-                </p>
               </div>
-              <div className="w-full sm:w-auto shrink-0 flex justify-center">
-                <SupportAgentIllustration className="w-36 h-auto" />
-              </div>
+              <h3 className="text-sm font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
+                Handwritten bills that don't tally
+              </h3>
+              <p className="text-[11px] leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
+                Staff calculate totals in a hurry, discounts aren't recorded, and end-of-day register cash never matches your actual sales.
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium pt-3.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
-              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-              <span>7 days a week live engineer support</span>
+            <div className="flex items-start gap-1.5 text-[10.5px] font-medium pt-2.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
+              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
+              <span className="leading-snug">Solved with 3-touch GST billing &amp; automated register audits</span>
+            </div>
+          </div>
+
+          {/* Card 4: Owner Burnout */}
+          <div
+            className="rounded-card-lg p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-card hover:shadow-elevated group min-h-[220px]"
+            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FFFFFF' }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider" style={{ color: '#FB923C' }}>
+                  04 • Owner Burnout
+                </span>
+              </div>
+              <h3 className="text-sm font-bold mb-1.5" style={{ color: '#FFFFFF' }}>
+                Stuck behind the billing counter
+              </h3>
+              <p className="text-[11px] leading-relaxed font-normal mb-3" style={{ color: '#F5E9DD' }}>
+                Instead of talking to guests, training staff, and growing the brand, you spend all evening resolving billing mistakes.
+              </p>
+            </div>
+            <div className="flex items-start gap-1.5 text-[10.5px] font-medium pt-2.5" style={{ borderTop: '1px solid #5A3A28', color: '#FAF4ED' }}>
+              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
+              <span className="leading-snug">Solved with hands-free cashier workflows &amp; live mobile reports</span>
             </div>
           </div>
 

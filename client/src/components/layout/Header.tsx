@@ -4,7 +4,11 @@ import { SITE_CONTENT } from '../../content/site';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onOpenLogin?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -19,6 +23,17 @@ export const Header: React.FC = () => {
   const handleNavClick = (section: string) => {
     setMobileMenuOpen(false);
     trackEvent('nav_click', { navSection: section });
+  };
+
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    trackEvent('header_get_started_click');
+    if (onOpenLogin) {
+      onOpenLogin();
+    } else {
+      window.location.hash = 'login';
+    }
   };
 
   return (
@@ -48,11 +63,18 @@ export const Header: React.FC = () => {
             Products
           </a>
           <a
-            href={SITE_CONTENT.links.pricing}
-            onClick={() => handleNavClick('pricing')}
+            href="#features"
+            onClick={() => handleNavClick('features')}
             className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
-            Pricing
+            Features
+          </a>
+          <a
+            href="#calculator"
+            onClick={() => handleNavClick('calculator')}
+            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
+          >
+            Calculator
           </a>
           <a
             href={SITE_CONTENT.links.websiteInquiry}
@@ -69,28 +91,21 @@ export const Header: React.FC = () => {
             onClick={() => handleNavClick('why-us')}
             className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
-            Resources
-          </a>
-          <a
-            href={SITE_CONTENT.links.faq}
-            onClick={() => handleNavClick('faq')}
-            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
-          >
-            FAQ
+            Why Us
           </a>
         </nav>
 
         {/* Action Controls */}
         <div className="flex items-center gap-4">
-          {/* Orange Primary Button - Enlarged */}
+          {/* Orange Primary Button - Platform Login */}
           <a
-            href={SITE_CONTENT.links.demo}
+            href="#login"
             data-event="header_get_started_click"
-            onClick={() => trackEvent('header_get_started_click')}
-            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 rounded-xl font-extrabold text-base bg-orange-500 text-espresso hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring"
+            onClick={handleLoginClick}
+            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 rounded-xl font-extrabold text-base bg-orange-500 text-espresso hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring cursor-pointer"
             style={{ color: '#1A0F0A' }}
           >
-            <span>Get started</span>
+            <span>Platform Login</span>
             <ArrowRight className="w-5 h-5" />
           </a>
 
@@ -118,11 +133,18 @@ export const Header: React.FC = () => {
               Products
             </a>
             <a
-              href={SITE_CONTENT.links.pricing}
-              onClick={() => handleNavClick('pricing')}
+              href="#features"
+              onClick={() => handleNavClick('features')}
               className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
             >
-              Pricing
+              Features
+            </a>
+            <a
+              href="#calculator"
+              onClick={() => handleNavClick('calculator')}
+              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+            >
+              Calculator
             </a>
             <a
               href={SITE_CONTENT.links.websiteInquiry}
@@ -139,27 +161,17 @@ export const Header: React.FC = () => {
               onClick={() => handleNavClick('why-us')}
               className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
             >
-              Resources
-            </a>
-            <a
-              href={SITE_CONTENT.links.faq}
-              onClick={() => handleNavClick('faq')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
-            >
-              FAQ
+              Why Us
             </a>
           </nav>
 
           <div className="pt-2">
             <a
-              href={SITE_CONTENT.links.demo}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                trackEvent('mobile_menu_demo_click');
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft"
+              href="#login"
+              onClick={handleLoginClick}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft cursor-pointer"
             >
-              <span>Get started</span>
+              <span>Platform Login</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

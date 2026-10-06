@@ -28,12 +28,24 @@ import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { GrowthEnginePage } from './pages/GrowthEnginePage';
+import { CrmPage } from './pages/CrmPage';
+import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
 import { api } from './services/api';
 import { Restaurant, Manager, Order, TableItem, MenuCategory, MenuItem, Bill } from './types';
 
 export const App: React.FC = () => {
+  // Check if current URL is a diner QR scan: /menu/:slug/:token
+  const pathname = window.location.pathname;
+  const matchDinerRoute = pathname.match(/^\/menu\/([^\/]+)\/([^\/]+)/);
+
+  if (matchDinerRoute) {
+    const restaurantSlug = matchDinerRoute[1];
+    const qrToken = matchDinerRoute[2];
+    return <CustomerMenuPage restaurantSlug={restaurantSlug} qrToken={qrToken} />;
+  }
+
   const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard'>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash === '#login') return 'login';
@@ -189,6 +201,14 @@ export const App: React.FC = () => {
 
           {currentTab === 'growth' && (
             <GrowthEnginePage
+              restaurant={restaurant}
+              manager={manager}
+              onNavigateTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'crm' && (
+            <CrmPage
               restaurant={restaurant}
               manager={manager}
               onNavigateTab={setCurrentTab}

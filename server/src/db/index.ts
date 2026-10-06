@@ -16,7 +16,16 @@ import {
   OrderAddition,
   PosReport,
   BusinessType,
-  GrowthDataMode
+  GrowthDataMode,
+  Customer,
+  CustomerStatus,
+  CoinTransaction,
+  CoinTransactionType,
+  CrmSettings,
+  CrmEvent,
+  CrmEventType,
+  AiCampaign,
+  AiAutomation
 } from '../types/index.js';
 
 class DatabaseStore {
@@ -29,6 +38,18 @@ class DatabaseStore {
   bills: Map<string, Bill> = new Map();
   printerConfigs: Map<string, PrinterConfig> = new Map();
 
+  // CRM & Discount Coins Maps
+  customers: Map<string, Customer> = new Map();
+  coinTransactions: Map<string, CoinTransaction> = new Map();
+  crmSettings: Map<string, CrmSettings> = new Map();
+  crmEvents: CrmEvent[] = [];
+
+  // AI CRM Maps
+  aiCampaigns: Map<string, AiCampaign> = new Map();
+  aiAutomations: Map<string, AiAutomation> = new Map();
+  marketingChannels: Map<string, { whatsapp: boolean; sms: boolean; email: boolean }> = new Map();
+  customerMarketingPreferences: Map<string, { sms: boolean; whatsapp: boolean; email: boolean }> = new Map();
+
   // Growth Engine Maps
   posReports: Map<string, PosReport> = new Map();
   itemCostOverrides: Map<string, Map<string, number>> = new Map();
@@ -40,9 +61,16 @@ class DatabaseStore {
   private billCounter = 5000;
   private orderCounter = 100;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    this.init();
+    this.initPromise = this.init();
+  }
+
+  public async ensureInitialized() {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   public async init() {
@@ -62,21 +90,19 @@ class DatabaseStore {
   }
 
   public async syncFromNeon(prisma: any) {
-    const restaurants = await prisma.restaurant.findMany({
-      include: {
-        managers: true,
-        categories: true,
-        items: true,
-        tables: true,
-        orders: {
-          include: {
-            items: true
-          }
-        },
-        bills: true,
-        printerConfig: true
-      }
-    });
+    // 1. Fetch Restaurants, Managers & Printer Config (Essential for authentication)
+    let restaurants: any[] = [];
+    try {
+      restaurants = await prisma.restaurant.findMany({
+        include: {
+          managers: true,
+          printerConfig: true
+        }
+      });
+    } catch (err) {
+      console.error('Error querying restaurants & managers from PostgreSQL:', err);
+      throw err;
+    }
 
     if (restaurants.length === 0) {
       this.seedDemoData();
@@ -123,16 +149,101 @@ class DatabaseStore {
         });
       }
 
-      for (const c of r.categories) {
+      // Only seed demo POS report and demo customers for demo restaurant
+      if (r.id === 'rest_demo_01') {
+        const now = new Date();
+        const sepStart = new Date(now);
+        sepStart.setDate(sepStart.getDate() - 35);
+        const sepEnd = new Date(now);
+        sepEnd.setDate(sepEnd.getDate() - 5);
+
+        const repId = `pos_rep_${r.id}`;
+        this.posReports.set(repId, {
+          id: repId,
+          restaurantId: r.id,
+          fileName: 'Petpooja_Sales_Report_September.xlsx',
+          posProvider: 'Petpooja',
+          fileType: 'xlsx',
+          uploadedAt: new Date(now.getTime() - 4 * 86400000),
+          periodStart: sepStart,
+          periodEnd: sepEnd,
+          periodLabel: '1 Sep – 30 Sep 2026',
+          totalOrders: 1248,
+          totalSales: 284500,
+          totalProducts: 42,
+          items: [
+            { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
+            { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
+            { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
+            { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
+            { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
+            { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
+            { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
+            { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
+          ],
+          hourlyDistribution: {
+            12: 24000, 13: 38000, 14: 29000,
+            15: 12000, 16: 14000, 17: 15500,
+            18: 26000, 19: 42000, 20: 51000, 21: 33000
+          },
+          dowDistribution: {
+            0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
+          }
+        });
+
+        this.businessTypes.set(r.id, 'Café');
+        this.growthDataModes.set(r.id, { mode: 'swaad', reportId: repId });
+        this.seedCrmDemoData(r.id);
+      } else {
+        // Real restaurant: ensure default CRM settings exist, no fake data
+        this.ensureCrmSettings(r.id);
+      }
+    }
+
+    // Always ensure demo_manager exists in memory so demo credentials work out-of-the-box
+    if (!this.getManagerByUsername('demo_manager')) {
+      const demoRestId = 'rest_demo_01';
+      if (!this.restaurants.has(demoRestId)) {
+        this.restaurants.set(demoRestId, {
+          id: demoRestId,
+          slug: 'chai-and-chaat',
+          name: 'The Chai & Chaat Co.',
+          ownerName: 'Vikram Sharma',
+          phone: '+91 98765 43210',
+          email: 'vikram@chaichaat.in',
+          address: 'Shop 14, Indiranagar 100ft Road',
+          city: 'Bengaluru',
+          state: 'Karnataka',
+          restaurantType: 'Café & Bistro',
+          gstNumber: '29ABCDE1234F1Z5',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      this.managers.set('mgr_demo_01', {
+        id: 'mgr_demo_01',
+        restaurantId: demoRestId,
+        username: 'demo_manager',
+        pinHash: bcrypt.hashSync('1234', 10),
+        role: 'OWNER',
+        createdAt: new Date()
+      });
+    }
+
+    // 2. Fetch Categories & Menu Items safely
+    try {
+      const categories = await prisma.menuCategory.findMany();
+      for (const c of categories) {
         this.categories.set(c.id, {
           id: c.id,
-          restaurantId: r.id,
+          restaurantId: c.restaurantId,
           name: c.name,
           displayOrder: c.displayOrder
         });
       }
 
-      for (const item of r.items) {
+      const items = await prisma.menuItem.findMany();
+      for (const item of items) {
         let tags: string[] = [];
         try {
           tags = JSON.parse(item.tags);
@@ -141,7 +252,7 @@ class DatabaseStore {
         }
         this.menuItems.set(item.id, {
           id: item.id,
-          restaurantId: r.id,
+          restaurantId: item.restaurantId,
           categoryId: item.categoryId,
           name: item.name,
           description: item.description,
@@ -154,19 +265,35 @@ class DatabaseStore {
           updatedAt: item.updatedAt
         });
       }
+    } catch (catErr) {
+      console.warn('Warning syncing categories/items from Neon:', catErr);
+    }
 
-      for (const t of r.tables) {
+    // 3. Fetch Tables safely
+    try {
+      const tables = await prisma.table.findMany();
+      for (const t of tables) {
         this.tables.set(t.id, {
           id: t.id,
-          restaurantId: r.id,
+          restaurantId: t.restaurantId,
           tableNumber: t.tableNumber,
           qrToken: t.qrToken,
           status: t.status as any,
           createdAt: t.createdAt
         });
       }
+    } catch (tabErr) {
+      console.warn('Warning syncing tables from Neon:', tabErr);
+    }
 
-      for (const ord of r.orders) {
+    // 4. Fetch Orders safely
+    try {
+      const orders = await prisma.order.findMany({
+        include: {
+          items: true
+        }
+      });
+      for (const ord of orders) {
         const orderItems: OrderItem[] = ord.items.map((i: any) => ({
           id: i.id,
           orderId: ord.id,
@@ -189,7 +316,7 @@ class DatabaseStore {
 
         this.orders.set(ord.id, {
           id: ord.id,
-          restaurantId: r.id,
+          restaurantId: ord.restaurantId,
           tableId: ord.tableId,
           tableNumber: table?.tableNumber || 'Table 01',
           orderNumber: ord.orderNumber,
@@ -209,12 +336,18 @@ class DatabaseStore {
           items: orderItems
         });
       }
+    } catch (ordErr) {
+      console.warn('Warning syncing orders from Neon:', ordErr);
+    }
 
-      for (const b of r.bills) {
+    // 5. Fetch Bills safely
+    try {
+      const bills = await prisma.bill.findMany();
+      for (const b of bills) {
         const matchingOrder = this.orders.get(b.orderId);
         this.bills.set(b.id, {
           id: b.id,
-          restaurantId: r.id,
+          restaurantId: b.restaurantId,
           orderId: b.orderId,
           orderNumber: matchingOrder?.orderNumber || '#101',
           tableNumber: matchingOrder?.tableNumber || 'Table 01',
@@ -228,50 +361,104 @@ class DatabaseStore {
           items: matchingOrder?.items || []
         });
       }
+    } catch (billErr) {
+      console.warn('Warning syncing bills from Neon:', billErr);
+    }
 
-      // Seed initial Petpooja POS Report for seamless demo and combined data experience
-      const now = new Date();
-      const sepStart = new Date(now);
-      sepStart.setDate(sepStart.getDate() - 35);
-      const sepEnd = new Date(now);
-      sepEnd.setDate(sepEnd.getDate() - 5);
+    // 6. Fetch Customers safely from database
+    try {
+      const customers = await prisma.customer.findMany();
+      for (const cust of customers) {
+        this.customers.set(cust.id, {
+          id: cust.id,
+          restaurantId: cust.restaurantId,
+          name: cust.name,
+          phone: cust.phone,
+          coinBalance: cust.coinBalance,
+          reservedCoins: cust.reservedCoins,
+          totalCoinsEarned: cust.totalCoinsEarned,
+          totalCoinsRedeemed: cust.totalCoinsRedeemed,
+          totalOrders: cust.totalOrders,
+          totalSpent: cust.totalSpent,
+          avgOrderValue: cust.avgOrderValue,
+          firstVisit: cust.firstVisit,
+          lastVisit: cust.lastVisit,
+          status: cust.status as CustomerStatus,
+          createdAt: cust.createdAt,
+          updatedAt: cust.updatedAt
+        });
+      }
+    } catch (custErr) {
+      console.warn('Warning syncing customers from Neon:', custErr);
+    }
 
-      const repId = `pos_rep_${r.id}`;
-      this.posReports.set(repId, {
-        id: repId,
-        restaurantId: r.id,
-        fileName: 'Petpooja_Sales_Report_September.xlsx',
-        posProvider: 'Petpooja',
-        fileType: 'xlsx',
-        uploadedAt: new Date(now.getTime() - 4 * 86400000),
-        periodStart: sepStart,
-        periodEnd: sepEnd,
-        periodLabel: '1 Sep – 30 Sep 2026',
-        totalOrders: 1248,
-        totalSales: 284500,
-        totalProducts: 42,
-        items: [
-          { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
-          { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
-          { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
-          { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
-          { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
-          { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
-          { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
-          { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
-        ],
-        hourlyDistribution: {
-          12: 24000, 13: 38000, 14: 29000,
-          15: 12000, 16: 14000, 17: 15500,
-          18: 26000, 19: 42000, 20: 51000, 21: 33000
-        },
-        dowDistribution: {
-          0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
-        }
-      });
+    // 7. Fetch CRM Settings safely from database
+    try {
+      const crmSets = await prisma.crmSettings.findMany();
+      for (const s of crmSets) {
+        this.crmSettings.set(s.restaurantId, {
+          id: s.id,
+          restaurantId: s.restaurantId,
+          enabled: s.enabled,
+          coinsPerAmount: s.coinsPerAmount,
+          coinsEarnedPerUnit: s.coinsEarnedPerUnit,
+          signupBonusEnabled: s.signupBonusEnabled,
+          signupBonusCoins: s.signupBonusCoins,
+          minOrderValue: s.minOrderValue,
+          redemptionCoinsUnit: s.redemptionCoinsUnit,
+          redemptionDiscountUnit: s.redemptionDiscountUnit,
+          maxDiscountPerOrder: s.maxDiscountPerOrder,
+          allowFullDiscount: s.allowFullDiscount,
+          earnOnFood: s.earnOnFood,
+          earnOnTax: s.earnOnTax,
+          earnOnService: s.earnOnService,
+          earnOnDelivery: s.earnOnDelivery,
+          createdAt: s.createdAt,
+          updatedAt: s.updatedAt
+        });
+      }
+    } catch (crmSetErr) {
+      console.warn('Warning syncing crmSettings from Neon:', crmSetErr);
+    }
 
-      this.businessTypes.set(r.id, 'Café');
-      this.growthDataModes.set(r.id, { mode: 'swaad', reportId: repId });
+    // 8. Fetch Coin Transactions safely from database
+    try {
+      const txs = await prisma.coinTransaction.findMany();
+      for (const tx of txs) {
+        this.coinTransactions.set(tx.id, {
+          id: tx.id,
+          restaurantId: tx.restaurantId,
+          customerId: tx.customerId,
+          type: tx.type as any,
+          coins: tx.coins,
+          orderId: tx.orderId || undefined,
+          discount: tx.discount || undefined,
+          reason: tx.reason || undefined,
+          balanceAfter: tx.balanceAfter,
+          createdAt: tx.createdAt
+        });
+      }
+    } catch (txErr) {
+      console.warn('Warning syncing coinTransactions from Neon:', txErr);
+    }
+
+    // Purge mock demo customers and POS reports from any real (non-demo) restaurant
+    const mockCustomerNames = new Set([
+      'Rahul Sharma', 'Priya Patel', 'Amit Verma', 'Neha Gupta',
+      'Vikram Malhotra', 'Ananya Sen', 'Rohan Mehta', 'Siddharth Rao',
+      'Deepak Joshi', 'Kavita Reddy', 'Tanvi Kapoor'
+    ]);
+
+    for (const [id, c] of Array.from(this.customers.entries())) {
+      if (c.restaurantId !== 'rest_demo_01' && mockCustomerNames.has(c.name)) {
+        this.customers.delete(id);
+      }
+    }
+
+    for (const [id, rep] of Array.from(this.posReports.entries())) {
+      if (rep.restaurantId !== 'rest_demo_01') {
+        this.posReports.delete(id);
+      }
     }
   }
 
@@ -731,6 +918,523 @@ class DatabaseStore {
 
     this.businessTypes.set(restaurantId, 'Café');
     this.growthDataModes.set(restaurantId, { mode: 'swaad', reportId: 'pos_rep_demo_01' });
+
+    this.seedCrmDemoData(restaurantId);
+  }
+
+  public ensureCrmSettings(restaurantId: string): CrmSettings {
+    let settings = this.crmSettings.get(restaurantId);
+    if (!settings) {
+      settings = {
+        id: `crm_set_${restaurantId}`,
+        restaurantId,
+        enabled: true,
+        coinsPerAmount: 10,
+        coinsEarnedPerUnit: 1,
+        signupBonusEnabled: true,
+        signupBonusCoins: 100,
+        minOrderValue: 300,
+        redemptionCoinsUnit: 100,
+        redemptionDiscountUnit: 10,
+        maxDiscountPerOrder: 100,
+        allowFullDiscount: false,
+        earnOnFood: true,
+        earnOnTax: false,
+        earnOnService: false,
+        earnOnDelivery: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.crmSettings.set(restaurantId, settings);
+    }
+    return settings;
+  }
+
+  private seedCrmDemoData(restaurantId: string) {
+    if (restaurantId !== 'rest_demo_01') return;
+    if (this.crmSettings.has(restaurantId)) return;
+
+    // Seed CRM Settings (Phases 3 & 4)
+    this.crmSettings.set(restaurantId, {
+      id: `crm_set_${restaurantId}`,
+      restaurantId,
+      enabled: true,
+      coinsPerAmount: 10,
+      coinsEarnedPerUnit: 1,
+      signupBonusEnabled: true,
+      signupBonusCoins: 100,
+      minOrderValue: 300,
+      redemptionCoinsUnit: 100,
+      redemptionDiscountUnit: 10, // 100 coins = Rs 10 discount
+      maxDiscountPerOrder: 100,
+      allowFullDiscount: false,
+      earnOnFood: true,
+      earnOnTax: false,
+      earnOnService: false,
+      earnOnDelivery: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    const now = new Date();
+
+    // Seed realistic customers with rich diverse states
+    const rawCustomers = [
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_rahul`,
+        name: 'Rahul Sharma',
+        phone: '9820112345',
+        coins: 240,
+        orders: 14,
+        spent: 9850,
+        status: 'VIP' as CustomerStatus,
+        daysAgo: 2,
+        firstDaysAgo: 54
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_priya`,
+        name: 'Priya Patel',
+        phone: '9876543210',
+        coins: 180,
+        orders: 8,
+        spent: 5420,
+        status: 'REGULAR' as CustomerStatus,
+        daysAgo: 4,
+        firstDaysAgo: 40
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_amit`,
+        name: 'Amit Verma',
+        phone: '9123456789',
+        coins: 450,
+        orders: 19,
+        spent: 15200,
+        status: 'VIP' as CustomerStatus,
+        daysAgo: 1,
+        firstDaysAgo: 60
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_neha`,
+        name: 'Neha Gupta',
+        phone: '9811223344',
+        coins: 100,
+        orders: 1,
+        spent: 750,
+        status: 'NEW' as CustomerStatus,
+        daysAgo: 3,
+        firstDaysAgo: 3
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_vikram`,
+        name: 'Vikram Malhotra',
+        phone: '9988776655',
+        coins: 320,
+        orders: 6,
+        spent: 4300,
+        status: 'REGULAR' as CustomerStatus,
+        daysAgo: 6,
+        firstDaysAgo: 35
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_ananya`,
+        name: 'Ananya Sen',
+        phone: '9711002233',
+        coins: 80,
+        orders: 4,
+        spent: 2800,
+        status: 'AT_RISK' as CustomerStatus,
+        daysAgo: 42,
+        firstDaysAgo: 70
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_rohan`,
+        name: 'Rohan Mehta',
+        phone: '9822334455',
+        coins: 120,
+        orders: 3,
+        spent: 1950,
+        status: 'INACTIVE' as CustomerStatus,
+        daysAgo: 75,
+        firstDaysAgo: 90
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_siddharth`,
+        name: 'Siddharth Rao',
+        phone: '9900112233',
+        coins: 210,
+        orders: 7,
+        spent: 5100,
+        status: 'REGULAR' as CustomerStatus,
+        daysAgo: 5,
+        firstDaysAgo: 45
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_deepak`,
+        name: 'Deepak Joshi',
+        phone: '9899001122',
+        coins: 150,
+        orders: 2,
+        spent: 1400,
+        status: 'NEW' as CustomerStatus,
+        daysAgo: 8,
+        firstDaysAgo: 12
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_kavita`,
+        name: 'Kavita Reddy',
+        phone: '9844556677',
+        coins: 390,
+        orders: 16,
+        spent: 12900,
+        status: 'VIP' as CustomerStatus,
+        daysAgo: 3,
+        firstDaysAgo: 58
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_tanvi`,
+        name: 'Tanvi Kapoor',
+        phone: '9911223300',
+        coins: 100,
+        orders: 1,
+        spent: 680,
+        status: 'NEW' as CustomerStatus,
+        daysAgo: 2,
+        firstDaysAgo: 2
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_aditya`,
+        name: 'Aditya Nair',
+        phone: '9833445566',
+        coins: 160,
+        orders: 5,
+        spent: 3750,
+        status: 'REGULAR' as CustomerStatus,
+        daysAgo: 7,
+        firstDaysAgo: 38
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_meera`,
+        name: 'Meera Iyer',
+        phone: '9877001122',
+        coins: 60,
+        orders: 3,
+        spent: 2100,
+        status: 'AT_RISK' as CustomerStatus,
+        daysAgo: 48,
+        firstDaysAgo: 65
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_gaurav`,
+        name: 'Gaurav Deshmukh',
+        phone: '9966554433',
+        coins: 280,
+        orders: 9,
+        spent: 6400,
+        status: 'REGULAR' as CustomerStatus,
+        daysAgo: 9,
+        firstDaysAgo: 50
+      },
+      {
+        id: `cust_${restaurantId.substring(0, 6)}_sunita`,
+        name: 'Sunita Choudhary',
+        phone: '9811992288',
+        coins: 140,
+        orders: 2,
+        spent: 1600,
+        status: 'INACTIVE' as CustomerStatus,
+        daysAgo: 80,
+        firstDaysAgo: 95
+      }
+    ];
+
+    for (const raw of rawCustomers) {
+      const firstVisit = new Date(now.getTime() - raw.firstDaysAgo * 86400000);
+      const lastVisit = new Date(now.getTime() - raw.daysAgo * 86400000);
+      const avgOrder = Math.round(raw.spent / raw.orders);
+
+      const cust: Customer = {
+        id: raw.id,
+        restaurantId,
+        name: raw.name,
+        phone: raw.phone,
+        coinBalance: raw.coins,
+        reservedCoins: 0,
+        totalCoinsEarned: raw.coins + (raw.status === 'VIP' ? 300 : 100),
+        totalCoinsRedeemed: raw.status === 'VIP' ? 300 : 100,
+        totalOrders: raw.orders,
+        totalSpent: raw.spent,
+        avgOrderValue: avgOrder,
+        firstVisit,
+        lastVisit,
+        status: raw.status,
+        createdAt: firstVisit,
+        updatedAt: lastVisit
+      };
+      this.customers.set(cust.id, cust);
+
+      // Seed Signup bonus transaction
+      const signupTxId = `tx_signup_${raw.id}`;
+      this.coinTransactions.set(signupTxId, {
+        id: signupTxId,
+        restaurantId,
+        customerId: raw.id,
+        type: 'SIGNUP_BONUS',
+        coins: 100,
+        reason: 'Welcome First Signup Bonus',
+        balanceAfter: 100,
+        createdAt: firstVisit
+      });
+
+      // Seed historical redemption if VIP
+      if (raw.status === 'VIP') {
+        const redeemTxId = `tx_red_${raw.id}`;
+        this.coinTransactions.set(redeemTxId, {
+          id: redeemTxId,
+          restaurantId,
+          customerId: raw.id,
+          type: 'REDEMPTION',
+          coins: -200,
+          discount: 20,
+          reason: 'Redeemed for ₹20 discount on order',
+          balanceAfter: raw.coins,
+          createdAt: lastVisit
+        });
+      }
+
+      // Seed recent order reward
+      const earnTxId = `tx_earn_${raw.id}`;
+      const rewardCoins = Math.floor(avgOrder / 10);
+      this.coinTransactions.set(earnTxId, {
+        id: earnTxId,
+        restaurantId,
+        customerId: raw.id,
+        type: 'ORDER_EARN',
+        coins: rewardCoins,
+        reason: 'Earned from completed order',
+        balanceAfter: raw.coins,
+        createdAt: lastVisit
+      });
+    }
+
+    // Link a few existing demo orders to customers
+    const recentOrders = Array.from(this.orders.values()).filter(o => o.restaurantId === restaurantId).slice(0, 15);
+    if (recentOrders.length > 0 && rawCustomers.length > 0) {
+      recentOrders[0].customerId = rawCustomers[0].id;
+      recentOrders[0].customerName = rawCustomers[0].name;
+      recentOrders[0].customerPhone = rawCustomers[0].phone;
+      recentOrders[0].coinsUsed = 100;
+      recentOrders[0].coinDiscount = 10;
+      recentOrders[0].coinsEarned = 58;
+
+      if (recentOrders.length > 1) {
+        recentOrders[1].customerId = rawCustomers[1].id;
+        recentOrders[1].customerName = rawCustomers[1].name;
+        recentOrders[1].customerPhone = rawCustomers[1].phone;
+        recentOrders[1].coinsEarned = 42;
+      }
+
+      if (recentOrders.length > 2) {
+        recentOrders[2].customerId = rawCustomers[2].id;
+        recentOrders[2].customerName = rawCustomers[2].name;
+        recentOrders[2].customerPhone = rawCustomers[2].phone;
+        recentOrders[2].coinsUsed = 200;
+        recentOrders[2].coinDiscount = 20;
+        recentOrders[2].coinsEarned = 76;
+      }
+    }
+
+    // Seed Marketing Channels
+    this.marketingChannels.set(restaurantId, {
+      whatsapp: true,
+      sms: true,
+      email: false
+    });
+
+    // Seed AI Automations (Phase 34, 35)
+    const initialAutomations: AiAutomation[] = [
+      {
+        id: 'auto-winback-30d',
+        restaurantId,
+        name: 'Win Back Inactive Diners',
+        trigger: 'Customer inactive for 30 days',
+        conditions: 'Orders >= 2 and total spend >= ₹500',
+        action: '₹75 Discount Coins + personalized message',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 45,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 86400000).toISOString(),
+        customersReached: 42,
+        revenueAttributed: 24800,
+        createdAt: new Date(Date.now() - 14 * 86400000)
+      },
+      {
+        id: 'auto-first-order-followup',
+        restaurantId,
+        name: 'New Customer 2nd-Visit Follow-Up',
+        trigger: '7 days after first order completed',
+        conditions: 'Total orders == 1',
+        action: '₹50 Second-Visit Coins + thank-you note',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 90,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 2 * 86400000).toISOString(),
+        customersReached: 26,
+        revenueAttributed: 14200,
+        createdAt: new Date(Date.now() - 21 * 86400000)
+      },
+      {
+        id: 'auto-vip-protection',
+        restaurantId,
+        name: 'VIP Falling Frequency Shield',
+        trigger: 'VIP guest visit gap > 25 days',
+        conditions: 'VIP status or spend > ₹8,000',
+        action: 'Chef Tasting Invitation + 150 VIP Coins',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 30,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 3 * 86400000).toISOString(),
+        customersReached: 8,
+        revenueAttributed: 9800,
+        createdAt: new Date(Date.now() - 30 * 86400000)
+      },
+      {
+        id: 'auto-feedback-recovery',
+        restaurantId,
+        name: 'Feedback Recovery Apology',
+        trigger: 'Customer rating < 3/5 or service complaint',
+        conditions: 'Identified phone number recorded',
+        action: 'Personal apology note + 100 Compensation Coins',
+        channel: 'SMS',
+        frequencyLimitDays: 14,
+        status: 'PAUSED',
+        lastRun: new Date(Date.now() - 6 * 86400000).toISOString(),
+        customersReached: 4,
+        revenueAttributed: 2100,
+        createdAt: new Date(Date.now() - 45 * 86400000)
+      },
+      {
+        id: 'auto-weekend-combo-boost',
+        restaurantId,
+        name: 'Weekend Beverage Combo Boost',
+        trigger: 'Friday 4:00 PM pre-dinner trigger',
+        conditions: 'Past weekend dinner visitors',
+        action: 'Free Kulhad Chai unlock on ₹499+ order',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 14,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 4 * 86400000).toISOString(),
+        customersReached: 34,
+        revenueAttributed: 18600,
+        createdAt: new Date(Date.now() - 10 * 86400000)
+      }
+    ];
+
+    for (const a of initialAutomations) {
+      this.aiAutomations.set(a.id, a);
+    }
+
+    // Seed AI Campaigns (Completed with performance analytics + Pending Approval draft)
+    const initialCampaigns: AiCampaign[] = [
+      {
+        id: 'camp-weekend-kickoff-01',
+        restaurantId,
+        name: 'Chai & Chaat Weekend Kickoff',
+        description: 'Special weekend re-engagement campaign for snack lovers',
+        objective: 'Re-engage weekend diners with signature chai pairings',
+        audienceSegment: 'WEEKEND_DINERS',
+        audienceConditions: 'Visited on weekend in last 60 days',
+        targetCount: 127,
+        channel: 'WHATSAPP',
+        mode: 'AUTOMATIC',
+        priority: 'MEDIUM',
+        status: 'COMPLETED',
+        tone: 'FRIENDLY',
+        language: 'HINGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 75,
+        validityDays: 7,
+        messageTemplate: 'Hey {{customer_name}}! We haven\'t seen you in a while at {{restaurant_name}}. Here\'s ₹75 in SwaadSevak Coins for your next visit. We\'d love to have you back! ❤️',
+        resolvedMessagePreview: 'Hey Rahul! We haven\'t seen you in a while at The Chai & Chaat Co. Here\'s ₹75 in SwaadSevak Coins for your next visit. We\'d love to have you back! ❤️',
+        sentAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+        maxRewardCost: 9525,
+        requiresApproval: false,
+        frequencyGuard: { maxPerMonth: 3, minGapDays: 5 },
+        stats: {
+          sent: 127,
+          delivered: 121,
+          clicks: 84,
+          redeemed: 38,
+          conversionRate: 31.4,
+          revenueGenerated: 24800,
+          discountCost: 2850,
+          netRevenue: 21950,
+          controlGroup: {
+            groupSize: 100,
+            returnCount: 9,
+            returnRate: 9.0,
+            incrementalRevenue: 18200
+          }
+        },
+        createdAt: new Date(Date.now() - 6 * 86400000),
+        updatedAt: new Date(Date.now() - 5 * 86400000)
+      },
+      {
+        id: 'camp-winback-draft-02',
+        restaurantId,
+        name: 'Win Back Inactive Diners',
+        description: 'Targeted win-back for diners with 30+ days inactivity',
+        objective: 'Re-activate 43 inactive diners with time-bound reward',
+        audienceSegment: 'AT_RISK',
+        audienceConditions: 'Last visit > 30 days ago, total orders >= 2',
+        targetCount: 43,
+        channel: 'WHATSAPP',
+        mode: 'APPROVAL_REQUIRED',
+        priority: 'HIGH',
+        status: 'PENDING_APPROVAL',
+        tone: 'FRIENDLY',
+        language: 'HINGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 75,
+        validityDays: 7,
+        messageTemplate: 'Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit ke liye ₹75 Discount Coins ready hain. Jaldi aao!',
+        resolvedMessagePreview: 'Hey Rahul! Kaafi time ho gaya aapse mile hue at The Chai & Chaat Co. ❤️ Aapke next visit ke liye ₹75 Discount Coins ready hain. Jaldi aao!',
+        maxRewardCost: 3225,
+        requiresApproval: true,
+        frequencyGuard: { maxPerMonth: 3, minGapDays: 5 },
+        createdAt: new Date(Date.now() - 86400000),
+        updatedAt: new Date(Date.now() - 86400000)
+      },
+      {
+        id: 'camp-vip-draft-03',
+        restaurantId,
+        name: 'VIP Patron Appreciation Reserve',
+        description: 'Exclusive reward for top 15% lifetime spenders',
+        objective: 'Reward top VIP guests and prevent high-value churn',
+        audienceSegment: 'VIP',
+        audienceConditions: 'Total spend >= ₹8,000 or status = VIP',
+        targetCount: 18,
+        channel: 'WHATSAPP',
+        mode: 'APPROVAL_REQUIRED',
+        priority: 'HIGH',
+        status: 'DRAFT',
+        tone: 'PREMIUM',
+        language: 'ENGLISH',
+        offerType: 'DISCOUNT_COINS',
+        offerValue: 150,
+        validityDays: 14,
+        messageTemplate: 'Dear {{customer_name}}, as one of our most valued patrons at {{restaurant_name}}, your VIP reserve of 150 Discount Coins is active for your next dinner. We look forward to hosting you.',
+        resolvedMessagePreview: 'Dear Amit, as one of our most valued patrons at The Chai & Chaat Co., your VIP reserve of 150 Discount Coins is active for your next dinner. We look forward to hosting you.',
+        maxRewardCost: 2700,
+        requiresApproval: true,
+        frequencyGuard: { maxPerMonth: 2, minGapDays: 10 },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    for (const c of initialCampaigns) {
+      this.aiCampaigns.set(c.id, c);
+    }
   }
 
   // Next identifiers
@@ -761,7 +1465,7 @@ class DatabaseStore {
     return undefined;
   }
 
-  createRestaurant(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Restaurant {
+  async createRestaurant(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Restaurant> {
     const id = `rest_${crypto.randomUUID()}`;
     const restaurant: Restaurant = {
       ...data,
@@ -773,21 +1477,25 @@ class DatabaseStore {
 
     const prisma = getPrismaClient();
     if (prisma) {
-      prisma.restaurant.create({
-        data: {
-          id: restaurant.id,
-          slug: restaurant.slug,
-          name: restaurant.name,
-          ownerName: restaurant.ownerName,
-          phone: restaurant.phone,
-          email: restaurant.email,
-          address: restaurant.address,
-          city: restaurant.city,
-          state: restaurant.state,
-          restaurantType: restaurant.restaurantType,
-          gstNumber: restaurant.gstNumber
-        }
-      }).catch(err => console.error('Prisma createRestaurant error:', err));
+      try {
+        await prisma.restaurant.create({
+          data: {
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            ownerName: restaurant.ownerName,
+            phone: restaurant.phone,
+            email: restaurant.email,
+            address: restaurant.address,
+            city: restaurant.city,
+            state: restaurant.state,
+            restaurantType: restaurant.restaurantType,
+            gstNumber: restaurant.gstNumber
+          }
+        });
+      } catch (err) {
+        console.error('Prisma createRestaurant error:', err);
+      }
     }
 
     return restaurant;
@@ -802,7 +1510,7 @@ class DatabaseStore {
     return undefined;
   }
 
-  createManager(data: Omit<Manager, 'id' | 'createdAt'>): Manager {
+  async createManager(data: Omit<Manager, 'id' | 'createdAt'>): Promise<Manager> {
     const id = `mgr_${crypto.randomUUID()}`;
     const manager: Manager = {
       ...data,
@@ -813,15 +1521,19 @@ class DatabaseStore {
 
     const prisma = getPrismaClient();
     if (prisma) {
-      prisma.manager.create({
-        data: {
-          id: manager.id,
-          restaurantId: manager.restaurantId,
-          username: manager.username,
-          pinHash: manager.pinHash,
-          role: manager.role
-        }
-      }).catch(err => console.error('Prisma createManager error:', err));
+      try {
+        await prisma.manager.create({
+          data: {
+            id: manager.id,
+            restaurantId: manager.restaurantId,
+            username: manager.username,
+            pinHash: manager.pinHash,
+            role: manager.role
+          }
+        });
+      } catch (err) {
+        console.error('Prisma createManager error:', err);
+      }
     }
 
     return manager;
@@ -1280,6 +1992,11 @@ class DatabaseStore {
     };
     this.orders.set(id, order);
 
+    // Safely reserve coins if customer applied discount coins
+    if (order.customerId && order.coinsUsed && order.coinsUsed > 0) {
+      this.reserveCoinsForOrder(order.restaurantId, order.customerId, order.coinsUsed);
+    }
+
     const table = this.tables.get(data.tableId);
     if (table) {
       table.status = 'OCCUPIED';
@@ -1336,6 +2053,13 @@ class DatabaseStore {
       order.kotNumber = this.getNextKotNumber();
     }
 
+    // If order is rejected or cancelled, safely release any reserved coins
+    if (status === 'REJECTED') {
+      if (order.customerId && order.coinsUsed && order.coinsUsed > 0) {
+        this.releaseCoinsForOrder(restaurantId, order.customerId, order.coinsUsed);
+      }
+    }
+
     if (status === 'COMPLETED' || status === 'DELIVERED') {
       const table = this.tables.get(order.tableId);
       if (table) {
@@ -1358,8 +2082,9 @@ class DatabaseStore {
           billNumber: this.getNextBillNumber(),
           subtotal: order.subtotal,
           tax: order.tax,
-          discount: 0,
-          grandTotal: order.total,
+          discount: order.coinDiscount || 0,
+          coinsUsed: order.coinsUsed || 0,
+          grandTotal: Math.max(0, order.total - (order.coinDiscount || 0)),
           paymentStatus: 'PAID_UPI',
           createdAt: new Date(),
           items: order.items
@@ -1367,6 +2092,7 @@ class DatabaseStore {
       } else {
         existingBill.paymentStatus = 'PAID_UPI';
       }
+      this.finalizeCoinsForOrder(restaurantId, orderId, order.coinDiscount || 0);
     }
 
     const prisma = getPrismaClient();
@@ -1429,11 +2155,16 @@ class DatabaseStore {
     const order = this.orders.get(orderId);
     if (!order || order.restaurantId !== restaurantId) return null;
 
+    const discount = order.coinDiscount || 0;
+    const grandTotal = Math.max(0, order.total - discount);
+
     const existing = this.getBillByOrder(orderId);
     if (existing) {
       existing.subtotal = order.subtotal;
       existing.tax = order.tax;
-      existing.grandTotal = order.total;
+      existing.discount = discount;
+      existing.coinsUsed = order.coinsUsed || 0;
+      existing.grandTotal = grandTotal;
       existing.items = order.items;
       return existing;
     }
@@ -1449,8 +2180,9 @@ class DatabaseStore {
       billNumber,
       subtotal: order.subtotal,
       tax: order.tax,
-      discount: 0,
-      grandTotal: order.total,
+      discount,
+      coinsUsed: order.coinsUsed || 0,
+      grandTotal,
       paymentStatus: 'UNPAID',
       createdAt: new Date(),
       items: order.items
@@ -1467,7 +2199,7 @@ class DatabaseStore {
           billNumber: bill.billNumber,
           subtotal: bill.subtotal,
           tax: bill.tax,
-          discount: 0,
+          discount: bill.discount,
           grandTotal: bill.grandTotal,
           paymentStatus: 'UNPAID'
         }
@@ -1487,6 +2219,8 @@ class DatabaseStore {
       order.status = 'COMPLETED';
       const table = this.tables.get(order.tableId);
       if (table) table.status = 'AVAILABLE';
+      // Automatically finalize coins: deduct redeemed coins safely and award newly earned coins
+      this.finalizeCoinsForOrder(restaurantId, bill.orderId, bill.discount);
     }
 
     const prisma = getPrismaClient();
@@ -1552,6 +2286,553 @@ class DatabaseStore {
     }
 
     return updated;
+  }
+
+  // --- CRM & DISCOUNT COIN METHODS ---
+
+  normalizePhone(phone: string): string {
+    const cleaned = (phone || '').replace(/\D/g, '');
+    if (cleaned.length > 10 && cleaned.startsWith('91')) {
+      return cleaned.slice(-10);
+    }
+    return cleaned.slice(-10);
+  }
+
+  maskPhone(phone: string): string {
+    const norm = this.normalizePhone(phone);
+    if (norm.length === 10) {
+      return `${norm.slice(0, 2)}XXXXXX${norm.slice(-2)}`;
+    }
+    return phone;
+  }
+
+  getCrmSettings(restaurantId: string): CrmSettings {
+    let settings = this.crmSettings.get(restaurantId);
+    if (!settings) {
+      settings = {
+        id: `crm_set_${restaurantId}`,
+        restaurantId,
+        enabled: true,
+        coinsPerAmount: 10,
+        coinsEarnedPerUnit: 1,
+        signupBonusEnabled: true,
+        signupBonusCoins: 100,
+        minOrderValue: 300,
+        redemptionCoinsUnit: 100,
+        redemptionDiscountUnit: 10,
+        maxDiscountPerOrder: 100,
+        allowFullDiscount: false,
+        earnOnFood: true,
+        earnOnTax: false,
+        earnOnService: false,
+        earnOnDelivery: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.crmSettings.set(restaurantId, settings);
+    }
+    return settings;
+  }
+
+  updateCrmSettings(restaurantId: string, data: Partial<CrmSettings>): CrmSettings {
+    const current = this.getCrmSettings(restaurantId);
+    const updated: CrmSettings = {
+      ...current,
+      ...data,
+      updatedAt: new Date()
+    };
+    this.crmSettings.set(restaurantId, updated);
+
+    const prisma = getPrismaClient();
+    if (prisma && (prisma as any).crmSettings) {
+      (prisma as any).crmSettings.upsert({
+        where: { restaurantId },
+        update: {
+          enabled: updated.enabled,
+          coinsPerAmount: updated.coinsPerAmount,
+          coinsEarnedPerUnit: updated.coinsEarnedPerUnit,
+          signupBonusEnabled: updated.signupBonusEnabled,
+          signupBonusCoins: updated.signupBonusCoins,
+          minOrderValue: updated.minOrderValue,
+          redemptionCoinsUnit: updated.redemptionCoinsUnit,
+          redemptionDiscountUnit: updated.redemptionDiscountUnit,
+          maxDiscountPerOrder: updated.maxDiscountPerOrder,
+          allowFullDiscount: updated.allowFullDiscount,
+          earnOnFood: updated.earnOnFood,
+          earnOnTax: updated.earnOnTax,
+          earnOnService: updated.earnOnService,
+          earnOnDelivery: updated.earnOnDelivery
+        },
+        create: {
+          restaurantId,
+          enabled: updated.enabled,
+          coinsPerAmount: updated.coinsPerAmount,
+          coinsEarnedPerUnit: updated.coinsEarnedPerUnit,
+          signupBonusEnabled: updated.signupBonusEnabled,
+          signupBonusCoins: updated.signupBonusCoins,
+          minOrderValue: updated.minOrderValue,
+          redemptionCoinsUnit: updated.redemptionCoinsUnit,
+          redemptionDiscountUnit: updated.redemptionDiscountUnit,
+          maxDiscountPerOrder: updated.maxDiscountPerOrder,
+          allowFullDiscount: updated.allowFullDiscount,
+          earnOnFood: updated.earnOnFood,
+          earnOnTax: updated.earnOnTax,
+          earnOnService: updated.earnOnService,
+          earnOnDelivery: updated.earnOnDelivery
+        }
+      }).catch(err => console.error('Prisma updateCrmSettings error:', err));
+    }
+
+    return updated;
+  }
+
+  getCustomerById(restaurantId: string, customerId: string): Customer | undefined {
+    const customer = this.customers.get(customerId);
+    if (customer && customer.restaurantId === restaurantId) {
+      return customer;
+    }
+    return undefined;
+  }
+
+  getCustomerByPhone(restaurantId: string, rawPhone: string): Customer | undefined {
+    const norm = this.normalizePhone(rawPhone);
+    if (!norm) return undefined;
+    for (const c of this.customers.values()) {
+      if (c.restaurantId === restaurantId && this.normalizePhone(c.phone) === norm) {
+        return c;
+      }
+    }
+    return undefined;
+  }
+
+  createCustomer(
+    restaurantId: string,
+    data: { name: string; phone: string; initialCoins?: number }
+  ): { customer: Customer; isNew: boolean } {
+    const existing = this.getCustomerByPhone(restaurantId, data.phone);
+    if (existing) {
+      return { customer: existing, isNew: false };
+    }
+
+    const normPhone = this.normalizePhone(data.phone);
+    const settings = this.getCrmSettings(restaurantId);
+    const id = `cust_${crypto.randomUUID()}`;
+    const now = new Date();
+
+    const signupBonus = data.initialCoins !== undefined
+      ? data.initialCoins
+      : (settings.enabled && settings.signupBonusEnabled ? settings.signupBonusCoins : 0);
+
+    const customer: Customer = {
+      id,
+      restaurantId,
+      name: data.name.trim() || 'Valued Guest',
+      phone: normPhone,
+      coinBalance: signupBonus,
+      reservedCoins: 0,
+      totalCoinsEarned: signupBonus,
+      totalCoinsRedeemed: 0,
+      totalOrders: 0,
+      totalSpent: 0,
+      avgOrderValue: 0,
+      firstVisit: now,
+      lastVisit: now,
+      status: 'NEW',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    this.customers.set(id, customer);
+
+    // Record signup bonus transaction if applicable
+    if (signupBonus > 0) {
+      const txId = `tx_${crypto.randomUUID()}`;
+      const tx: CoinTransaction = {
+        id: txId,
+        restaurantId,
+        customerId: id,
+        type: 'SIGNUP_BONUS',
+        coins: signupBonus,
+        reason: 'Welcome Signup Bonus',
+        balanceAfter: signupBonus,
+        createdAt: now
+      };
+      this.coinTransactions.set(txId, tx);
+    }
+
+    this.recordCrmEvent(restaurantId, 'CUSTOMER_SIGNED_UP', id, undefined, { name: customer.name, phone: customer.phone, signupBonus });
+
+    const prisma = getPrismaClient();
+    if (prisma && (prisma as any).customer) {
+      (prisma as any).customer.create({
+        data: {
+          id: customer.id,
+          restaurantId: customer.restaurantId,
+          name: customer.name,
+          phone: customer.phone,
+          coinBalance: customer.coinBalance,
+          reservedCoins: customer.reservedCoins,
+          totalCoinsEarned: customer.totalCoinsEarned,
+          totalCoinsRedeemed: customer.totalCoinsRedeemed,
+          totalOrders: customer.totalOrders,
+          totalSpent: customer.totalSpent,
+          avgOrderValue: customer.avgOrderValue,
+          firstVisit: customer.firstVisit,
+          lastVisit: customer.lastVisit,
+          status: customer.status
+        }
+      }).catch(err => console.error('Prisma createCustomer error:', err));
+    }
+
+    return { customer, isNew: true };
+  }
+
+  getCustomers(restaurantId: string, filter = 'ALL', search?: string): Customer[] {
+    let list: Customer[] = [];
+    const now = new Date().getTime();
+
+    for (const c of this.customers.values()) {
+      if (c.restaurantId !== restaurantId) continue;
+
+      // Search query
+      if (search && search.trim()) {
+        const q = search.trim().toLowerCase();
+        const matchesName = c.name.toLowerCase().includes(q);
+        const matchesPhone = c.phone.includes(q);
+        if (!matchesName && !matchesPhone) continue;
+      }
+
+      // Dynamic status calculation based on orders and visit recency
+      const daysSinceLastVisit = Math.floor((now - new Date(c.lastVisit).getTime()) / (1000 * 60 * 60 * 24));
+      let currentStatus: CustomerStatus = c.status;
+      if (c.totalOrders === 0 || c.totalOrders === 1) {
+        currentStatus = 'NEW';
+      } else if (c.totalOrders >= 10 || c.totalSpent >= 8000) {
+        currentStatus = 'VIP';
+      } else if (daysSinceLastVisit > 60) {
+        currentStatus = 'INACTIVE';
+      } else if (daysSinceLastVisit > 30) {
+        currentStatus = 'AT_RISK';
+      } else {
+        currentStatus = 'REGULAR';
+      }
+      c.status = currentStatus;
+
+      const f = filter.toUpperCase();
+      if (f === 'ALL') {
+        list.push(c);
+      } else if (f === 'NEW' && currentStatus === 'NEW') {
+        list.push(c);
+      } else if (f === 'REGULAR' && currentStatus === 'REGULAR') {
+        list.push(c);
+      } else if (f === 'VIP' && currentStatus === 'VIP') {
+        list.push(c);
+      } else if (f === 'AT_RISK' && currentStatus === 'AT_RISK') {
+        list.push(c);
+      } else if (f === 'INACTIVE' && currentStatus === 'INACTIVE') {
+        list.push(c);
+      } else if (f === 'RETURNING' && c.totalOrders > 1) {
+        list.push(c);
+      } else if (f === 'HIGH_SPENDING' && c.totalSpent >= 5000) {
+        list.push(c);
+      } else if (f === 'HIGH_FREQUENCY' && c.totalOrders >= 8) {
+        list.push(c);
+      }
+    }
+
+    return list.sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
+  }
+
+  adjustCustomerCoins(
+    restaurantId: string,
+    customerId: string,
+    coins: number,
+    reason: string
+  ): { customer: Customer; transaction: CoinTransaction } | null {
+    const customer = this.getCustomerById(restaurantId, customerId);
+    if (!customer) return null;
+    if (coins === 0 || !reason || !reason.trim()) return null;
+
+    if (customer.coinBalance + coins < 0) {
+      return null; // Prevent negative balances
+    }
+
+    customer.coinBalance += coins;
+    if (coins > 0) {
+      customer.totalCoinsEarned += coins;
+    } else {
+      customer.totalCoinsRedeemed += Math.abs(coins);
+    }
+    customer.updatedAt = new Date();
+
+    const txId = `tx_${crypto.randomUUID()}`;
+    const tx: CoinTransaction = {
+      id: txId,
+      restaurantId,
+      customerId,
+      type: 'ADMIN_ADJUSTMENT',
+      coins,
+      reason: reason.trim(),
+      balanceAfter: customer.coinBalance,
+      createdAt: new Date()
+    };
+    this.coinTransactions.set(txId, tx);
+
+    const prisma = getPrismaClient();
+    if (prisma && (prisma as any).customer) {
+      (prisma as any).customer.update({
+        where: { id: customerId },
+        data: {
+          coinBalance: customer.coinBalance,
+          totalCoinsEarned: customer.totalCoinsEarned,
+          totalCoinsRedeemed: customer.totalCoinsRedeemed
+        }
+      }).catch(err => console.error('Prisma adjustCustomerCoins error:', err));
+    }
+
+    return { customer, transaction: tx };
+  }
+
+  getCoinTransactions(
+    restaurantId: string,
+    customerId?: string
+  ): (CoinTransaction & { customerName?: string; customerPhone?: string })[] {
+    const list: (CoinTransaction & { customerName?: string; customerPhone?: string })[] = [];
+    for (const tx of this.coinTransactions.values()) {
+      if (tx.restaurantId !== restaurantId) continue;
+      if (customerId && tx.customerId !== customerId) continue;
+
+      const cust = this.customers.get(tx.customerId);
+      list.push({
+        ...tx,
+        customerName: cust?.name || 'Customer',
+        customerPhone: cust ? this.maskPhone(cust.phone) : undefined
+      });
+    }
+    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  reserveCoinsForOrder(restaurantId: string, customerId: string, coins: number): boolean {
+    const customer = this.getCustomerById(restaurantId, customerId);
+    if (!customer) return false;
+    const usableBalance = customer.coinBalance - customer.reservedCoins;
+    if (usableBalance < coins) return false;
+
+    customer.reservedCoins += coins;
+    customer.updatedAt = new Date();
+    return true;
+  }
+
+  releaseCoinsForOrder(restaurantId: string, customerId: string, coins: number): boolean {
+    const customer = this.getCustomerById(restaurantId, customerId);
+    if (!customer) return false;
+    customer.reservedCoins = Math.max(0, customer.reservedCoins - coins);
+    customer.updatedAt = new Date();
+    return true;
+  }
+
+  finalizeCoinsForOrder(
+    restaurantId: string,
+    orderId: string,
+    billDiscount = 0
+  ): { redeemed: number; earned: number } | null {
+    const order = this.getOrder(restaurantId, orderId);
+    if (!order) return null;
+
+    let redeemed = 0;
+    let earned = 0;
+
+    const settings = this.getCrmSettings(restaurantId);
+
+    if (order.customerId) {
+      const customer = this.getCustomerById(restaurantId, order.customerId);
+      if (customer) {
+        // Step 1: Permanently deduct reserved coins if any
+        if (order.coinsUsed && order.coinsUsed > 0) {
+          redeemed = order.coinsUsed;
+          customer.reservedCoins = Math.max(0, customer.reservedCoins - redeemed);
+          customer.coinBalance = Math.max(0, customer.coinBalance - redeemed);
+          customer.totalCoinsRedeemed += redeemed;
+
+          const txId = `tx_${crypto.randomUUID()}`;
+          const tx: CoinTransaction = {
+            id: txId,
+            restaurantId,
+            customerId: customer.id,
+            type: 'REDEMPTION',
+            coins: -redeemed,
+            orderId: order.id,
+            discount: order.coinDiscount || billDiscount,
+            reason: `Redeemed on Order ${order.orderNumber}`,
+            balanceAfter: customer.coinBalance,
+            createdAt: new Date()
+          };
+          this.coinTransactions.set(txId, tx);
+          this.recordCrmEvent(restaurantId, 'COINS_REDEEMED', customer.id, order.id, { coins: redeemed, discount: order.coinDiscount });
+        }
+
+        // Step 2: Award newly earned coins if CRM enabled
+        if (settings.enabled) {
+          const eligibleAmount = Math.max(0, order.subtotal - (order.coinDiscount || 0));
+          const coinsPerAmt = Math.max(1, settings.coinsPerAmount || 10);
+          earned = Math.floor(eligibleAmount / coinsPerAmt) * (settings.coinsEarnedPerUnit || 1);
+
+          if (earned > 0) {
+            customer.coinBalance += earned;
+            customer.totalCoinsEarned += earned;
+            order.coinsEarned = earned;
+
+            const txId = `tx_${crypto.randomUUID()}`;
+            const tx: CoinTransaction = {
+              id: txId,
+              restaurantId,
+              customerId: customer.id,
+              type: 'ORDER_EARN',
+              coins: earned,
+              orderId: order.id,
+              reason: `Earned from Order ${order.orderNumber}`,
+              balanceAfter: customer.coinBalance,
+              createdAt: new Date()
+            };
+            this.coinTransactions.set(txId, tx);
+            this.recordCrmEvent(restaurantId, 'CUSTOMER_EARNED_REWARD', customer.id, order.id, { coins: earned });
+          }
+        }
+
+        // Step 3: Update customer stats
+        customer.totalOrders += 1;
+        customer.totalSpent = Math.round((customer.totalSpent + order.total) * 100) / 100;
+        customer.avgOrderValue = Math.round((customer.totalSpent / customer.totalOrders) * 100) / 100;
+        customer.lastVisit = new Date();
+
+        if (customer.totalOrders >= 10 || customer.totalSpent >= 8000) {
+          if (customer.status !== 'VIP') {
+            this.recordCrmEvent(restaurantId, 'CUSTOMER_BECAME_VIP', customer.id);
+          }
+          customer.status = 'VIP';
+        } else if (customer.totalOrders >= 3) {
+          customer.status = 'REGULAR';
+        }
+
+        customer.updatedAt = new Date();
+        this.recordCrmEvent(restaurantId, 'ORDER_COMPLETED', customer.id, order.id, { total: order.total });
+
+        const prisma = getPrismaClient();
+        if (prisma && (prisma as any).customer) {
+          (prisma as any).customer.update({
+            where: { id: customer.id },
+            data: {
+              coinBalance: customer.coinBalance,
+              reservedCoins: customer.reservedCoins,
+              totalCoinsEarned: customer.totalCoinsEarned,
+              totalCoinsRedeemed: customer.totalCoinsRedeemed,
+              totalOrders: customer.totalOrders,
+              totalSpent: customer.totalSpent,
+              avgOrderValue: customer.avgOrderValue,
+              lastVisit: customer.lastVisit,
+              status: customer.status
+            }
+          }).catch(err => console.error('Prisma finalize customer error:', err));
+        }
+      }
+    }
+
+    return { redeemed, earned };
+  }
+
+  recordCrmEvent(restaurantId: string, type: CrmEventType, customerId?: string, orderId?: string, data?: any): void {
+    this.crmEvents.push({
+      id: `evt_${crypto.randomUUID()}`,
+      restaurantId,
+      type,
+      customerId,
+      orderId,
+      data,
+      createdAt: new Date()
+    });
+  }
+
+  getCrmEvents(restaurantId: string): CrmEvent[] {
+    return this.crmEvents
+      .filter(e => e.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  getCrmOverview(restaurantId: string): any {
+    const allCustomers = this.getCustomers(restaurantId, 'ALL');
+    const now = new Date().getTime();
+
+    let identifiedCustomers = allCustomers.length;
+    let activeCustomers = 0;
+    let atRiskCustomers = 0;
+    let newCustomersThisWeek = 0;
+    let newCustomersThisMonth = 0;
+    let returningCustomers = 0;
+    let outstandingLiability = 0;
+
+    for (const c of allCustomers) {
+      outstandingLiability += c.coinBalance;
+      const daysSinceVisit = Math.floor((now - new Date(c.lastVisit).getTime()) / (1000 * 60 * 60 * 24));
+      const daysSinceCreated = Math.floor((now - new Date(c.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysSinceVisit <= 30) activeCustomers++;
+      else if (daysSinceVisit <= 60) atRiskCustomers++;
+
+      if (daysSinceCreated <= 7) newCustomersThisWeek++;
+      if (daysSinceCreated <= 30) newCustomersThisMonth++;
+
+      if (c.totalOrders > 1) returningCustomers++;
+    }
+
+    // Anonymous orders (completed orders without customerId)
+    const restaurantOrders = this.getOrders(restaurantId).filter(o => o.status === 'COMPLETED');
+    const anonymousCustomers = restaurantOrders.filter(o => !o.customerId).length;
+
+    let totalCoinsIssued = 0;
+    let totalCoinsRedeemed = 0;
+    let totalDiscountGenerated = 0;
+
+    for (const tx of this.coinTransactions.values()) {
+      if (tx.restaurantId !== restaurantId) continue;
+      if (tx.coins > 0) {
+        totalCoinsIssued += tx.coins;
+      } else if (tx.coins < 0) {
+        totalCoinsRedeemed += Math.abs(tx.coins);
+      }
+      if (tx.discount) {
+        totalDiscountGenerated += tx.discount;
+      }
+    }
+
+    const repeatCustomerRate = identifiedCustomers > 0
+      ? Math.round((returningCustomers / identifiedCustomers) * 100)
+      : 0;
+
+    const redemptionRate = totalCoinsIssued > 0
+      ? Math.round((totalCoinsRedeemed / totalCoinsIssued) * 100)
+      : 0;
+
+    const avgCoinsPerCustomer = identifiedCustomers > 0
+      ? Math.round(outstandingLiability / identifiedCustomers)
+      : 0;
+
+    return {
+      totalCustomers: identifiedCustomers + anonymousCustomers,
+      identifiedCustomers,
+      anonymousCustomers,
+      activeCustomers,
+      atRiskCustomers,
+      totalCoinsIssued,
+      totalCoinsRedeemed,
+      outstandingLiability,
+      newCustomersThisWeek,
+      newCustomersThisMonth,
+      returningCustomers,
+      repeatCustomerRate,
+      redemptionRate,
+      totalDiscountGenerated,
+      avgCoinsPerCustomer
+    };
   }
 
   // Dynamic Today's Stats
@@ -1675,6 +2956,103 @@ class DatabaseStore {
   getImplementedRecommendations(restaurantId: string): string[] {
     const set = this.implementedRecommendations.get(restaurantId);
     return set ? Array.from(set) : [];
+  }
+
+  // ==========================================
+  // SWAADSEVAK AI CRM METHODS
+  // ==========================================
+
+  saveAiCampaign(campaign: AiCampaign): AiCampaign {
+    this.aiCampaigns.set(campaign.id, campaign);
+    return campaign;
+  }
+
+  getAiCampaigns(restaurantId: string): AiCampaign[] {
+    return Array.from(this.aiCampaigns.values())
+      .filter(c => c.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  getAiCampaignById(restaurantId: string, campaignId: string): AiCampaign | undefined {
+    const c = this.aiCampaigns.get(campaignId);
+    if (c && c.restaurantId === restaurantId) return c;
+    return undefined;
+  }
+
+  updateAiCampaign(restaurantId: string, campaignId: string, updates: Partial<AiCampaign>): AiCampaign | null {
+    const existing = this.getAiCampaignById(restaurantId, campaignId);
+    if (!existing) return null;
+    const updated: AiCampaign = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.aiCampaigns.set(campaignId, updated);
+    return updated;
+  }
+
+  deleteAiCampaign(restaurantId: string, campaignId: string): boolean {
+    const existing = this.getAiCampaignById(restaurantId, campaignId);
+    if (!existing) return false;
+    return this.aiCampaigns.delete(campaignId);
+  }
+
+  saveAiAutomation(automation: AiAutomation): AiAutomation {
+    this.aiAutomations.set(automation.id, automation);
+    return automation;
+  }
+
+  getAiAutomations(restaurantId: string): AiAutomation[] {
+    return Array.from(this.aiAutomations.values())
+      .filter(a => a.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  getAiAutomationById(restaurantId: string, automationId: string): AiAutomation | undefined {
+    const a = this.aiAutomations.get(automationId);
+    if (a && a.restaurantId === restaurantId) return a;
+    return undefined;
+  }
+
+  updateAiAutomation(restaurantId: string, automationId: string, updates: Partial<AiAutomation>): AiAutomation | null {
+    const existing = this.getAiAutomationById(restaurantId, automationId);
+    if (!existing) return null;
+    const updated: AiAutomation = {
+      ...existing,
+      ...updates
+    };
+    this.aiAutomations.set(automationId, updated);
+    return updated;
+  }
+
+  deleteAiAutomation(restaurantId: string, automationId: string): boolean {
+    const existing = this.getAiAutomationById(restaurantId, automationId);
+    if (!existing) return false;
+    return this.aiAutomations.delete(automationId);
+  }
+
+  getMarketingChannels(restaurantId: string): { whatsapp: boolean; sms: boolean; email: boolean } {
+    return this.marketingChannels.get(restaurantId) || { whatsapp: true, sms: true, email: false };
+  }
+
+  setMarketingChannelStatus(restaurantId: string, channel: 'whatsapp' | 'sms' | 'email', connected: boolean) {
+    const current = this.getMarketingChannels(restaurantId);
+    this.marketingChannels.set(restaurantId, {
+      ...current,
+      [channel]: connected
+    });
+  }
+
+  getCustomerMarketingPreferences(restaurantId: string, customerId: string): { sms: boolean; whatsapp: boolean; email: boolean } {
+    return this.customerMarketingPreferences.get(customerId) || { sms: true, whatsapp: true, email: true };
+  }
+
+  setCustomerMarketingPreferences(restaurantId: string, customerId: string, prefs: { sms?: boolean; whatsapp?: boolean; email?: boolean }) {
+    const current = this.getCustomerMarketingPreferences(restaurantId, customerId);
+    this.customerMarketingPreferences.set(customerId, {
+      ...current,
+      ...prefs
+    });
   }
 }
 

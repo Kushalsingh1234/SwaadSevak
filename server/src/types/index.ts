@@ -101,6 +101,12 @@ export interface Order {
   additions?: OrderAddition[];
   estimatedPrepTime?: number;
   settled?: boolean;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  coinsUsed?: number;
+  coinsEarned?: number;
+  coinDiscount?: number;
   createdAt: Date;
   updatedAt: Date;
   items: OrderItem[];
@@ -135,10 +141,96 @@ export interface Bill {
   subtotal: number;
   tax: number;
   discount: number;
+  coinsUsed?: number;
+  coinsEarned?: number;
   grandTotal: number;
   paymentStatus: 'UNPAID' | 'PAID_CASH' | 'PAID_UPI' | 'PAID_CARD';
   createdAt: Date;
   items: OrderItem[];
+}
+
+export type CustomerStatus = 'NEW' | 'REGULAR' | 'VIP' | 'AT_RISK' | 'INACTIVE';
+
+export interface Customer {
+  id: string;
+  restaurantId: string;
+  name: string;
+  phone: string;
+  coinBalance: number;
+  reservedCoins: number;
+  totalCoinsEarned: number;
+  totalCoinsRedeemed: number;
+  totalOrders: number;
+  totalSpent: number;
+  avgOrderValue: number;
+  firstVisit: Date;
+  lastVisit: Date;
+  status: CustomerStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CoinTransactionType =
+  | 'SIGNUP_BONUS'
+  | 'ORDER_EARN'
+  | 'REDEMPTION'
+  | 'REFUND'
+  | 'ADMIN_ADJUSTMENT'
+  | 'REVERSAL';
+
+export interface CoinTransaction {
+  id: string;
+  restaurantId: string;
+  customerId: string;
+  type: CoinTransactionType;
+  coins: number;
+  orderId?: string;
+  discount?: number;
+  reason?: string;
+  balanceAfter: number;
+  createdAt: Date;
+}
+
+export interface CrmSettings {
+  id: string;
+  restaurantId: string;
+  enabled: boolean;
+  coinsPerAmount: number; // e.g. 10 => 1 coin for every 10 Rs spent
+  coinsEarnedPerUnit: number; // e.g. 1
+  signupBonusEnabled: boolean;
+  signupBonusCoins: number; // e.g. 100
+  minOrderValue: number; // e.g. 300
+  redemptionCoinsUnit: number; // e.g. 100
+  redemptionDiscountUnit: number; // e.g. 10 (100 coins = Rs 10 discount)
+  maxDiscountPerOrder: number; // e.g. 100
+  allowFullDiscount: boolean; // default false
+  earnOnFood: boolean;
+  earnOnTax: boolean;
+  earnOnService: boolean;
+  earnOnDelivery: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CrmEventType =
+  | 'CUSTOMER_SIGNED_UP'
+  | 'ORDER_COMPLETED'
+  | 'COINS_REDEEMED'
+  | 'CUSTOMER_INACTIVE_30_DAYS'
+  | 'CUSTOMER_INACTIVE_60_DAYS'
+  | 'CUSTOMER_REACHED_10_VISITS'
+  | 'CUSTOMER_BECAME_VIP'
+  | 'CUSTOMER_BIRTHDAY'
+  | 'CUSTOMER_EARNED_REWARD';
+
+export interface CrmEvent {
+  id: string;
+  restaurantId: string;
+  type: CrmEventType;
+  customerId?: string;
+  orderId?: string;
+  data?: Record<string, any>;
+  createdAt: Date;
 }
 
 export interface PrinterConfig {
@@ -481,4 +573,190 @@ export interface GrowthEngineData {
     uploadedAt: string;
   }[];
 }
+
+// ==========================================
+// SWAADSEVAK AI CRM TYPES & MODELS
+// ==========================================
+
+export type AiRecommendationCategory =
+  | 'WIN_BACK'
+  | 'NEW_RETENTION'
+  | 'VIP_PROTECTION'
+  | 'INCREASE_AOV'
+  | 'PRODUCT_BASED'
+  | 'LOW_FREQ_HIGH_VALUE'
+  | 'FEEDBACK_RECOVERY'
+  | 'BIRTHDAY'
+  | 'NO_DISCOUNT';
+
+export interface AiRecommendation {
+  id: string;
+  category: AiRecommendationCategory;
+  title: string;
+  explanation: string;
+  recommendedAction: string;
+  expectedObjective: string;
+  targetAudienceLabel: string;
+  targetAudienceCount: number;
+  estimatedValue: string;
+  historicalAov?: number;
+  recommendedCoins?: number;
+  validityDays?: number;
+  badge: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  suggestedTemplate?: string;
+  actionPayload?: {
+    audienceFilter: string;
+    coinsReward: number;
+    validityDays: number;
+    channel: CampaignChannel;
+    defaultTone: CampaignTone;
+    defaultLanguage: CampaignLanguage;
+  };
+}
+
+export interface AiSegment {
+  id: string;
+  name: string;
+  description: string;
+  characteristics: string[];
+  customerCount: number;
+  avgOrderValue: number;
+  avgVisitsPerMonth: number;
+  totalRevenue: number;
+  suggestedCampaignIdea: string;
+  icon?: string;
+}
+
+export type CampaignStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'SCHEDULED'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'PAUSED'
+  | 'CANCELLED';
+
+export type CampaignMode = 'RECOMMENDATION_ONLY' | 'APPROVAL_REQUIRED' | 'AUTOMATIC';
+export type CampaignChannel = 'WHATSAPP' | 'SMS' | 'EMAIL';
+export type CampaignPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+export type CampaignTone = 'FRIENDLY' | 'PREMIUM' | 'CASUAL' | 'URGENT' | 'FESTIVE' | 'PROFESSIONAL';
+export type CampaignLanguage = 'ENGLISH' | 'HINDI' | 'HINGLISH';
+export type CampaignOfferType = 'DISCOUNT_COINS' | 'FLAT_DISCOUNT' | 'FREE_ITEM' | 'NO_DISCOUNT';
+
+export interface CampaignStats {
+  sent: number;
+  delivered: number;
+  clicks?: number;
+  redeemed: number;
+  conversionRate: number;
+  revenueGenerated: number;
+  discountCost: number;
+  netRevenue: number;
+  controlGroup?: {
+    groupSize: number;
+    returnCount: number;
+    returnRate: number;
+    incrementalRevenue: number;
+  };
+}
+
+export interface AiCampaign {
+  id: string;
+  restaurantId: string;
+  name: string;
+  description?: string;
+  objective: string;
+  audienceSegment: string;
+  audienceConditions?: string;
+  targetCount: number;
+  channel: CampaignChannel;
+  mode: CampaignMode;
+  priority: CampaignPriority;
+  status: CampaignStatus;
+  tone: CampaignTone;
+  language: CampaignLanguage;
+  offerType: CampaignOfferType;
+  offerValue: number;
+  offerPerkText?: string;
+  validityDays: number;
+  messageTemplate: string;
+  resolvedMessagePreview: string;
+  scheduledFor?: string;
+  sentAt?: string;
+  maxRewardCost: number;
+  requiresApproval: boolean;
+  frequencyGuard: {
+    maxPerMonth: number;
+    minGapDays: number;
+  };
+  stats?: CampaignStats;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AiAutomation {
+  id: string;
+  restaurantId: string;
+  name: string;
+  trigger: string;
+  conditions: string;
+  action: string;
+  channel: CampaignChannel;
+  frequencyLimitDays: number;
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  lastRun?: string;
+  customersReached: number;
+  revenueAttributed: number;
+  createdAt: Date;
+}
+
+export interface CustomerAiSummary {
+  customerId: string;
+  customerName: string;
+  summaryText: string;
+  churnRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+  churnRiskLabel: string;
+  estimatedClv: number;
+  normalVisitIntervalDays: number;
+  daysSinceLastVisit: number;
+  favoriteItems: string[];
+  discountDependence: 'LOW' | 'MEDIUM' | 'HIGH';
+  nextBestAction: {
+    title: string;
+    actionText: string;
+    reason: string;
+    coinsOffer?: number;
+  };
+  marketingPreferences: {
+    sms: boolean;
+    whatsapp: boolean;
+    email: boolean;
+  };
+}
+
+export interface AiCrmDashboardData {
+  winBackCard: {
+    customerCount: number;
+    potentialRevenue: number;
+  };
+  vipCard: {
+    customerCount: number;
+    lifetimeSpend: number;
+  };
+  opportunitiesCard: {
+    count: number;
+  };
+  automationsCard: {
+    activeCount: number;
+    recentRunsCount: number;
+    totalAttributedRevenue: number;
+  };
+  topRecommendations: AiRecommendation[];
+  recentCampaigns: AiCampaign[];
+  hasEnoughData?: boolean;
+  customerCount?: number;
+}
+
 

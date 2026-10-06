@@ -20,6 +20,8 @@ import {
   Lightbulb,
   AlertCircle,
   Tag,
+  Gift,
+  Users,
   Coffee,
   Utensils,
   Pizza,
@@ -155,7 +157,7 @@ export const GrowthEnginePage: React.FC<GrowthEnginePageProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12 animate-fadeIn">
+    <div className="space-y-5 w-full animate-fadeIn">
       {/* 1. HERO HEADER */}
       <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -210,9 +212,9 @@ export const GrowthEnginePage: React.FC<GrowthEnginePageProps> = ({
           </p>
 
           {/* Business Profile Selector */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <span className="text-[11px] font-medium text-slate-500">Business Profile:</span>
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
               {(['Café', 'Restaurant', 'Bakery / Café', 'Fast Food', 'QSR'] as BusinessType[]).map((type) => {
                 const isSelected = businessType === type;
                 return (
@@ -616,6 +618,94 @@ export const GrowthEnginePage: React.FC<GrowthEnginePageProps> = ({
             </button>
           </div>
         )}
+      </div>
+
+      {/* 6.5. SECTION: CRM & LOYALTY RETENTION INTELLIGENCE (Phase 23) */}
+      <div className="bg-linear-to-br from-amber-500/10 via-orange-500/5 to-purple-500/10 rounded-2xl p-5 border border-amber-500/20 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-amber-500/15">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-xs">
+              <Coins className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900">CRM & Loyalty Retention Engine</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  Customer Intelligence
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Target high-value guests and win back churn-risk diners with Discount Coins.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigateTab('crm')}
+            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all self-start sm:self-auto shrink-0 cursor-pointer"
+          >
+            <span>Open Loyalty CRM</span>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="p-3.5 rounded-xl bg-white/80 backdrop-blur-xs border border-amber-200/60 shadow-2xs space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 text-rose-500" /> At-Risk Win-Back
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-50 text-rose-700">Priority</span>
+            </div>
+            <h4 className="text-xs font-bold text-slate-900">Win back inactive diners</h4>
+            <p className="text-[11px] text-slate-600 leading-snug">
+              Automatically identify customers who haven't dined recently and issue targeted Discount Coin incentives.
+            </p>
+            <button
+              onClick={() => onNavigateTab('crm')}
+              className="text-[11px] font-bold text-amber-700 hover:text-amber-800 pt-1 inline-flex items-center gap-1 cursor-pointer"
+            >
+              Configure in CRM →
+            </button>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-white/80 backdrop-blur-xs border border-amber-200/60 shadow-2xs space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> VIP Protection
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-800">High LTV</span>
+            </div>
+            <h4 className="text-xs font-bold text-slate-900">Protect VIP spenders</h4>
+            <p className="text-[11px] text-slate-600 leading-snug">
+              Recognize highest-spending guests and keep them engaged with exclusive coin redemption tiers.
+            </p>
+            <button
+              onClick={() => onNavigateTab('crm')}
+              className="text-[11px] font-bold text-amber-700 hover:text-amber-800 pt-1 inline-flex items-center gap-1 cursor-pointer"
+            >
+              View VIP Segment →
+            </button>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-white/80 backdrop-blur-xs border border-amber-200/60 shadow-2xs space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+                <Gift className="w-3.5 h-3.5 text-emerald-600" /> Guest-to-Member Conversion
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800">Acquisition</span>
+            </div>
+            <h4 className="text-xs font-bold text-slate-900">Post-order guest signup bonus</h4>
+            <p className="text-[11px] text-slate-600 leading-snug">
+              Active with 100 signup coins. Converts anonymous QR diners into recognized repeat visitors.
+            </p>
+            <button
+              onClick={() => onNavigateTab('crm')}
+              className="text-[11px] font-bold text-amber-700 hover:text-amber-800 pt-1 inline-flex items-center gap-1 cursor-pointer"
+            >
+              Manage Coin Rules →
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 7. BOTTOM BANNER: Want deeper insights? Upload your POS report */}

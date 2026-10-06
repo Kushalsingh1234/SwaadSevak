@@ -33,6 +33,9 @@ model Restaurant {
   orders         Order[]
   bills          Bill[]
   printerConfig  PrinterConfig?
+  customers      Customer[]
+  crmSettings    CrmSettings?
+  coinTransactions CoinTransaction[]
 }
 
 model Manager {
@@ -128,6 +131,13 @@ model Order {
   billRequested  Boolean      @default(false)
   rejectionReason String?
   additions      String?      @default("[]")
+  customerId     String?
+  customer       Customer?    @relation(fields: [customerId], references: [id])
+  customerName   String?
+  customerPhone  String?
+  coinsUsed      Int          @default(0)
+  coinsEarned    Int          @default(0)
+  coinDiscount   Float        @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -136,6 +146,7 @@ model Order {
 
   @@index([restaurantId])
   @@index([tableId])
+  @@index([customerId])
   @@index([status])
   @@index([restaurantId, createdAt])
   @@index([source])
@@ -167,6 +178,8 @@ model Bill {
   subtotal      Float
   tax           Float      @default(0)
   discount      Float      @default(0)
+  coinsUsed     Int        @default(0)
+  coinsEarned   Int        @default(0)
   grandTotal    Float
   paymentStatus String     @default("UNPAID") // UNPAID, PAID_CASH, PAID_UPI, PAID_CARD
   createdAt     DateTime   @default(now())
@@ -186,3 +199,73 @@ model PrinterConfig {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
+
+model Customer {
+  id                 String            @id @default(uuid())
+  restaurantId       String
+  restaurant         Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name               String
+  phone              String
+  coinBalance        Int               @default(0)
+  reservedCoins      Int               @default(0)
+  totalCoinsEarned   Int               @default(0)
+  totalCoinsRedeemed Int               @default(0)
+  totalOrders        Int               @default(0)
+  totalSpent         Float             @default(0)
+  avgOrderValue      Float             @default(0)
+  firstVisit         DateTime          @default(now())
+  lastVisit          DateTime          @default(now())
+  status             String            @default("NEW") // NEW, REGULAR, VIP, AT_RISK, INACTIVE
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  orders             Order[]
+  coinTransactions   CoinTransaction[]
+
+  @@unique([restaurantId, phone])
+  @@index([restaurantId])
+  @@index([phone])
+}
+
+model CoinTransaction {
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type         String     // SIGNUP_BONUS, ORDER_EARN, REDEMPTION, REFUND, ADMIN_ADJUSTMENT, REVERSAL
+  coins        Int        // Positive for earn/credit, negative for redeem/debit
+  orderId      String?
+  discount     Float?
+  reason       String?
+  balanceAfter Int
+  createdAt    DateTime   @default(now())
+
+  @@index([restaurantId])
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model CrmSettings {
+  id                     String     @id @default(uuid())
+  restaurantId           String     @unique
+  restaurant             Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  enabled                Boolean    @default(true)
+  coinsPerAmount         Float      @default(10) // 1 coin per 10 spent
+  coinsEarnedPerUnit     Int        @default(1)
+  signupBonusEnabled     Boolean    @default(true)
+  signupBonusCoins       Int        @default(100)
+  minOrderValue          Float      @default(300)
+  redemptionCoinsUnit    Int        @default(100)
+  redemptionDiscountUnit Float      @default(10) // 100 coins = Rs 10 discount
+  maxDiscountPerOrder    Float      @default(100)
+  allowFullDiscount      Boolean    @default(false)
+  earnOnFood             Boolean    @default(true)
+  earnOnTax              Boolean    @default(false)
+  earnOnService          Boolean    @default(false)
+  earnOnDelivery         Boolean    @default(false)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+}
+

@@ -40,7 +40,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !pin) {
+    const cleanUser = username.trim();
+    const cleanPin = pin.trim();
+
+    if (!cleanUser || !cleanPin) {
       setErrorMsg('Please enter both username and PIN.');
       return;
     }
@@ -48,7 +51,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(true);
     setErrorMsg('');
     try {
-      const res = await api.login({ username: username.trim(), pin });
+      const res = await api.login({ username: cleanUser, pin: cleanPin });
       if (res.success) {
         localStorage.setItem('swaad_token', res.token);
         if (res.restaurant) localStorage.setItem('swaad_restaurant', JSON.stringify(res.restaurant));
@@ -94,6 +97,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <input
                   type="text"
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="e.g. demo_manager"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -111,7 +117,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <input
                   type="password"
                   required
-                  maxLength={6}
+                  inputMode="numeric"
+                  autoComplete="current-password"
+                  maxLength={10}
                   placeholder="••••"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}

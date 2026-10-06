@@ -1,4 +1,13 @@
-import { AnalyticsData, AnalyticsQueryOptions } from '../types';
+import {
+  AnalyticsData,
+  AnalyticsQueryOptions,
+  AiCrmDashboardData,
+  AiRecommendation,
+  AiSegment,
+  AiCampaign,
+  AiAutomation,
+  CustomerAiSummary
+} from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5001/api';
 
@@ -47,7 +56,14 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
 export const api = {
   // Auth
   register: (payload: any) => request<any>('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
-  login: (payload: { username: string; pin: string }) => request<any>('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  login: (payload: { username: string; pin: string }) =>
+    request<any>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: String(payload.username || '').trim(),
+        pin: String(payload.pin || '').trim()
+      })
+    }),
   getMe: () => request<any>('/auth/me'),
 
   // Menu
@@ -153,6 +169,164 @@ export const api = {
   }).then(r => r.json()),
   getPublicOrderStatus: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/status`).then(r => r.json()),
   getPublicInvoice: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/invoice`).then(r => r.json()),
+
+  // Public Diner CRM & Discount Coins (No auth needed)
+  identifyPublicCustomer: (restaurantSlug: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/identify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, phone })
+    }).then(r => r.json()),
+  signupPublicCustomer: (restaurantSlug: string, name: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, name, phone })
+    }).then(r => r.json()),
+  calculatePublicDiscount: (restaurantSlug: string, customerId: string, subtotal: number) =>
+    fetch(`${API_BASE}/public/crm/calculate-discount`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, customerId, subtotal })
+    }).then(r => r.json()),
+  claimPostOrderBonus: (restaurantSlug: string, orderId: string, name: string, phone: string) =>
+    fetch(`${API_BASE}/public/crm/post-order-claim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurantSlug, orderId, name, phone })
+    }).then(r => r.json()),
+
+  // Manager CRM & Discount Coins APIs (Authenticated)
+  getCrmOverview: () =>
+    request<{ success: boolean; overview: import('../types').CrmOverviewStats }>('/crm/overview'),
+  getCustomers: (filter?: string, search?: string) =>
+    request<{ success: boolean; customers: import('../types').Customer[] }>(
+      `/crm/customers?filter=${encodeURIComponent(filter || 'ALL')}${search ? `&search=${encodeURIComponent(search)}` : ''}`
+    ),
+  getCustomer: (id: string) =>
+    request<{
+      success: boolean;
+      customer: import('../types').Customer;
+      orders: import('../types').Order[];
+      coinHistory: import('../types').CoinTransaction[];
+    }>(`/crm/customers/${id}`),
+  adjustCustomerCoins: (id: string, coins: number, reason: string) =>
+    request<{
+      success: boolean;
+      message: string;
+      customer: import('../types').Customer;
+      transaction: import('../types').CoinTransaction;
+    }>(`/crm/customers/${id}/adjust-coins`, {
+      method: 'POST',
+      body: JSON.stringify({ coins, reason })
+    }),
+  sendDirectCustomerMessage: (
+    id: string,
+    payload: { message: string; coins?: number; reason?: string }
+  ) =>
+    request<{
+      success: boolean;
+      message: string;
+      waSent: boolean;
+      waError?: string;
+      customer: import('../types').Customer;
+      transaction?: import('../types').CoinTransaction;
+    }>(`/crm/customers/${id}/direct-message`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  getCoinLedger: (customerId?: string) =>
+    request<{ success: boolean; transactions: import('../types').CoinTransaction[] }>(
+      `/crm/ledger${customerId ? `?customerId=${encodeURIComponent(customerId)}` : ''}`
+    ),
+  getCrmSettings: () =>
+    request<{ success: boolean; settings: import('../types').CrmSettings }>('/crm/settings'),
+  updateCrmSettings: (settings: Partial<import('../types').CrmSettings>) =>
+    request<{ success: boolean; message: string; settings: import('../types').CrmSettings }>('/crm/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings)
+    }),
+  getCrmAnalytics: () =>
+    request<{ success: boolean; overview: any; topSpenders: any[]; topFrequent: any[]; segments: any }>('/crm/analytics'),
+  getCrmEvents: () =>
+    request<{ success: boolean; events: any[] }>('/crm/events'),
+
+  // AI CRM APIs (Phase 1 to 40)
+  getAiCrmDashboard: () =>
+    request<{ success: boolean; dashboard: import('../types').AiCrmDashboardData }>('/crm/ai/dashboard'),
+  getAiRecommendations: () =>
+    request<{ success: boolean; recommendations: import('../types').AiRecommendation[] }>('/crm/ai/recommendations'),
+  getAiSegments: () =>
+    request<{ success: boolean; segments: import('../types').AiSegment[] }>('/crm/ai/segments'),
+  parseAiCampaignPrompt: (prompt: string) =>
+    request<{
+      success: boolean;
+      campaignDraft: Partial<import('../types').AiCampaign>;
+      explanation: string;
+      matchedAudienceCount: number;
+      estimatedCost: number;
+      audienceReason: string;
+    }>('/crm/ai/builder/parse', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  parseAiCampaign: (prompt: string) =>
+    request<{
+      success: boolean;
+      message?: string;
+      draft?: any;
+      campaignDraft?: any;
+    }>('/crm/ai/builder/parse', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  getAiCampaigns: () =>
+    request<{ success: boolean; campaigns: import('../types').AiCampaign[] }>('/crm/ai/campaigns'),
+  createAiCampaign: (payload: Partial<import('../types').AiCampaign>) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>('/crm/ai/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  approveAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>(`/crm/ai/campaigns/${id}/approve`, {
+      method: 'POST'
+    }),
+  executeAiCampaign: (id: string) =>
+    request<{
+      success: boolean;
+      message: string;
+      campaign?: import('../types').AiCampaign;
+      sentCount: number;
+      deliveredCount: number;
+    }>(`/crm/ai/campaigns/${id}/execute`, { method: 'POST' }),
+  cancelAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string; campaign: import('../types').AiCampaign }>(`/crm/ai/campaigns/${id}/cancel`, {
+      method: 'POST'
+    }),
+  deleteAiCampaign: (id: string) =>
+    request<{ success: boolean; message: string }>(`/crm/ai/campaigns/${id}`, { method: 'DELETE' }),
+  getAiAutomations: () =>
+    request<{ success: boolean; automations: import('../types').AiAutomation[] }>('/crm/ai/automations'),
+  createAiAutomation: (payload: Partial<import('../types').AiAutomation>) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>('/crm/ai/automations', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  toggleAiAutomation: (id: string, status?: string) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>(`/crm/ai/automations/${id}/toggle`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    }),
+  deleteAiAutomation: (id: string) =>
+    request<{ success: boolean; message: string }>(`/crm/ai/automations/${id}`, { method: 'DELETE' }),
+  getCustomerAiSummary: (id: string) =>
+    request<{ success: boolean; summary: import('../types').CustomerAiSummary }>(`/crm/ai/customers/${id}/summary`),
+  updateCustomerMarketingPrefs: (id: string, prefs: { sms?: boolean; whatsapp?: boolean; email?: boolean }) =>
+    request<{ success: boolean; message: string; preferences: any }>(`/crm/ai/customers/${id}/preferences`, {
+      method: 'PUT',
+      body: JSON.stringify(prefs)
+    }),
+  getMarketingChannels: () =>
+    request<{ success: boolean; channels: { whatsapp: boolean; sms: boolean; email: boolean } }>('/crm/ai/channels'),
+  toggleMarketingChannel: (channel: 'whatsapp' | 'sms' | 'email', connected: boolean) =>
+    request<{ success: boolean; message: string; channels: any }>('/crm/ai/channels/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ channel, connected })
+    }),
 
   // Pre-warm server ping
   pingServer: async (): Promise<boolean> => {
@@ -270,6 +444,16 @@ export const api = {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-  }
+  },
+
+  // WhatsApp Device Automation
+  getWhatsAppStatus: () => request<{ success: boolean; data: any }>('/whatsapp/status'),
+  connectWhatsApp: () => request<{ success: boolean; message: string; data: any }>('/whatsapp/connect', { method: 'POST' }),
+  disconnectWhatsApp: () => request<{ success: boolean; message: string }>('/whatsapp/disconnect', { method: 'POST' }),
+  testSendWhatsApp: (targetPhone?: string) =>
+    request<{ success: boolean; message: string; messageId?: string }>('/whatsapp/test-send', {
+      method: 'POST',
+      body: JSON.stringify({ targetPhone })
+    })
 };
 

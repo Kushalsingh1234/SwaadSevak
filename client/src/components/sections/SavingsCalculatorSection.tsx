@@ -36,36 +36,41 @@ export const SavingsCalculatorSection: React.FC = () => {
   };
 
   return (
-    <section id="savings-calculator" className="py-12 sm:py-16 font-sans bg-white text-espresso border-b border-sand-200">
-      <div className="max-w-container mx-auto px-4 sm:px-6">
+    <section id="calculator" className="py-8 sm:py-12 font-sans text-espresso relative overflow-hidden" style={{ backgroundColor: '#FFF8F1' }}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand-100 border border-sand-200 text-xs font-semibold text-espresso shadow-soft mb-3">
-            <Calculator className="w-3.5 h-3.5 text-orange-500" />
+        <div className="text-center max-w-lg mx-auto mb-5 sm:mb-7">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-espresso shadow-soft mb-2"
+            style={{ backgroundColor: '#EFE2D3', border: '1px solid #D8C2AC' }}
+          >
+            <Calculator className="w-3.5 h-3.5 text-orange-600" />
             <span>ROI Calculator</span>
           </div>
-          <h2 className="h2-fluid font-extrabold text-espresso tracking-tight mb-3">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-espresso tracking-tight mb-2">
             Estimate Your Monthly Bottom-Line Savings
           </h2>
-          <p className="text-sm sm:text-base text-bodyText leading-relaxed">
+          <p className="text-xs sm:text-[13px] text-[#5A3A28] leading-relaxed">
             See how much you recover by reducing aggregator commission cuts and tracking recipe-level ingredient pilferage.
           </p>
         </div>
 
         {/* 2-Column Grid: Sliders Left (7 Cols), Result Card Right (5 Cols) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4.5 sm:gap-5 items-stretch text-left">
           
           {/* Sliders Container (7 Cols) */}
-          <div className="lg:col-span-7 p-5 sm:p-6 rounded-card-lg bg-sand-50/70 border border-sand-200 shadow-soft space-y-4.5 flex flex-col justify-between">
-            
+          <div
+            className="lg:col-span-7 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-[0_12px_36px_-6px_rgba(43,26,18,0.08)] space-y-3.5 flex flex-col justify-between"
+            style={{ backgroundColor: '#FAF4ED', border: '1px solid #D8C2AC' }}
+          >
             {/* Outlets */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="outlets-slider" className="text-xs sm:text-sm font-bold text-espresso">
+              <div className="flex justify-between items-center mb-0.5">
+                <label htmlFor="outlets-slider" className="text-xs font-bold text-espresso">
                   Number of Outlets / Kitchens
                 </label>
-                <span className="font-mono font-bold text-xs sm:text-sm text-orange-dark">
+                <span className="font-mono font-bold text-xs text-orange-dark">
                   {outlets} {outlets === 1 ? 'Outlet' : 'Outlets'}
                 </span>
               </div>
@@ -87,11 +92,11 @@ export const SavingsCalculatorSection: React.FC = () => {
 
             {/* Monthly Online Orders */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="orders-slider" className="text-xs sm:text-sm font-bold text-espresso">
+              <div className="flex justify-between items-center mb-0.5">
+                <label htmlFor="orders-slider" className="text-xs font-bold text-espresso">
                   Monthly Online &amp; Delivery Orders per Outlet
                 </label>
-                <span className="font-mono font-bold text-xs sm:text-sm text-orange-dark">
+                <span className="font-mono font-bold text-xs text-orange-dark">
                   {monthlyOrders.toLocaleString()} orders
                 </span>
               </div>
@@ -113,11 +118,11 @@ export const SavingsCalculatorSection: React.FC = () => {
 
             {/* Average Order Value */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="aov-slider" className="text-xs sm:text-sm font-bold text-espresso">
+              <div className="flex justify-between items-center mb-0.5">
+                <label htmlFor="aov-slider" className="text-xs font-bold text-espresso">
                   Average Order Value (AOV)
                 </label>
-                <span className="font-mono font-bold text-xs sm:text-sm text-orange-dark">
+                <span className="font-mono font-bold text-xs text-orange-dark">
                   {formatINR(avgOrderValue)}
                 </span>
               </div>
@@ -139,11 +144,11 @@ export const SavingsCalculatorSection: React.FC = () => {
 
             {/* Average Aggregator Commission % */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="commission-slider" className="text-xs sm:text-sm font-bold text-espresso">
+              <div className="flex justify-between items-center mb-0.5">
+                <label htmlFor="commission-slider" className="text-xs font-bold text-espresso">
                   Average Aggregator Commission %
                 </label>
-                <span className="font-mono font-bold text-xs sm:text-sm text-orange-dark">
+                <span className="font-mono font-bold text-xs text-orange-dark">
                   {commissionPct}%
                 </span>
               </div>
@@ -165,11 +170,11 @@ export const SavingsCalculatorSection: React.FC = () => {
 
             {/* Estimated Stock Wastage % */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="wastage-slider" className="text-xs sm:text-sm font-bold text-espresso">
+              <div className="flex justify-between items-center mb-0.5">
+                <label htmlFor="wastage-slider" className="text-xs font-bold text-espresso">
                   Estimated Food &amp; Recipe Wastage %
                 </label>
-                <span className="font-mono font-bold text-xs sm:text-sm text-orange-dark">
+                <span className="font-mono font-bold text-xs text-orange-dark">
                   {wastagePct}%
                 </span>
               </div>
@@ -191,36 +196,39 @@ export const SavingsCalculatorSection: React.FC = () => {
 
           </div>
 
-          {/* Result Card (5 Cols) */}
-          <div className="lg:col-span-5 p-5 sm:p-6 rounded-card-lg bg-espresso text-white flex flex-col justify-between shadow-elevated border border-walnut">
+          {/* Result Card (5 Cols) with Curved Corners */}
+          <div
+            className="lg:col-span-5 p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-white flex flex-col justify-between shadow-[0_16px_40px_-8px_rgba(43,26,18,0.35)] relative overflow-hidden"
+            style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28' }}
+          >
             <div>
-              <span className="text-[11px] uppercase font-mono font-bold tracking-wider text-orange-400 block mb-1.5">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-orange-400 block mb-1">
                 Estimated Monthly Bottom-Line Gain
               </span>
-              <div className="font-mono font-extrabold text-3xl sm:text-4xl text-white tracking-tight mb-1.5">
+              <div className="font-mono font-extrabold text-2xl sm:text-3xl text-white tracking-tight mb-0.5">
                 {formatINR(totalMonthlySavings)}
-                <span className="text-sm text-sand-100 font-sans font-medium"> / mo</span>
+                <span className="text-xs text-[#F5E9DD]/80 font-sans font-medium"> / mo</span>
               </div>
-              <div className="font-mono text-xs text-sand-100 font-semibold mb-4">
+              <div className="font-mono text-[11px] text-[#C4A895] font-semibold mb-3">
                 ≈ {formatINR(totalAnnualSavings)} estimated per year
               </div>
 
               {/* Savings Breakdown */}
-              <div className="space-y-2 pt-4 border-t border-walnut text-xs">
+              <div className="space-y-1.5 pt-3 border-t border-[#5A3A28] text-[11px]">
                 <div className="flex justify-between items-center">
-                  <span className="text-sand-100 font-medium">Direct ordering commission:</span>
+                  <span className="text-[#E8D5C4] font-medium">Direct ordering commission:</span>
                   <span className="font-mono font-bold text-orange-400">+{formatINR(Math.round(monthlyCommissionSavings))}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sand-100 font-medium">Recipe shrinkage prevented:</span>
-                  <span className="font-mono font-bold text-success">+{formatINR(Math.round(monthlyInventorySavings))}</span>
+                  <span className="text-[#E8D5C4] font-medium">Recipe shrinkage prevented:</span>
+                  <span className="font-mono font-bold text-emerald-400">+{formatINR(Math.round(monthlyInventorySavings))}</span>
                 </div>
               </div>
             </div>
 
             {/* Visible Formula Explanation */}
-            <div className="pt-4 mt-4 border-t border-walnut">
-              <div className="text-[10px] sm:text-[11px] text-sand-100 leading-relaxed font-mono font-medium">
+            <div className="pt-3 mt-3 border-t border-[#5A3A28]">
+              <div className="text-[9.5px] sm:text-[10.5px] text-[#C4A895] leading-relaxed font-mono font-medium">
                 <span className="font-bold text-white block mb-0.5">Formula &amp; Assumptions:</span>
                 • Assumes 25% delivery volume shifted to direct 0% commission channels.
                 • Assumes 45% reduction in raw material shrinkage via auto recipe deduction.
@@ -228,7 +236,7 @@ export const SavingsCalculatorSection: React.FC = () => {
               <div className="pt-3">
                 <a
                   href={SITE_CONTENT.links.demo}
-                  className="btn-shine w-full py-2.5 rounded-xl bg-orange-500 text-espresso font-bold text-xs hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
+                  className="btn-shine w-full py-2.5 rounded-xl sm:rounded-2xl bg-orange-500 text-espresso font-extrabold text-xs sm:text-sm hover:bg-orange-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(249,115,22,0.4)] hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>Claim Your Free Demo &amp; Setup</span>
                   <ArrowRight className="w-3.5 h-3.5" />

@@ -56,7 +56,14 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
 export const api = {
   // Auth
   register: (payload: any) => request<any>('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
-  login: (payload: { username: string; pin: string }) => request<any>('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  login: (payload: { username: string; pin: string }) =>
+    request<any>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: String(payload.username || '').trim(),
+        pin: String(payload.pin || '').trim()
+      })
+    }),
   getMe: () => request<any>('/auth/me'),
 
   // Menu

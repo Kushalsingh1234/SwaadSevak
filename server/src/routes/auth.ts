@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/index.js';
+import { getPrismaClient } from '../db/prismaClient.js';
 import { signManagerToken, requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 
 const router = Router();
@@ -22,16 +23,34 @@ router.post('/register', async (req, res) => {
       pin
     } = req.body;
 
-    if (!restaurantName || !ownerName || !phone || !username || !pin) {
+    const cleanUsername = String(username || '').trim();
+    const cleanPin = String(pin || '').trim();
+
+    if (!restaurantName || !ownerName || !phone || !cleanUsername || !cleanPin) {
       return res.status(400).json({ success: false, message: 'Please fill in all required fields.' });
     }
 
-    if (String(pin).length < 4) {
+    if (cleanPin.length < 4) {
       return res.status(400).json({ success: false, message: 'PIN must be at least 4 digits.' });
     }
 
-    // Check if username already exists
-    const existing = db.getManagerByUsername(username);
+    await db.ensureInitialized();
+
+    // Check if username already exists in memory or in PostgreSQL
+    let existing = db.getManagerByUsername(cleanUsername);
+    if (!existing) {
+      const prisma = getPrismaClient();
+      if (prisma) {
+        try {
+          const dbMgr = await prisma.manager.findFirst({
+            where: { username: { equals: cleanUsername, mode: 'insensitive' } }
+          });
+          if (dbMgr) existing = dbMgr as any;
+        } catch (e) {
+          console.warn('Prisma check existing manager error:', e);
+        }
+      }
+    }
     if (existing) {
       return res.status(409).json({ success: false, message: 'Username is already taken. Please choose another.' });
     }
@@ -40,8 +59,8 @@ router.post('/register', async (req, res) => {
     const baseSlug = restaurantName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
     const slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Create Restaurant
-    const restaurant = db.createRestaurant({
+    // Create Restaurant (persisted to PostgreSQL)
+    const restaurant = await db.createRestaurant({
       slug,
       name: restaurantName,
       ownerName,
@@ -53,11 +72,11 @@ router.post('/register', async (req, res) => {
       restaurantType: restaurantType || 'Restaurant'
     });
 
-    // Create Manager Account
-    const pinHash = await bcrypt.hash(String(pin), 10);
-    const manager = db.createManager({
+    // Create Manager Account (persisted to PostgreSQL)
+    const pinHash = await bcrypt.hash(cleanPin, 10);
+    const manager = await db.createManager({
       restaurantId: restaurant.id,
-      username: username.trim(),
+      username: cleanUsername,
       pinHash,
       role: 'OWNER'
     });
@@ -107,22 +126,107 @@ router.post('/register', async (req, res) => {
 // Manager Login using Username + PIN
 router.post('/login', async (req, res) => {
   try {
-    const { username, pin } = req.body;
-    if (!username || !pin) {
+    const cleanUsername = String(req.body.username || '').trim();
+    const cleanPin = String(req.body.pin || '').trim();
+
+    if (!cleanUsername || !cleanPin) {
       return res.status(400).json({ success: false, message: 'Please enter your username and PIN.' });
     }
 
-    const manager = db.getManagerByUsername(username);
+    await db.ensureInitialized();
+    let manager = db.getManagerByUsername(cleanUsername);
+
+    // Direct Database Fallback if not loaded into memory
+    if (!manager) {
+      const prisma = getPrismaClient();
+      if (prisma) {
+        try {
+          const dbMgr = await prisma.manager.findFirst({
+            where: {
+              username: {
+                equals: cleanUsername,
+                mode: 'insensitive'
+              }
+            },
+            include: {
+              restaurant: true
+            }
+          });
+
+          if (dbMgr) {
+            manager = {
+              id: dbMgr.id,
+              restaurantId: dbMgr.restaurantId,
+              username: dbMgr.username,
+              pinHash: dbMgr.pinHash,
+              role: dbMgr.role as any,
+              createdAt: dbMgr.createdAt
+            };
+            db.managers.set(manager.id, manager);
+
+            if (dbMgr.restaurant) {
+              db.restaurants.set(dbMgr.restaurant.id, {
+                id: dbMgr.restaurant.id,
+                slug: dbMgr.restaurant.slug,
+                name: dbMgr.restaurant.name,
+                ownerName: dbMgr.restaurant.ownerName,
+                phone: dbMgr.restaurant.phone,
+                email: dbMgr.restaurant.email,
+                address: dbMgr.restaurant.address,
+                city: dbMgr.restaurant.city,
+                state: dbMgr.restaurant.state,
+                restaurantType: dbMgr.restaurant.restaurantType,
+                gstNumber: dbMgr.restaurant.gstNumber || undefined,
+                createdAt: dbMgr.restaurant.createdAt,
+                updatedAt: dbMgr.restaurant.updatedAt
+              });
+            }
+          }
+        } catch (dbErr) {
+          console.error('Direct PostgreSQL manager query error:', dbErr);
+        }
+      }
+    }
+
     if (!manager) {
       return res.status(401).json({ success: false, message: 'Invalid username or PIN.' });
     }
 
-    const isValid = await bcrypt.compare(String(pin), manager.pinHash);
+    const isValid = await bcrypt.compare(cleanPin, manager.pinHash);
     if (!isValid) {
       return res.status(401).json({ success: false, message: 'Invalid username or PIN.' });
     }
 
-    const restaurant = db.getRestaurant(manager.restaurantId);
+    let restaurant = db.getRestaurant(manager.restaurantId);
+    if (!restaurant) {
+      const prisma = getPrismaClient();
+      if (prisma) {
+        try {
+          const r = await prisma.restaurant.findUnique({ where: { id: manager.restaurantId } });
+          if (r) {
+            restaurant = {
+              id: r.id,
+              slug: r.slug,
+              name: r.name,
+              ownerName: r.ownerName,
+              phone: r.phone,
+              email: r.email,
+              address: r.address,
+              city: r.city,
+              state: r.state,
+              restaurantType: r.restaurantType,
+              gstNumber: r.gstNumber || undefined,
+              createdAt: r.createdAt,
+              updatedAt: r.updatedAt
+            };
+            db.restaurants.set(restaurant.id, restaurant);
+          }
+        } catch (rErr) {
+          console.error('Direct PostgreSQL restaurant query error:', rErr);
+        }
+      }
+    }
+
     if (!restaurant) {
       return res.status(404).json({ success: false, message: 'Associated restaurant record not found.' });
     }
@@ -158,8 +262,37 @@ router.post('/login', async (req, res) => {
 });
 
 // Verify current session
-router.get('/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  const restaurant = db.getRestaurant(req.manager!.restaurantId);
+router.get('/me', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  let restaurant = db.getRestaurant(req.manager!.restaurantId);
+  if (!restaurant) {
+    const prisma = getPrismaClient();
+    if (prisma) {
+      try {
+        const r = await prisma.restaurant.findUnique({ where: { id: req.manager!.restaurantId } });
+        if (r) {
+          restaurant = {
+            id: r.id,
+            slug: r.slug,
+            name: r.name,
+            ownerName: r.ownerName,
+            phone: r.phone,
+            email: r.email,
+            address: r.address,
+            city: r.city,
+            state: r.state,
+            restaurantType: r.restaurantType,
+            gstNumber: r.gstNumber || undefined,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt
+          };
+          db.restaurants.set(restaurant.id, restaurant);
+        }
+      } catch (err) {
+        console.error('Prisma fetch restaurant error in /me:', err);
+      }
+    }
+  }
+
   if (!restaurant) {
     return res.status(404).json({ success: false, message: 'Restaurant not found' });
   }

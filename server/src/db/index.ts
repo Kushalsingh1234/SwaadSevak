@@ -61,9 +61,16 @@ class DatabaseStore {
   private billCounter = 5000;
   private orderCounter = 100;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    this.init();
+    this.initPromise = this.init();
+  }
+
+  public async ensureInitialized() {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   public async init() {
@@ -83,21 +90,19 @@ class DatabaseStore {
   }
 
   public async syncFromNeon(prisma: any) {
-    const restaurants = await prisma.restaurant.findMany({
-      include: {
-        managers: true,
-        categories: true,
-        items: true,
-        tables: true,
-        orders: {
-          include: {
-            items: true
-          }
-        },
-        bills: true,
-        printerConfig: true
-      }
-    });
+    // 1. Fetch Restaurants, Managers & Printer Config (Essential for authentication)
+    let restaurants: any[] = [];
+    try {
+      restaurants = await prisma.restaurant.findMany({
+        include: {
+          managers: true,
+          printerConfig: true
+        }
+      });
+    } catch (err) {
+      console.error('Error querying restaurants & managers from PostgreSQL:', err);
+      throw err;
+    }
 
     if (restaurants.length === 0) {
       this.seedDemoData();
@@ -141,112 +146,6 @@ class DatabaseStore {
           pinHash: m.pinHash,
           role: m.role as any,
           createdAt: m.createdAt
-        });
-      }
-
-      for (const c of r.categories) {
-        this.categories.set(c.id, {
-          id: c.id,
-          restaurantId: r.id,
-          name: c.name,
-          displayOrder: c.displayOrder
-        });
-      }
-
-      for (const item of r.items) {
-        let tags: string[] = [];
-        try {
-          tags = JSON.parse(item.tags);
-        } catch {
-          tags = [];
-        }
-        this.menuItems.set(item.id, {
-          id: item.id,
-          restaurantId: r.id,
-          categoryId: item.categoryId,
-          name: item.name,
-          description: item.description,
-          price: item.price,
-          portion: item.portion,
-          isVeg: item.isVeg,
-          isAvailable: item.isAvailable,
-          tags,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt
-        });
-      }
-
-      for (const t of r.tables) {
-        this.tables.set(t.id, {
-          id: t.id,
-          restaurantId: r.id,
-          tableNumber: t.tableNumber,
-          qrToken: t.qrToken,
-          status: t.status as any,
-          createdAt: t.createdAt
-        });
-      }
-
-      for (const ord of r.orders) {
-        const orderItems: OrderItem[] = ord.items.map((i: any) => ({
-          id: i.id,
-          orderId: ord.id,
-          menuItemId: i.menuItemId,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          portion: i.portion || undefined,
-          notes: i.notes || undefined
-        }));
-
-        const table = this.tables.get(ord.tableId);
-
-        let additions: any[] = [];
-        try {
-          additions = ord.additions ? JSON.parse(ord.additions) : [];
-        } catch {
-          additions = [];
-        }
-
-        this.orders.set(ord.id, {
-          id: ord.id,
-          restaurantId: r.id,
-          tableId: ord.tableId,
-          tableNumber: table?.tableNumber || 'Table 01',
-          orderNumber: ord.orderNumber,
-          source: ord.source as any,
-          status: ord.status as any,
-          customerNotes: ord.customerNotes || undefined,
-          subtotal: ord.subtotal,
-          tax: ord.tax,
-          total: ord.total,
-          kotGenerated: ord.kotGenerated,
-          kotNumber: ord.kotNumber || undefined,
-          billRequested: ord.billRequested,
-          rejectionReason: ord.rejectionReason || undefined,
-          additions,
-          createdAt: ord.createdAt,
-          updatedAt: ord.updatedAt,
-          items: orderItems
-        });
-      }
-
-      for (const b of r.bills) {
-        const matchingOrder = this.orders.get(b.orderId);
-        this.bills.set(b.id, {
-          id: b.id,
-          restaurantId: r.id,
-          orderId: b.orderId,
-          orderNumber: matchingOrder?.orderNumber || '#101',
-          tableNumber: matchingOrder?.tableNumber || 'Table 01',
-          billNumber: b.billNumber,
-          subtotal: b.subtotal,
-          tax: b.tax,
-          discount: b.discount,
-          grandTotal: b.grandTotal,
-          paymentStatus: b.paymentStatus as any,
-          createdAt: b.createdAt,
-          items: matchingOrder?.items || []
         });
       }
 
@@ -296,6 +195,171 @@ class DatabaseStore {
 
       // Seed CRM Settings and demo customers if none exist for this restaurant
       this.seedCrmDemoData(r.id);
+    }
+
+    // Always ensure demo_manager exists in memory so demo credentials work out-of-the-box
+    if (!this.getManagerByUsername('demo_manager')) {
+      const demoRestId = 'rest_demo_01';
+      if (!this.restaurants.has(demoRestId)) {
+        this.restaurants.set(demoRestId, {
+          id: demoRestId,
+          slug: 'chai-and-chaat',
+          name: 'The Chai & Chaat Co.',
+          ownerName: 'Vikram Sharma',
+          phone: '+91 98765 43210',
+          email: 'vikram@chaichaat.in',
+          address: 'Shop 14, Indiranagar 100ft Road',
+          city: 'Bengaluru',
+          state: 'Karnataka',
+          restaurantType: 'Café & Bistro',
+          gstNumber: '29ABCDE1234F1Z5',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      this.managers.set('mgr_demo_01', {
+        id: 'mgr_demo_01',
+        restaurantId: demoRestId,
+        username: 'demo_manager',
+        pinHash: bcrypt.hashSync('1234', 10),
+        role: 'OWNER',
+        createdAt: new Date()
+      });
+    }
+
+    // 2. Fetch Categories & Menu Items safely
+    try {
+      const categories = await prisma.menuCategory.findMany();
+      for (const c of categories) {
+        this.categories.set(c.id, {
+          id: c.id,
+          restaurantId: c.restaurantId,
+          name: c.name,
+          displayOrder: c.displayOrder
+        });
+      }
+
+      const items = await prisma.menuItem.findMany();
+      for (const item of items) {
+        let tags: string[] = [];
+        try {
+          tags = JSON.parse(item.tags);
+        } catch {
+          tags = [];
+        }
+        this.menuItems.set(item.id, {
+          id: item.id,
+          restaurantId: item.restaurantId,
+          categoryId: item.categoryId,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          portion: item.portion,
+          isVeg: item.isVeg,
+          isAvailable: item.isAvailable,
+          tags,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        });
+      }
+    } catch (catErr) {
+      console.warn('Warning syncing categories/items from Neon:', catErr);
+    }
+
+    // 3. Fetch Tables safely
+    try {
+      const tables = await prisma.table.findMany();
+      for (const t of tables) {
+        this.tables.set(t.id, {
+          id: t.id,
+          restaurantId: t.restaurantId,
+          tableNumber: t.tableNumber,
+          qrToken: t.qrToken,
+          status: t.status as any,
+          createdAt: t.createdAt
+        });
+      }
+    } catch (tabErr) {
+      console.warn('Warning syncing tables from Neon:', tabErr);
+    }
+
+    // 4. Fetch Orders safely
+    try {
+      const orders = await prisma.order.findMany({
+        include: {
+          items: true
+        }
+      });
+      for (const ord of orders) {
+        const orderItems: OrderItem[] = ord.items.map((i: any) => ({
+          id: i.id,
+          orderId: ord.id,
+          menuItemId: i.menuItemId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          portion: i.portion || undefined,
+          notes: i.notes || undefined
+        }));
+
+        const table = this.tables.get(ord.tableId);
+
+        let additions: any[] = [];
+        try {
+          additions = ord.additions ? JSON.parse(ord.additions) : [];
+        } catch {
+          additions = [];
+        }
+
+        this.orders.set(ord.id, {
+          id: ord.id,
+          restaurantId: ord.restaurantId,
+          tableId: ord.tableId,
+          tableNumber: table?.tableNumber || 'Table 01',
+          orderNumber: ord.orderNumber,
+          source: ord.source as any,
+          status: ord.status as any,
+          customerNotes: ord.customerNotes || undefined,
+          subtotal: ord.subtotal,
+          tax: ord.tax,
+          total: ord.total,
+          kotGenerated: ord.kotGenerated,
+          kotNumber: ord.kotNumber || undefined,
+          billRequested: ord.billRequested,
+          rejectionReason: ord.rejectionReason || undefined,
+          additions,
+          createdAt: ord.createdAt,
+          updatedAt: ord.updatedAt,
+          items: orderItems
+        });
+      }
+    } catch (ordErr) {
+      console.warn('Warning syncing orders from Neon:', ordErr);
+    }
+
+    // 5. Fetch Bills safely
+    try {
+      const bills = await prisma.bill.findMany();
+      for (const b of bills) {
+        const matchingOrder = this.orders.get(b.orderId);
+        this.bills.set(b.id, {
+          id: b.id,
+          restaurantId: b.restaurantId,
+          orderId: b.orderId,
+          orderNumber: matchingOrder?.orderNumber || '#101',
+          tableNumber: matchingOrder?.tableNumber || 'Table 01',
+          billNumber: b.billNumber,
+          subtotal: b.subtotal,
+          tax: b.tax,
+          discount: b.discount,
+          grandTotal: b.grandTotal,
+          paymentStatus: b.paymentStatus as any,
+          createdAt: b.createdAt,
+          items: matchingOrder?.items || []
+        });
+      }
+    } catch (billErr) {
+      console.warn('Warning syncing bills from Neon:', billErr);
     }
   }
 
@@ -1273,7 +1337,7 @@ class DatabaseStore {
     return undefined;
   }
 
-  createRestaurant(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Restaurant {
+  async createRestaurant(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Restaurant> {
     const id = `rest_${crypto.randomUUID()}`;
     const restaurant: Restaurant = {
       ...data,
@@ -1285,21 +1349,25 @@ class DatabaseStore {
 
     const prisma = getPrismaClient();
     if (prisma) {
-      prisma.restaurant.create({
-        data: {
-          id: restaurant.id,
-          slug: restaurant.slug,
-          name: restaurant.name,
-          ownerName: restaurant.ownerName,
-          phone: restaurant.phone,
-          email: restaurant.email,
-          address: restaurant.address,
-          city: restaurant.city,
-          state: restaurant.state,
-          restaurantType: restaurant.restaurantType,
-          gstNumber: restaurant.gstNumber
-        }
-      }).catch(err => console.error('Prisma createRestaurant error:', err));
+      try {
+        await prisma.restaurant.create({
+          data: {
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            ownerName: restaurant.ownerName,
+            phone: restaurant.phone,
+            email: restaurant.email,
+            address: restaurant.address,
+            city: restaurant.city,
+            state: restaurant.state,
+            restaurantType: restaurant.restaurantType,
+            gstNumber: restaurant.gstNumber
+          }
+        });
+      } catch (err) {
+        console.error('Prisma createRestaurant error:', err);
+      }
     }
 
     return restaurant;
@@ -1314,7 +1382,7 @@ class DatabaseStore {
     return undefined;
   }
 
-  createManager(data: Omit<Manager, 'id' | 'createdAt'>): Manager {
+  async createManager(data: Omit<Manager, 'id' | 'createdAt'>): Promise<Manager> {
     const id = `mgr_${crypto.randomUUID()}`;
     const manager: Manager = {
       ...data,
@@ -1325,15 +1393,19 @@ class DatabaseStore {
 
     const prisma = getPrismaClient();
     if (prisma) {
-      prisma.manager.create({
-        data: {
-          id: manager.id,
-          restaurantId: manager.restaurantId,
-          username: manager.username,
-          pinHash: manager.pinHash,
-          role: manager.role
-        }
-      }).catch(err => console.error('Prisma createManager error:', err));
+      try {
+        await prisma.manager.create({
+          data: {
+            id: manager.id,
+            restaurantId: manager.restaurantId,
+            username: manager.username,
+            pinHash: manager.pinHash,
+            role: manager.role
+          }
+        });
+      } catch (err) {
+        console.error('Prisma createManager error:', err);
+      }
     }
 
     return manager;

@@ -13,10 +13,16 @@ import {
   UtensilsCrossed,
   ChefHat,
   Smartphone,
+  LogIn,
+  Globe,
 } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
-export const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+  onOpenLogin?: () => void;
+}
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
   return (
     <section
       className="relative min-h-screen xl:h-screen flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-20 sm:pt-24 pb-4 sm:pb-5 text-left"
@@ -74,30 +80,26 @@ export const HeroSection: React.FC = () => {
               Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy &amp; Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Button: Platform Login */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
               <a
-                href={SITE_CONTENT.links.websiteInquiry}
-                data-event="hero_get_website_click"
-                onClick={() => trackEvent('hero_get_website_click')}
-                className="btn-shine inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-extrabold text-sm sm:text-base bg-orange-500 text-espresso shadow-glow-orange hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                href="#login"
+                data-event="hero_platform_login_click"
+                onClick={(e) => {
+                  e.preventDefault();
+                  trackEvent('hero_platform_login_click');
+                  if (onOpenLogin) {
+                    onOpenLogin();
+                  } else {
+                    window.location.hash = 'login';
+                  }
+                }}
+                className="btn-shine inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 py-3.5 sm:py-4 rounded-xl font-extrabold text-sm sm:text-base bg-gradient-to-r from-orange-500 to-amber-500 text-espresso shadow-glow-orange hover:from-orange-600 hover:to-amber-600 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                 style={{ color: '#1A0F0A' }}
               >
-                <span>Get Your Website Now</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-
-              <a
-                href={SITE_CONTENT.links.demo}
-                data-event="hero_see_how_it_works_click"
-                onClick={() => trackEvent('hero_see_how_it_works_click')}
-                className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base transition-all border border-walnut hover:border-orange-500 hover:bg-cocoa hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                style={{ backgroundColor: '#2B1A12', color: '#FFFFFF' }}
-              >
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current ml-0.5" />
-                </div>
-                <span>See How It Works</span>
+                <LogIn className="w-4 h-4 sm:w-5 sm:h-5 text-espresso shrink-0" />
+                <span>Platform Login</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-espresso" />
               </a>
             </div>
 

@@ -1,257 +1,218 @@
-import React, { useState } from 'react';
-import { useTranslation } from '../../i18n';
-import { Badge } from '../ui/Badge';
+import React from 'react';
 import {
-  Printer,
-  Boxes,
-  Layers,
-  BarChart3,
-  HeartHandshake,
   QrCode,
-  Tv,
-  WifiOff,
-  CheckCircle2,
-  Bell,
-  Sparkles,
-  ArrowRight,
+  Flame,
+  Layers,
+  Receipt,
+  Printer,
+  Store,
+  TableProperties,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
-import { formatINR } from '../../lib/utils';
 
 export const FeaturesBentoSection: React.FC = () => {
-  const { t } = useTranslation();
-
-  // Interactive states for micro-demos
-  const [offlineState, setOfflineState] = useState<'offline' | 'online'>('offline');
-  const [stockItemCount, setStockItemCount] = useState(12);
-  const [kdsStatus, setKdsStatus] = useState<'cooking' | 'ready'>('cooking');
-
   return (
-    <section id="features" className="py-16 sm:py-24 font-sans bg-white dark:bg-ink-950">
-      <div className="max-w-container mx-auto px-4 sm:px-6">
+    <section
+      id="features"
+      className="pt-3 sm:pt-4 pb-12 sm:pb-16 font-sans relative overflow-hidden rounded-b-[2.5rem] sm:rounded-b-[3.5rem] md:rounded-b-[4rem] shadow-2xl"
+      style={{ backgroundColor: '#2B1A12' }}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="ember" className="mb-3">
-            {t.features.badge}
-          </Badge>
-          <h2 className="h2-fluid font-bold text-ink-950 dark:text-ink-50 mb-3">
-            {t.features.title}
+        {/* Section Header */}
+        <div className="text-center max-w-xl mx-auto mb-6 sm:mb-8">
+          <div
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-[13px] font-bold shadow-soft mb-2.5"
+            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28', color: '#FAF4ED' }}
+          >
+            <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+            <span>Everything Included</span>
+          </div>
+          <h2 className="h2-fluid font-extrabold tracking-tight mb-1.5 text-white">
+            Engineered for High-Speed Food Operations
           </h2>
-          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
-            {t.features.subtitle}
+          <p className="text-[11px] sm:text-xs leading-relaxed font-medium text-[#F5E9DD]">
+            Every feature you need to take orders, fire KOTs, print bills, and track revenue seamlessly.
           </p>
         </div>
 
-        {/* Bento Grid (8 Tiles) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+        {/* Bento Grid (3-column layout matching design) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 text-left">
           
-          {/* Tile 1: 3-Click Billing & KOT (Spans 2 cols on lg) */}
-          <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
+          {/* Card 1: QR Table Ordering for Guests (Hero card, spans 2 cols on md/lg) */}
+          <div
+            className="md:col-span-2 text-white p-5 sm:p-6 rounded-2xl shadow-xl flex flex-col justify-between relative overflow-hidden group"
+            style={{ backgroundColor: '#3D2519', border: '1px solid #5A3A28' }}
+          >
             <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="p-3 rounded-2xl bg-ember-50 dark:bg-ember-950/80 text-ember-600">
-                  <Printer className="w-5 h-5" />
-                </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-md bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200">
-                  58mm / 80mm ESC-POS
-                </span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 text-[#FF9E58] border border-orange-500/30 mb-2.5">
+                <QrCode className="w-3.5 h-3.5" />
+                <span>No App Download</span>
               </div>
-              <h3 className="font-bold text-lg sm:text-xl text-ink-950 dark:text-ink-50 mb-2">
-                {t.features.billingTitle}
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white mb-1.5">
+                QR Table Ordering for Guests
               </h3>
-              <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-6">
-                {t.features.billingDesc}
+              <p className="text-[11px] sm:text-xs text-[#F5E9DD] leading-relaxed max-w-xl">
+                Guests scan the standee QR from their phone camera, browse dishes with veg/non-veg tags, customize portions, and order directly. No waving for busy waitstaff.
               </p>
             </div>
 
-            {/* Micro Live Demo */}
-            <div className="p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-mono space-y-1.5 shadow-xs">
-              <div className="flex items-center justify-between text-[11px] text-ink-500 border-b border-ink-100 dark:border-ink-800 pb-1">
-                <span>TOUCH SEQUENCE: #01 → #03 → #FIRE</span>
-                <span className="text-success-600 font-bold">KOT PRINTED</span>
-              </div>
-              <div className="flex items-center justify-between font-bold text-ink-900 dark:text-ink-100">
-                <span>Table 07 • 2x Masala Dosa + 1x Filter Coffee</span>
-                <span className="text-ember-600 dark:text-ember-400">₹290</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tile 2: Recipe-Level Inventory */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-success-50 dark:bg-success-950/80 text-success-600 mb-4">
-                <Boxes className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.inventoryTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.inventoryDesc}
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono space-y-1">
-              <div className="flex justify-between">
-                <span>1x Butter Chicken:</span>
-                <span className="font-bold text-danger-600">-220g Chicken</span>
-              </div>
-              <div className="flex justify-between text-ink-500">
-                <span>Paneer Stock Level:</span>
-                <span className="font-bold text-success-600">{stockItemCount} kg Left</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tile 3: All Aggregators Sync */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 mb-4">
-                <Layers className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.aggregatorsTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.aggregatorsDesc}
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono">
-              <span className="flex items-center gap-1.5 font-bold">
-                <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
-                Zomato + Swiggy
-              </span>
-              <span className="text-indigo-600 dark:text-indigo-400 font-bold">Auto Sync</span>
-            </div>
-          </div>
-
-          {/* Tile 4: 80+ Reports */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 mb-4">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.reportsTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.reportsDesc}
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono flex items-center justify-between">
-              <span>GSTR-1 Tax Ready</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">Export CSV</span>
-            </div>
-          </div>
-
-          {/* Tile 5: Customer Loyalty & CRM */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-success-50 dark:bg-success-950/80 text-success-600 mb-4">
-                <HeartHandshake className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.crmTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.crmDesc}
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono flex items-center justify-between">
-              <span>WhatsApp Tax Invoices</span>
-              <span className="font-bold text-success-600">Automated</span>
-            </div>
-          </div>
-
-          {/* Tile 6: Table QR Scan & Order */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-ember-50 dark:bg-ember-950/80 text-ember-600 mb-4">
-                <QrCode className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.qrTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.qrDesc}
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono flex items-center justify-between">
-              <span>No App Download</span>
-              <span className="font-bold text-ember-600 dark:text-ember-400">Web Menu</span>
-            </div>
-          </div>
-
-          {/* Tile 7: Kitchen Display System (KDS) */}
-          <div className="p-6 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
-            <div>
-              <div className="p-3 w-fit rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 mb-4">
-                <Tv className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base text-ink-950 dark:text-ink-50 mb-1.5">
-                {t.features.kdsTitle}
-              </h3>
-              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed mb-4">
-                {t.features.kdsDesc}
-              </p>
-            </div>
-
+            {/* Graphic snippet */}
             <div
-              onClick={() => setKdsStatus(kdsStatus === 'cooking' ? 'ready' : 'cooking')}
-              className="p-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-[11px] font-mono flex items-center justify-between cursor-pointer select-none"
+              className="mt-5 rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-3"
+              style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28' }}
             >
-              <span>Chef Timer: 08:34m</span>
-              <span className={`font-bold uppercase ${kdsStatus === 'ready' ? 'text-success-600' : 'text-amber-600'}`}>
-                {kdsStatus === 'ready' ? '✓ Served' : '🔥 Cooking'}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
+                  <QrCode className="w-8 h-8 text-slate-900" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">Table 01 Standee QR</p>
+                  <p className="text-[10px] text-[#F5E9DD]/80">Instant browser menu</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-[#FF9E58] flex items-center gap-1">
+                Scan &amp; Order <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
 
-          {/* Tile 8: 100% Offline Resilience (Spans 2 cols on lg) */}
-          <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl bg-ink-50/50 dark:bg-ink-900/40 border border-ink-200 dark:border-ink-800 shadow-soft flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all">
+          {/* Card 2: Live Kitchen Board */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
             <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="p-3 rounded-2xl bg-success-50 dark:bg-success-950/80 text-success-600">
-                  <WifiOff className="w-5 h-5" />
-                </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-md bg-success-50 dark:bg-success-950 text-success-700 dark:text-success-300">
-                  Local Sync Engine
-                </span>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mb-2.5">
+                <Flame className="w-4 h-4" />
               </div>
-              <h3 className="font-bold text-lg sm:text-xl text-ink-950 dark:text-ink-50 mb-2">
-                {t.features.offlineTitle}
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Live Kitchen Board
               </h3>
-              <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-6">
-                {t.features.offlineDesc}
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Orders appear instantly with an audio sound alert. Move tickets from Incoming &rarr; Cooking &rarr; Ready with 1 tap.
               </p>
             </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-amber-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span>Audio ting on every new ticket</span>
+            </div>
+          </div>
 
-            {/* Interactive Toggle */}
-            <div className="p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`w-2.5 h-2.5 rounded-full ${
-                    offlineState === 'offline' ? 'bg-amber-500' : 'bg-success-500'
-                  }`}
-                />
-                <span className="font-mono font-semibold text-ink-900 dark:text-ink-100">
-                  Status: {offlineState === 'offline' ? 'Broadband Offline (Local Cache Active)' : 'Broadband Connected'}
-                </span>
+          {/* Card 3: One Screen, All Channels */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center mb-2.5">
+                <Layers className="w-4 h-4" />
               </div>
-              <button
-                onClick={() => setOfflineState(offlineState === 'offline' ? 'online' : 'offline')}
-                className="px-3 py-1.5 rounded-lg bg-ink-950 text-white dark:bg-ink-800 text-xs font-semibold hover:bg-ink-900 cursor-pointer"
-              >
-                Simulate {offlineState === 'offline' ? 'Online' : 'Internet Drop'}
-              </button>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                One Screen, All Channels
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Dine-in, Swiggy and Zomato orders in a unified dispatch view. No juggling separate tablets.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-blue-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+              <span>Centralised kitchen queue</span>
+            </div>
+          </div>
+
+          {/* Card 4: Smart Billing & 5% GST */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mb-2.5">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Smart Billing &amp; 5% GST
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Auto-calculated CGST/SGST, Cash and UPI settlement, and 1-click printable digital receipts.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-emerald-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>GST-ready receipts with GSTIN</span>
+            </div>
+          </div>
+
+          {/* Card 5: Thermal KOT Printer */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center mb-2.5">
+                <Printer className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Thermal KOT Printer
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Compatible with 80mm and 58mm thermal printers. Print formatted kitchen tickets with zero driver hassles.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-purple-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+              <span>80mm POS &amp; 58mm compact slips</span>
+            </div>
+          </div>
+
+          {/* Card 6: Instant Menu & 86 Toggles */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 flex items-center justify-center mb-2.5">
+                <Store className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Instant Menu &amp; 86 Toggles
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Ran out of paneer? Toggle an item to "86'd" in one tap, instantly disabled across every live table QR.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-orange-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+              <span>Real-time stock sync</span>
+            </div>
+          </div>
+
+          {/* Card 7: Tables & Standee QRs */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mb-2.5">
+                <TableProperties className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Tables &amp; Standee QRs
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Add dining tables, generate custom standee QRs with your restaurant name, and download in bulk as a ZIP.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-amber-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+              <span>Printable high-res PNGs</span>
+            </div>
+          </div>
+
+          {/* Card 8: Owner Sales Dashboard */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-md flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-slate-900 min-h-[190px]">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mb-2.5">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                Owner Sales Dashboard
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Monitor today's gross revenue, active tables, top selling dishes, and shift activity directly from your smartphone.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-stone-100 text-[10.5px] font-bold text-emerald-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>Accessible on any phone</span>
             </div>
           </div>
 
         </div>
+
       </div>
     </section>
   );

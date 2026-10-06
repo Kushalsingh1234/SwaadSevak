@@ -14,12 +14,12 @@ const PLACEHOLDER_LOGOS = [
 export const TrustStripSection: React.FC = () => {
   return (
     <section
-      className="py-6 sm:py-7 font-sans overflow-hidden relative"
+      className="py-3.5 sm:py-4 font-sans overflow-hidden relative"
       style={{ backgroundColor: '#2B1A12' }}
     >
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 mb-4 text-center relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-2 text-center relative z-10">
         {/* Uppercase Heading Label */}
-        <p className="text-[11px] sm:text-xs uppercase tracking-widest font-extrabold text-sand-100 flex items-center justify-center gap-2">
+        <p className="text-[9.5px] sm:text-[10.5px] uppercase tracking-widest font-extrabold text-sand-100 flex items-center justify-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
           <span>TRUSTED BY 500+ RESTAURANTS &amp; OUTLETS ACROSS INDIA</span>
         </p>
@@ -29,32 +29,32 @@ export const TrustStripSection: React.FC = () => {
       <div className="relative w-full overflow-hidden flex items-center">
         {/* Left & Right gradient fade masks matching #2B1A12 */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-20 sm:w-28 z-10 pointer-events-none"
+          className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 z-10 pointer-events-none"
           style={{ background: 'linear-gradient(to right, #2B1A12 10%, transparent 100%)' }}
         />
         <div
-          className="absolute right-0 top-0 bottom-0 w-20 sm:w-28 z-10 pointer-events-none"
+          className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 z-10 pointer-events-none"
           style={{ background: 'linear-gradient(to left, #2B1A12 10%, transparent 100%)' }}
         />
 
-        <div className="animate-marquee-left gap-3.5 sm:gap-4.5 items-center py-1.5">
+        <div className="animate-marquee-left gap-2.5 sm:gap-3.5 items-center py-0.5">
           {[...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS, ...PLACEHOLDER_LOGOS].map((item, idx) => (
             <div
               key={`${item.id}-${idx}`}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl shadow-card shrink-0 hover:border-orange-500 hover:scale-[1.02] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg shadow-card shrink-0 hover:border-orange-500 hover:scale-[1.02] transition-all cursor-pointer"
               style={{
                 backgroundColor: '#382015',
                 border: '1px solid #5A3A28',
               }}
             >
-              <div className="w-7.5 h-7.5 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center font-black text-xs shrink-0 border border-orange-500/20 shadow-inner">
+              <div className="w-6 h-6 rounded bg-orange-500/15 text-orange-400 flex items-center justify-center font-black text-xs shrink-0 border border-orange-500/20 shadow-inner">
                 {item.name[0]}
               </div>
               <div className="text-left">
-                <span className="font-extrabold text-xs text-white block whitespace-nowrap">
+                <span className="font-extrabold text-[10.5px] text-white block whitespace-nowrap">
                   {item.name}
                 </span>
-                <span className="text-[10px] text-sand-100 font-medium block whitespace-nowrap mt-0.5">
+                <span className="text-[8.5px] text-sand-100 font-medium block whitespace-nowrap">
                   {item.type} • <span className="text-orange-400/90">{item.city}</span>
                 </span>
               </div>

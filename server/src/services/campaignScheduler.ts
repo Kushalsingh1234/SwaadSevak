@@ -87,6 +87,7 @@ export class CampaignScheduler {
     // Default interval is 7 days if not specified
     const intervalDays = (campaign as any).intervalDays || 7;
     const cooldownDays = (campaign as any).cooldownDays || 10;
+    const isImmediate = (campaign as any).scheduleType === 'IMMEDIATE' || (campaign as any).status === 'APPROVED' || (campaign as any).status === 'RUNNING';
 
     // Filter target segment based on interval days
     const eligibleCustomers: Customer[] = [];
@@ -99,41 +100,70 @@ export class CampaignScheduler {
 
       let matchesSegment = false;
 
-      switch (campaign.audienceSegment) {
-        case 'AT_RISK':
-        case 'INACTIVE':
-          // Customers who haven't returned in intervalDays
-          matchesSegment = daysSinceVisit >= intervalDays;
-          break;
+      if (isImmediate) {
+        // Immediate campaigns target all members of the cohort immediately without interval delays
+        switch (campaign.audienceSegment) {
+          case 'AT_RISK':
+          case 'INACTIVE':
+            matchesSegment = cust.status === 'AT_RISK' || cust.status === 'INACTIVE' || daysSinceVisit >= 14;
+            break;
 
-        case 'NEW':
-          // First-time diners after 3 days
-          matchesSegment = cust.totalOrders === 1 && daysSinceVisit >= Math.min(3, intervalDays);
-          break;
+          case 'NEW':
+            matchesSegment = cust.totalOrders <= 1 || cust.status === 'NEW';
+            break;
 
-        case 'VIP':
-          // VIP guests after intervalDays
-          matchesSegment = (cust.status === 'VIP' || cust.totalSpent >= 5000) && daysSinceVisit >= intervalDays;
-          break;
+          case 'VIP':
+            matchesSegment = cust.status === 'VIP' || cust.totalSpent >= 5000;
+            break;
 
-        case 'REGULAR':
-          matchesSegment = cust.status === 'REGULAR' && daysSinceVisit >= intervalDays;
-          break;
+          case 'REGULAR':
+            matchesSegment = cust.status === 'REGULAR' || cust.totalOrders >= 2;
+            break;
 
-        default:
-          matchesSegment = daysSinceVisit >= intervalDays;
-          break;
+          case 'ALL':
+          default:
+            matchesSegment = true;
+            break;
+        }
+      } else {
+        // Scheduled recurring automation rules
+        switch (campaign.audienceSegment) {
+          case 'AT_RISK':
+          case 'INACTIVE':
+            matchesSegment = daysSinceVisit >= intervalDays || cust.status === 'AT_RISK';
+            break;
+
+          case 'NEW':
+            matchesSegment = (cust.totalOrders === 1 || cust.status === 'NEW') && daysSinceVisit >= Math.min(3, intervalDays);
+            break;
+
+          case 'VIP':
+            matchesSegment = (cust.status === 'VIP' || cust.totalSpent >= 5000) && daysSinceVisit >= intervalDays;
+            break;
+
+          case 'REGULAR':
+            matchesSegment = cust.status === 'REGULAR' && daysSinceVisit >= intervalDays;
+            break;
+
+          default:
+            matchesSegment = daysSinceVisit >= intervalDays;
+            break;
+        }
       }
 
       if (matchesSegment) {
-        // Enforce frequency cooldown (don't spam same customer within cooldown window)
-        const lastMsgTime = (cust as any).lastCampaignMessageAt
-          ? new Date((cust as any).lastCampaignMessageAt).getTime()
-          : 0;
-        const daysSinceLastMsg = Math.floor((now.getTime() - lastMsgTime) / (1000 * 60 * 60 * 24));
-
-        if (daysSinceLastMsg >= cooldownDays || lastMsgTime === 0) {
+        if (isImmediate) {
           eligibleCustomers.push(cust);
+        } else {
+          // Enforce frequency cooldown (don't spam same customer within cooldown window)
+          const lastMsgTime = (cust as any).lastCampaignMessageAt
+            ? new Date((cust as any).lastCampaignMessageAt).getTime()
+            : 0;
+          const daysSinceLastMsg = Math.floor((now.getTime() - lastMsgTime) / (1000 * 60 * 60 * 24));
+
+          if (daysSinceLastMsg >= cooldownDays || lastMsgTime === 0) {
+            eligibleCustomers.push(cust);
+          }
         }
       }
     }

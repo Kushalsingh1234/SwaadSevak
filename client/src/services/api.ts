@@ -220,6 +220,21 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ coins, reason })
     }),
+  sendDirectCustomerMessage: (
+    id: string,
+    payload: { message: string; coins?: number; reason?: string }
+  ) =>
+    request<{
+      success: boolean;
+      message: string;
+      waSent: boolean;
+      waError?: string;
+      customer: import('../types').Customer;
+      transaction?: import('../types').CoinTransaction;
+    }>(`/crm/customers/${id}/direct-message`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
   getCoinLedger: (customerId?: string) =>
     request<{ success: boolean; transactions: import('../types').CoinTransaction[] }>(
       `/crm/ledger${customerId ? `?customerId=${encodeURIComponent(customerId)}` : ''}`

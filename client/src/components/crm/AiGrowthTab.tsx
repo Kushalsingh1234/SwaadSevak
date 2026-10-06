@@ -16,7 +16,8 @@ import {
   Search,
   Send,
   Zap,
-  Tag
+  Tag,
+  Info
 } from 'lucide-react';
 import { AiRecommendation, AiCrmDashboardData } from '../../types';
 
@@ -134,6 +135,44 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
         </div>
       </div>
 
+      {/* Insufficient Data Alert (< 10 customers) */}
+      {dashboardData && dashboardData.hasEnoughData === false && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-5 shadow-xs flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <Info className="w-5 h-5 text-amber-700" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-amber-950">
+                Gathering Customer Intelligence ({dashboardData.customerCount ?? 0}/10 customers registered)
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200/60 text-amber-900">
+                Need ≥ 10 for AI Analysis
+              </span>
+            </div>
+            <p className="text-xs text-amber-800/90 leading-relaxed">
+              Not enough data for AI to perform predictive cohort analysis yet. As customers order through QR code dine-in or POS billing, SwaadSevak will automatically track return intervals, detect churn risks, and provide tailored win-back campaigns.
+            </p>
+            <div className="pt-1 flex items-center gap-3 text-xs">
+              <button
+                onClick={() => onNavigateTab('customers')}
+                className="font-bold text-amber-900 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>View Customer Directory</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-amber-400">•</span>
+              <button
+                onClick={() => onOpenCampaignBuilder()}
+                className="font-bold text-amber-900 hover:underline cursor-pointer"
+              >
+                Create Custom Campaign
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. FOUR PRIMARY METRIC CARDS (Phase 1) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Customers to Win Back */}
@@ -148,10 +187,10 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
               </span>
             </div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {dashboardData?.winBackCard.customerCount || 43} <span className="text-sm font-semibold text-slate-500">customers</span>
+              {dashboardData?.winBackCard.customerCount ?? 0} <span className="text-sm font-semibold text-slate-500">customers</span>
             </h3>
             <p className="text-xs text-slate-600 mt-1">
-              Potential revenue: <strong className="text-emerald-700 font-bold">₹{(dashboardData?.winBackCard.potentialRevenue || 31200).toLocaleString('en-IN')}</strong>
+              Potential revenue: <strong className="text-emerald-700 font-bold">₹{(dashboardData?.winBackCard.potentialRevenue ?? 0).toLocaleString('en-IN')}</strong>
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">30+ days without order</p>
           </div>
@@ -185,12 +224,12 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
               </span>
             </div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {dashboardData?.vipCard.customerCount || 27} <span className="text-sm font-semibold text-slate-500">customers</span>
+              {dashboardData?.vipCard.customerCount ?? 0} <span className="text-sm font-semibold text-slate-500">customers</span>
             </h3>
             <p className="text-xs text-slate-600 mt-1">
-              Lifetime spend: <strong className="text-slate-900 font-bold">₹{(dashboardData?.vipCard.lifetimeSpend || 48500).toLocaleString('en-IN')}</strong>
+              Lifetime spend: <strong className="text-slate-900 font-bold">₹{(dashboardData?.vipCard.lifetimeSpend ?? 0).toLocaleString('en-IN')}</strong>
             </p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Generate 31% of total revenue</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Generate top share of revenue</p>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
@@ -222,7 +261,7 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
               </span>
             </div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {dashboardData?.opportunitiesCard.count || 8} <span className="text-sm font-semibold text-slate-500">opportunities</span>
+              {dashboardData?.opportunitiesCard.count ?? 0} <span className="text-sm font-semibold text-slate-500">opportunities</span>
             </h3>
             <p className="text-xs text-slate-600 mt-1">
               Derived from <strong className="text-slate-800 font-bold">actual order & menu history</strong>
@@ -262,10 +301,10 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
               </span>
             </div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {dashboardData?.automationsCard.activeCount || 5} <span className="text-sm font-semibold text-slate-500">running</span>
+              {dashboardData?.automationsCard.activeCount ?? 0} <span className="text-sm font-semibold text-slate-500">running</span>
             </h3>
             <p className="text-xs text-slate-600 mt-1">
-              Attributed revenue: <strong className="text-emerald-700 font-bold">₹{(dashboardData?.automationsCard.totalAttributedRevenue || 31400).toLocaleString('en-IN')}</strong>
+              Attributed revenue: <strong className="text-emerald-700 font-bold">₹{(dashboardData?.automationsCard.totalAttributedRevenue ?? 0).toLocaleString('en-IN')}</strong>
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">Governed by frequency limits</p>
           </div>
@@ -324,10 +363,36 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
         {/* Recommendations Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {visibleRecs.length === 0 ? (
-            <div className="col-span-2 p-12 bg-white rounded-2xl border border-slate-200 text-center text-slate-400">
-              <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-60" />
-              <p className="text-sm font-semibold text-slate-700">All opportunities in this category reviewed!</p>
-              <p className="text-xs text-slate-500 mt-1">Check other categories or create a custom campaign above.</p>
+            <div className="col-span-2 p-10 bg-white rounded-2xl border border-slate-200 text-center">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="w-6 h-6 text-slate-400" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800">
+                {dashboardData?.hasEnoughData === false
+                  ? 'AI recommendations will activate after 10 customers'
+                  : 'All opportunities in this category reviewed!'}
+              </h4>
+              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                {dashboardData?.hasEnoughData === false
+                  ? `You currently have ${dashboardData?.customerCount ?? 0} customer(s). Once your restaurant reaches 10+ customers, predictive churn-prevention and high-impact AI recommendations will activate automatically. You can still message individual customers or launch custom campaigns anytime!`
+                  : 'Check other categories or create a custom campaign above.'}
+              </p>
+              {dashboardData?.hasEnoughData === false && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => onNavigateTab('customers')}
+                    className="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
+                  >
+                    Open Customer Directory
+                  </button>
+                  <button
+                    onClick={() => onOpenCampaignBuilder()}
+                    className="px-3.5 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-500 transition-all cursor-pointer"
+                  >
+                    + Custom Campaign
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             visibleRecs.map((rec) => (

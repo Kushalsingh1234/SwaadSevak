@@ -149,52 +149,55 @@ class DatabaseStore {
         });
       }
 
-      // Seed initial Petpooja POS Report for seamless demo and combined data experience
-      const now = new Date();
-      const sepStart = new Date(now);
-      sepStart.setDate(sepStart.getDate() - 35);
-      const sepEnd = new Date(now);
-      sepEnd.setDate(sepEnd.getDate() - 5);
+      // Only seed demo POS report and demo customers for demo restaurant
+      if (r.id === 'rest_demo_01') {
+        const now = new Date();
+        const sepStart = new Date(now);
+        sepStart.setDate(sepStart.getDate() - 35);
+        const sepEnd = new Date(now);
+        sepEnd.setDate(sepEnd.getDate() - 5);
 
-      const repId = `pos_rep_${r.id}`;
-      this.posReports.set(repId, {
-        id: repId,
-        restaurantId: r.id,
-        fileName: 'Petpooja_Sales_Report_September.xlsx',
-        posProvider: 'Petpooja',
-        fileType: 'xlsx',
-        uploadedAt: new Date(now.getTime() - 4 * 86400000),
-        periodStart: sepStart,
-        periodEnd: sepEnd,
-        periodLabel: '1 Sep – 30 Sep 2026',
-        totalOrders: 1248,
-        totalSales: 284500,
-        totalProducts: 42,
-        items: [
-          { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
-          { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
-          { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
-          { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
-          { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
-          { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
-          { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
-          { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
-        ],
-        hourlyDistribution: {
-          12: 24000, 13: 38000, 14: 29000,
-          15: 12000, 16: 14000, 17: 15500,
-          18: 26000, 19: 42000, 20: 51000, 21: 33000
-        },
-        dowDistribution: {
-          0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
-        }
-      });
+        const repId = `pos_rep_${r.id}`;
+        this.posReports.set(repId, {
+          id: repId,
+          restaurantId: r.id,
+          fileName: 'Petpooja_Sales_Report_September.xlsx',
+          posProvider: 'Petpooja',
+          fileType: 'xlsx',
+          uploadedAt: new Date(now.getTime() - 4 * 86400000),
+          periodStart: sepStart,
+          periodEnd: sepEnd,
+          periodLabel: '1 Sep – 30 Sep 2026',
+          totalOrders: 1248,
+          totalSales: 284500,
+          totalProducts: 42,
+          items: [
+            { name: 'Cold Coffee', category: 'Beverages', quantity: 412, totalSales: 53148, unitPrice: 129 },
+            { name: 'Paneer Sandwich', category: 'Snacks', quantity: 310, totalSales: 39990, unitPrice: 129 },
+            { name: 'Chocolate Brownie', category: 'Desserts', quantity: 245, totalSales: 36505, unitPrice: 149 },
+            { name: 'Kulhad Masala Chai', category: 'Beverages', quantity: 560, totalSales: 38640, unitPrice: 69 },
+            { name: 'Amritsari Paneer Tikka', category: 'Starters', quantity: 180, totalSales: 50220, unitPrice: 279 },
+            { name: 'Butter Croissant', category: 'Bakery', quantity: 140, totalSales: 16660, unitPrice: 119 },
+            { name: 'Old Delhi Butter Chicken', category: 'Mains', quantity: 95, totalSales: 36955, unitPrice: 389 },
+            { name: 'Dal Makhani Slow Cooked', category: 'Mains', quantity: 120, totalSales: 35880, unitPrice: 299 }
+          ],
+          hourlyDistribution: {
+            12: 24000, 13: 38000, 14: 29000,
+            15: 12000, 16: 14000, 17: 15500,
+            18: 26000, 19: 42000, 20: 51000, 21: 33000
+          },
+          dowDistribution: {
+            0: 48000, 1: 31000, 2: 26000, 3: 32000, 4: 37000, 5: 56000, 6: 54500
+          }
+        });
 
-      this.businessTypes.set(r.id, 'Café');
-      this.growthDataModes.set(r.id, { mode: 'swaad', reportId: repId });
-
-      // Seed CRM Settings and demo customers if none exist for this restaurant
-      this.seedCrmDemoData(r.id);
+        this.businessTypes.set(r.id, 'Café');
+        this.growthDataModes.set(r.id, { mode: 'swaad', reportId: repId });
+        this.seedCrmDemoData(r.id);
+      } else {
+        // Real restaurant: ensure default CRM settings exist, no fake data
+        this.ensureCrmSettings(r.id);
+      }
     }
 
     // Always ensure demo_manager exists in memory so demo credentials work out-of-the-box
@@ -360,6 +363,102 @@ class DatabaseStore {
       }
     } catch (billErr) {
       console.warn('Warning syncing bills from Neon:', billErr);
+    }
+
+    // 6. Fetch Customers safely from database
+    try {
+      const customers = await prisma.customer.findMany();
+      for (const cust of customers) {
+        this.customers.set(cust.id, {
+          id: cust.id,
+          restaurantId: cust.restaurantId,
+          name: cust.name,
+          phone: cust.phone,
+          coinBalance: cust.coinBalance,
+          reservedCoins: cust.reservedCoins,
+          totalCoinsEarned: cust.totalCoinsEarned,
+          totalCoinsRedeemed: cust.totalCoinsRedeemed,
+          totalOrders: cust.totalOrders,
+          totalSpent: cust.totalSpent,
+          avgOrderValue: cust.avgOrderValue,
+          firstVisit: cust.firstVisit,
+          lastVisit: cust.lastVisit,
+          status: cust.status as CustomerStatus,
+          createdAt: cust.createdAt,
+          updatedAt: cust.updatedAt
+        });
+      }
+    } catch (custErr) {
+      console.warn('Warning syncing customers from Neon:', custErr);
+    }
+
+    // 7. Fetch CRM Settings safely from database
+    try {
+      const crmSets = await prisma.crmSettings.findMany();
+      for (const s of crmSets) {
+        this.crmSettings.set(s.restaurantId, {
+          id: s.id,
+          restaurantId: s.restaurantId,
+          enabled: s.enabled,
+          coinsPerAmount: s.coinsPerAmount,
+          coinsEarnedPerUnit: s.coinsEarnedPerUnit,
+          signupBonusEnabled: s.signupBonusEnabled,
+          signupBonusCoins: s.signupBonusCoins,
+          minOrderValue: s.minOrderValue,
+          redemptionCoinsUnit: s.redemptionCoinsUnit,
+          redemptionDiscountUnit: s.redemptionDiscountUnit,
+          maxDiscountPerOrder: s.maxDiscountPerOrder,
+          allowFullDiscount: s.allowFullDiscount,
+          earnOnFood: s.earnOnFood,
+          earnOnTax: s.earnOnTax,
+          earnOnService: s.earnOnService,
+          earnOnDelivery: s.earnOnDelivery,
+          createdAt: s.createdAt,
+          updatedAt: s.updatedAt
+        });
+      }
+    } catch (crmSetErr) {
+      console.warn('Warning syncing crmSettings from Neon:', crmSetErr);
+    }
+
+    // 8. Fetch Coin Transactions safely from database
+    try {
+      const txs = await prisma.coinTransaction.findMany();
+      for (const tx of txs) {
+        this.coinTransactions.set(tx.id, {
+          id: tx.id,
+          restaurantId: tx.restaurantId,
+          customerId: tx.customerId,
+          type: tx.type as any,
+          coins: tx.coins,
+          orderId: tx.orderId || undefined,
+          discount: tx.discount || undefined,
+          reason: tx.reason || undefined,
+          balanceAfter: tx.balanceAfter,
+          createdAt: tx.createdAt
+        });
+      }
+    } catch (txErr) {
+      console.warn('Warning syncing coinTransactions from Neon:', txErr);
+    }
+
+    // Purge mock demo customers and POS reports from any real (non-demo) restaurant
+    const mockCustomerNames = new Set([
+      'Rahul Sharma', 'Priya Patel', 'Amit Verma', 'Neha Gupta',
+      'Vikram Malhotra', 'Ananya Sen', 'Rohan Mehta', 'Siddharth Rao',
+      'Deepak Joshi', 'Kavita Reddy', 'Tanvi Kapoor'
+    ]);
+
+    for (const [id, c] of Array.from(this.customers.entries())) {
+      if (c.restaurantId !== 'rest_demo_01' && mockCustomerNames.has(c.name)) {
+        this.customers.delete(id);
+      }
+    }
+
+    for (const [id, rep] of Array.from(this.posReports.entries())) {
+      if (rep.restaurantId !== 'rest_demo_01') {
+        this.posReports.delete(id);
+      }
     }
   }
 
@@ -823,7 +922,36 @@ class DatabaseStore {
     this.seedCrmDemoData(restaurantId);
   }
 
+  public ensureCrmSettings(restaurantId: string): CrmSettings {
+    let settings = this.crmSettings.get(restaurantId);
+    if (!settings) {
+      settings = {
+        id: `crm_set_${restaurantId}`,
+        restaurantId,
+        enabled: true,
+        coinsPerAmount: 10,
+        coinsEarnedPerUnit: 1,
+        signupBonusEnabled: true,
+        signupBonusCoins: 100,
+        minOrderValue: 300,
+        redemptionCoinsUnit: 100,
+        redemptionDiscountUnit: 10,
+        maxDiscountPerOrder: 100,
+        allowFullDiscount: false,
+        earnOnFood: true,
+        earnOnTax: false,
+        earnOnService: false,
+        earnOnDelivery: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.crmSettings.set(restaurantId, settings);
+    }
+    return settings;
+  }
+
   private seedCrmDemoData(restaurantId: string) {
+    if (restaurantId !== 'rest_demo_01') return;
     if (this.crmSettings.has(restaurantId)) return;
 
     // Seed CRM Settings (Phases 3 & 4)

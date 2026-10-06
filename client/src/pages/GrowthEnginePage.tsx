@@ -656,9 +656,9 @@ export const GrowthEnginePage: React.FC<GrowthEnginePageProps> = ({
               </span>
               <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-50 text-rose-700">Priority</span>
             </div>
-            <h4 className="text-xs font-bold text-slate-900">Win back 42 churn-risk diners</h4>
+            <h4 className="text-xs font-bold text-slate-900">Win back inactive diners</h4>
             <p className="text-[11px] text-slate-600 leading-snug">
-              42 regular customers haven't dined in the last 30+ days. Recommended: Issue 100 Discount Coins incentive.
+              Automatically identify customers who haven't dined recently and issue targeted Discount Coin incentives.
             </p>
             <button
               onClick={() => onNavigateTab('crm')}
@@ -675,9 +675,9 @@ export const GrowthEnginePage: React.FC<GrowthEnginePageProps> = ({
               </span>
               <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-800">High LTV</span>
             </div>
-            <h4 className="text-xs font-bold text-slate-900">Protect top 15% spenders</h4>
+            <h4 className="text-xs font-bold text-slate-900">Protect VIP spenders</h4>
             <p className="text-[11px] text-slate-600 leading-snug">
-              VIP diners generate ₹780+ AOV. Keep them engaged with exclusive coin redemption tiers.
+              Recognize highest-spending guests and keep them engaged with exclusive coin redemption tiers.
             </p>
             <button
               onClick={() => onNavigateTab('crm')}

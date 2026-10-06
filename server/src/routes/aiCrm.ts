@@ -108,8 +108,8 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
 
   db.saveAiCampaign(campaign);
 
-  // If approved or running, trigger immediate automation execution in the background
-  if (status === 'APPROVED' || status === 'RUNNING') {
+  // If approved, running, or immediate, trigger automation execution in the background
+  if (status === 'APPROVED' || status === 'RUNNING' || payload.scheduleType === 'IMMEDIATE') {
     CampaignScheduler.processAutomations().catch(err => {
       console.error('[Campaigns] Immediate execution error:', err);
     });
@@ -141,11 +141,11 @@ router.post('/campaigns/:id/approve', (req: AuthenticatedRequest, res: Response)
 });
 
 // 8. Execute / Send Campaign (Phase 17, 20, 21, 23)
-router.post('/campaigns/:id/execute', (req: AuthenticatedRequest, res: Response) => {
+router.post('/campaigns/:id/execute', async (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
   const campaignId = req.params.id as string;
 
-  const result = AiCrmService.executeCampaign(restaurantId, campaignId);
+  const result = await AiCrmService.executeCampaign(restaurantId, campaignId);
   if (!result.success) {
     return res.status(400).json({ success: false, message: result.message });
   }

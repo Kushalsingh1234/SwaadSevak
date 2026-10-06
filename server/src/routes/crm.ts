@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
+import { WhatsAppService } from '../services/whatsappService.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -76,6 +77,67 @@ router.post('/customers/:id/adjust-coins', (req: AuthenticatedRequest, res: Resp
     message: `Successfully ${numCoins > 0 ? 'added' : 'deducted'} ${Math.abs(numCoins)} coins.`,
     customer: result.customer,
     transaction: result.transaction
+  });
+});
+
+// Direct WhatsApp Message & Loyalty Perk / Coin Award to a Specific Customer
+router.post('/customers/:id/direct-message', async (req: AuthenticatedRequest, res: Response) => {
+  const restaurantId = req.manager!.restaurantId;
+  const customerId = req.params.id as string;
+  const { message, coins, reason } = req.body;
+
+  const customer = db.getCustomerById(restaurantId, customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: 'Customer not found.' });
+  }
+
+  if (!customer.phone) {
+    return res.status(400).json({ success: false, message: 'Customer does not have a registered phone number.' });
+  }
+
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ success: false, message: 'Message text is required.' });
+  }
+
+  const numCoins = parseInt(coins, 10) || 0;
+  let adjustResult = null;
+  if (numCoins > 0) {
+    const coinReason = reason?.trim() || 'Direct Loyalty Reward & Perk';
+    adjustResult = db.adjustCustomerCoins(restaurantId, customerId, numCoins, coinReason);
+  }
+
+  // Check restaurant WhatsApp connection status
+  const waStatus = WhatsAppService.getStatus(restaurantId);
+  let waSent = false;
+  let waError = '';
+
+  if (waStatus.status === 'CONNECTED') {
+    const sendRes = await WhatsAppService.sendTextMessage(restaurantId, customer.phone, message.trim());
+    if (sendRes.success) {
+      waSent = true;
+    } else {
+      waError = sendRes.error || 'Failed to dispatch via WhatsApp.';
+    }
+  } else {
+    waError = 'WhatsApp is not connected for your restaurant. Please connect your WhatsApp in CRM settings.';
+  }
+
+  // Mark customer last messaged timestamp
+  (customer as any).lastCampaignMessageAt = new Date().toISOString();
+
+  const updatedCustomer = db.getCustomerById(restaurantId, customerId) || customer;
+
+  return res.json({
+    success: true,
+    message: waSent
+      ? `WhatsApp message sent to ${customer.name}${numCoins > 0 ? ` with ${numCoins} coins awarded!` : '!'}`
+      : numCoins > 0
+      ? `Awarded ${numCoins} coins, but WhatsApp could not deliver: ${waError}`
+      : `WhatsApp message could not be sent: ${waError}`,
+    waSent,
+    waError: waSent ? undefined : waError,
+    customer: updatedCustomer,
+    transaction: adjustResult?.transaction
   });
 });
 

@@ -26,7 +26,8 @@ import {
   Gift,
   Bot,
   Layers,
-  Send
+  Send,
+  MessageSquare
 } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -98,6 +99,13 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
   const [customerCoinHistory, setCustomerCoinHistory] = useState<CoinTransaction[]>([]);
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
+
+  // Direct Customer WhatsApp Message & Reward State
+  const [directMessageText, setDirectMessageText] = useState<string>('');
+  const [directMessageCoins, setDirectMessageCoins] = useState<number>(50);
+  const [directMessageReason, setDirectMessageReason] = useState<string>('Special loyalty reward & perk');
+  const [sendingDirectMessage, setSendingDirectMessage] = useState<boolean>(false);
+  const [directMessageFeedback, setDirectMessageFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Coin Ledger
   const [ledgerTransactions, setLedgerTransactions] = useState<CoinTransaction[]>([]);
@@ -261,6 +269,10 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   const handleViewCustomer = async (cust: Customer) => {
     setSelectedCustomer(cust);
     setSelectedCustomerAiSummary(null);
+    setDirectMessageCoins(50);
+    setDirectMessageReason('Special loyalty reward & perk');
+    setDirectMessageText(`Hey ${cust.name.split(' ')[0]}! We loved serving you at ${restaurant?.name || 'SwaadSevak'}. We've credited 50 Discount Coins to your wallet for your next visit! ❤️`);
+    setDirectMessageFeedback(null);
     setLoadingProfile(true);
     try {
       const [custRes, aiRes] = await Promise.all([
@@ -279,6 +291,48 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
       console.error(e);
     } finally {
       setLoadingProfile(false);
+    }
+  };
+
+  // Send Direct Message & Award Loyalty to Selected Customer
+  const handleSendDirectMessage = async () => {
+    if (!selectedCustomer) return;
+    if (!directMessageText.trim()) {
+      setDirectMessageFeedback({ type: 'error', message: 'Message text cannot be empty.' });
+      return;
+    }
+
+    setSendingDirectMessage(true);
+    setDirectMessageFeedback(null);
+
+    try {
+      const res = await api.sendDirectCustomerMessage(selectedCustomer.id, {
+        message: directMessageText.trim(),
+        coins: directMessageCoins,
+        reason: directMessageReason.trim() || 'Direct Loyalty Reward & Perk'
+      });
+
+      if (res.success) {
+        setDirectMessageFeedback({
+          type: res.waSent ? 'success' : 'error',
+          message: res.message
+        });
+
+        if (res.customer) {
+          setSelectedCustomer(res.customer);
+          setCustomers(prev => prev.map(c => c.id === res.customer.id ? res.customer : c));
+        }
+
+        if (res.transaction) {
+          setCustomerCoinHistory(prev => [res.transaction!, ...prev]);
+        }
+      } else {
+        setDirectMessageFeedback({ type: 'error', message: res.message || 'Failed to send message.' });
+      }
+    } catch (e: any) {
+      setDirectMessageFeedback({ type: 'error', message: e.message || 'Error sending direct message.' });
+    } finally {
+      setSendingDirectMessage(false);
     }
   };
 
@@ -1540,6 +1594,177 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
                   className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all"
                 >
                   Adjust Coins
+                </button>
+              </div>
+
+              {/* Direct WhatsApp Message & Loyalty Award */}
+              <div className="p-4 rounded-2xl bg-white border border-emerald-200/80 shadow-xs space-y-3.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                      <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Direct WhatsApp & Reward</span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                          1-to-1
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Send WhatsApp message to {selectedCustomer.phone} and award coins
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Award Coins Chips */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Award Discount Coins / Perk:
+                  </label>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[0, 25, 50, 75, 100, 150].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setDirectMessageCoins(c);
+                          if (c > 0 && !directMessageText.includes('Coins')) {
+                            setDirectMessageText(prev => `${prev} Plus ₹${c} Discount Coins on us!`);
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          directMessageCoins === c
+                            ? 'bg-amber-500 text-slate-950 shadow-2xs font-extrabold'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {c === 0 ? 'No Coins' : `+${c} 🪙`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Message Templates */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Quick Templates:
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirectMessageCoins(50);
+                        setDirectMessageReason('Loyalty appreciation reward');
+                        setDirectMessageText(`Hey ${selectedCustomer.name.split(' ')[0]}! We loved having you at ${restaurant?.name || 'SwaadSevak'}. We've added 50 Discount Coins to your wallet for your next visit! ❤️`);
+                      }}
+                      className="p-2 rounded-xl border border-slate-200 text-left hover:border-emerald-300 hover:bg-emerald-50/40 transition-all text-[11px] cursor-pointer"
+                    >
+                      <span className="font-bold text-slate-800 block">🎁 Loyalty Perk</span>
+                      <span className="text-[10px] text-slate-500 truncate block">+50 Coins gift</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirectMessageCoins(75);
+                        setDirectMessageReason('Win-back incentive');
+                        setDirectMessageText(`Hey ${selectedCustomer.name.split(' ')[0]}! We haven't seen you in a while at ${restaurant?.name || 'SwaadSevak'}. Here is a ₹75 Discount Coin perk for your next visit! See you soon!`);
+                      }}
+                      className="p-2 rounded-xl border border-slate-200 text-left hover:border-emerald-300 hover:bg-emerald-50/40 transition-all text-[11px] cursor-pointer"
+                    >
+                      <span className="font-bold text-slate-800 block">🔥 We Miss You</span>
+                      <span className="text-[10px] text-slate-500 truncate block">+75 Coins win-back</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirectMessageCoins(100);
+                        setDirectMessageReason('VIP Patron privilege');
+                        setDirectMessageText(`Dear ${selectedCustomer.name.split(' ')[0]}, thank you for being a valued guest at ${restaurant?.name || 'SwaadSevak'}. We've gifted you 100 VIP bonus coins for your next reservation! 👑`);
+                      }}
+                      className="p-2 rounded-xl border border-slate-200 text-left hover:border-emerald-300 hover:bg-emerald-50/40 transition-all text-[11px] cursor-pointer"
+                    >
+                      <span className="font-bold text-slate-800 block">👑 VIP Treat</span>
+                      <span className="text-[10px] text-slate-500 truncate block">+100 Coins privilege</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirectMessageCoins(0);
+                        setDirectMessageText(`Hi ${selectedCustomer.name.split(' ')[0]}! Thank you for dining with us at ${restaurant?.name || 'SwaadSevak'}. Hope you loved your meal and see you again soon! ✨`);
+                      }}
+                      className="p-2 rounded-xl border border-slate-200 text-left hover:border-emerald-300 hover:bg-emerald-50/40 transition-all text-[11px] cursor-pointer"
+                    >
+                      <span className="font-bold text-slate-800 block">💬 Friendly Note</span>
+                      <span className="text-[10px] text-slate-500 truncate block">No discount required</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Message Textarea */}
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block">
+                    WhatsApp Message Text:
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={directMessageText}
+                    onChange={(e) => setDirectMessageText(e.target.value)}
+                    placeholder="Type your WhatsApp message..."
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed font-sans"
+                  />
+                </div>
+
+                {/* Reason if coins > 0 */}
+                {directMessageCoins > 0 && (
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                      Coin Ledger Note:
+                    </label>
+                    <input
+                      type="text"
+                      value={directMessageReason}
+                      onChange={(e) => setDirectMessageReason(e.target.value)}
+                      placeholder="e.g. VIP loyalty appreciation"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                )}
+
+                {/* Feedback Alert */}
+                {directMessageFeedback && (
+                  <div
+                    className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                      directMessageFeedback.type === 'success'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                    }`}
+                  >
+                    {directMessageFeedback.type === 'success' ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    )}
+                    <span className="font-medium leading-tight">{directMessageFeedback.message}</span>
+                  </div>
+                )}
+
+                {/* Send Button */}
+                <button
+                  type="button"
+                  onClick={handleSendDirectMessage}
+                  disabled={sendingDirectMessage || !directMessageText.trim()}
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>
+                    {sendingDirectMessage
+                      ? 'Sending...'
+                      : directMessageCoins > 0
+                      ? `Send WhatsApp & Award ${directMessageCoins} Coins`
+                      : 'Send WhatsApp Message'}
+                  </span>
                 </button>
               </div>
 

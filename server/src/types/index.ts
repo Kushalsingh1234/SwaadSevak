@@ -755,6 +755,8 @@ export interface AiCrmDashboardData {
   };
   topRecommendations: AiRecommendation[];
   recentCampaigns: AiCampaign[];
+  hasEnoughData?: boolean;
+  customerCount?: number;
 }
 
 

@@ -1,4 +1,6 @@
 import { db } from '../db/index.js';
+import { WhatsAppService } from './whatsappService.js';
+import { CampaignScheduler } from './campaignScheduler.js';
 import {
   AiRecommendation,
   AiSegment,
@@ -195,7 +197,13 @@ export class AiCrmService {
    * Discover AI Customer Segments
    */
   public static getAiSegments(restaurantId: string): AiSegment[] {
+    const isDemo = restaurantId === 'rest_demo_01';
     const { customers, orders } = this.getData(restaurantId);
+
+    // Real accounts with < 10 customers have insufficient data for AI clustering
+    if (!isDemo && customers.length < 10) {
+      return [];
+    }
 
     const atRiskCount = customers.filter(c => c.status === 'AT_RISK' || c.status === 'INACTIVE').length;
     const atRiskRev = customers.filter(c => c.status === 'AT_RISK' || c.status === 'INACTIVE').reduce((s, c) => s + c.totalSpent, 0);
@@ -336,16 +344,22 @@ export class AiCrmService {
    * Generate AI Recommendations
    */
   public static getAiRecommendations(restaurantId: string): AiRecommendation[] {
+    const isDemo = restaurantId === 'rest_demo_01';
     const { customers, orders, settings, menuItems } = this.getData(restaurantId);
 
+    // Real accounts with < 10 customers have insufficient data for AI recommendations
+    if (!isDemo && customers.length < 10) {
+      return [];
+    }
+
     const atRiskCustomers = customers.filter(c => c.status === 'AT_RISK' || c.status === 'INACTIVE');
-    const atRiskCount = Math.max(43, atRiskCustomers.length);
+    const atRiskCount = isDemo ? Math.max(43, atRiskCustomers.length) : atRiskCustomers.length;
 
     const newCustomers = customers.filter(c => c.status === 'NEW' || c.totalOrders === 1);
-    const newCount = Math.max(84, newCustomers.length);
+    const newCount = isDemo ? Math.max(84, newCustomers.length) : newCustomers.length;
 
     const vipCustomers = customers.filter(c => c.status === 'VIP' || c.totalSpent > 8000);
-    const vipCount = Math.max(18, vipCustomers.length);
+    const vipCount = isDemo ? Math.max(18, vipCustomers.length) : vipCustomers.length;
 
     return [
       {
@@ -743,101 +757,43 @@ export class AiCrmService {
   /**
    * Execute campaign with frequency guards and channel delivery
    */
-  public static executeCampaign(restaurantId: string, campaignId: string): {
+  public static async executeCampaign(restaurantId: string, campaignId: string): Promise<{
     success: boolean;
     message: string;
     campaign?: AiCampaign;
     sentCount: number;
     deliveredCount: number;
-  } {
+  }> {
     const campaign = db.getAiCampaignById(restaurantId, campaignId);
     if (!campaign) {
       return { success: false, message: 'Campaign not found', sentCount: 0, deliveredCount: 0 };
     }
 
-    const { customers, settings } = this.getData(restaurantId);
+    const { customers } = this.getData(restaurantId);
+    const waStatus = WhatsAppService.getStatus(restaurantId);
+    const isWaConnected = waStatus.status === 'CONNECTED';
 
-    // Filter target audience
-    let targetPool = customers;
-    if (campaign.audienceSegment === 'AT_RISK') {
-      targetPool = customers.filter(c => c.status === 'AT_RISK' || c.status === 'INACTIVE');
-    } else if (campaign.audienceSegment === 'VIP') {
-      targetPool = customers.filter(c => c.status === 'VIP' || c.totalSpent >= 8000);
-    } else if (campaign.audienceSegment === 'NEW') {
-      targetPool = customers.filter(c => c.status === 'NEW' || c.totalOrders === 1);
-    } else if (campaign.audienceSegment === 'REGULAR') {
-      targetPool = customers.filter(c => c.status === 'REGULAR');
-    }
+    // Treat manual execution as immediate so interval constraints don't suppress delivery
+    (campaign as any).scheduleType = 'IMMEDIATE';
+    (campaign as any).status = 'APPROVED';
 
-    if (targetPool.length === 0) {
-      targetPool = customers.slice(0, Math.min(campaign.targetCount, customers.length));
-    }
-
-    // Apply Frequency Guard and Marketing Opt-out
-    const qualifiedCustomers: Customer[] = [];
-    for (const cust of targetPool) {
-      const prefs = db.getCustomerMarketingPreferences(restaurantId, cust.id);
-      // Check channel opt-out
-      if (campaign.channel === 'WHATSAPP' && !prefs.whatsapp) continue;
-      if (campaign.channel === 'SMS' && !prefs.sms) continue;
-      if (campaign.channel === 'EMAIL' && !prefs.email) continue;
-
-      qualifiedCustomers.push(cust);
-    }
-
-    const sentCount = Math.max(1, qualifiedCustomers.length);
-    const deliveredCount = Math.round(sentCount * 0.96); // Realistic 96% delivery rate
-    const estimatedRedeemed = Math.max(1, Math.round(deliveredCount * 0.32)); // ~32% response
-    const avgTicket = 580;
-    const revenueGen = estimatedRedeemed * avgTicket;
-    const discountCost = estimatedRedeemed * (campaign.offerValue / 10);
-    const netRevenue = revenueGen - discountCost;
-
-    // Control Group: 10% held out to measure incremental lift
-    const controlSize = Math.max(5, Math.round(sentCount * 0.12));
-    const controlReturns = Math.max(1, Math.round(controlSize * 0.08)); // Natural 8% return rate without promo
-    const incrementalReturns = Math.max(1, estimatedRedeemed - Math.round(deliveredCount * 0.08));
-    const incrementalRevenue = Math.round(incrementalReturns * avgTicket);
-
-    // If campaign awards coins, credit bonus coins to target customers
-    if (campaign.offerType === 'DISCOUNT_COINS' && campaign.offerValue > 0) {
-      for (const target of qualifiedCustomers.slice(0, 10)) {
-        db.adjustCustomerCoins(
-          restaurantId,
-          target.id,
-          campaign.offerValue,
-          `Campaign Bonus: ${campaign.name}`
-        );
-      }
-    }
+    const result = await CampaignScheduler.evaluateAndExecuteCampaign(
+      restaurantId,
+      campaign,
+      customers,
+      isWaConnected
+    );
 
     const updated = db.updateAiCampaign(restaurantId, campaignId, {
-      status: 'COMPLETED',
-      sentAt: new Date().toISOString(),
-      stats: {
-        sent: sentCount,
-        delivered: deliveredCount,
-        clicks: Math.round(deliveredCount * 0.68),
-        redeemed: estimatedRedeemed,
-        conversionRate: Math.round((estimatedRedeemed / deliveredCount) * 1000) / 10,
-        revenueGenerated: revenueGen,
-        discountCost,
-        netRevenue,
-        controlGroup: {
-          groupSize: controlSize,
-          returnCount: controlReturns,
-          returnRate: 8.0,
-          incrementalRevenue
-        }
-      }
-    });
+      status: 'COMPLETED'
+    }) || campaign;
 
     return {
       success: true,
-      message: `Campaign '${campaign.name}' executed successfully! Sent to ${sentCount} customers (${deliveredCount} delivered).`,
-      campaign: updated || undefined,
-      sentCount,
-      deliveredCount
+      message: `Campaign '${campaign.name}' executed! Sent to ${result.sent} customers${isWaConnected ? ' via WhatsApp' : ''}.`,
+      campaign: updated,
+      sentCount: result.sent,
+      deliveredCount: Math.round(result.sent * 0.96)
     };
   }
 
@@ -845,25 +801,31 @@ export class AiCrmService {
    * Get overall AI CRM Dashboard Data
    */
   public static getDashboardData(restaurantId: string): AiCrmDashboardData {
+    const isDemo = restaurantId === 'rest_demo_01';
     const { customers, orders } = this.getData(restaurantId);
+    const hasEnoughData = isDemo || customers.length >= 10;
 
     const atRiskCustomers = customers.filter(c => c.status === 'AT_RISK' || c.status === 'INACTIVE');
-    const atRiskCount = Math.max(43, atRiskCustomers.length);
-    const winBackRev = Math.max(31200, Math.round(atRiskCount * 620 * 0.8));
+    const atRiskCount = isDemo ? Math.max(43, atRiskCustomers.length) : atRiskCustomers.length;
+    const winBackRev = isDemo ? Math.max(31200, Math.round(atRiskCount * 620 * 0.8)) : Math.round(atRiskCustomers.reduce((s, c) => s + c.totalSpent, 0) * 0.5);
 
     const vipCustomers = customers.filter(c => c.status === 'VIP' || c.totalSpent > 8000);
-    const vipCount = Math.max(27, vipCustomers.length);
-    const vipSpend = Math.max(48500, vipCustomers.reduce((s, c) => s + c.totalSpent, 0));
+    const vipCount = isDemo ? Math.max(27, vipCustomers.length) : vipCustomers.length;
+    const vipSpend = isDemo ? Math.max(48500, vipCustomers.reduce((s, c) => s + c.totalSpent, 0)) : vipCustomers.reduce((s, c) => s + c.totalSpent, 0);
 
     const recommendations = this.getAiRecommendations(restaurantId);
     const campaigns = db.getAiCampaigns(restaurantId);
     const automations = db.getAiAutomations(restaurantId);
 
     const activeAutomations = automations.filter(a => a.status === 'ACTIVE');
-    const totalAttributedRevenue = automations.reduce((s, a) => s + (a.revenueAttributed || 0), 0) +
-      campaigns.reduce((s, c) => s + (c.stats?.revenueGenerated || 0), 0);
+    const totalAttributedRevenue = isDemo
+      ? 31400
+      : (automations.reduce((s, a) => s + (a.revenueAttributed || 0), 0) +
+         campaigns.reduce((s, c) => s + (c.stats?.revenueGenerated || 0), 0));
 
     return {
+      hasEnoughData,
+      customerCount: customers.length,
       winBackCard: {
         customerCount: atRiskCount,
         potentialRevenue: winBackRev
@@ -876,7 +838,7 @@ export class AiCrmService {
         count: recommendations.length
       },
       automationsCard: {
-        activeCount: activeAutomations.length,
+        activeCount: isDemo ? (activeAutomations.length || 4) : activeAutomations.length,
         recentRunsCount: automations.reduce((s, a) => s + (a.customersReached || 0), 0),
         totalAttributedRevenue
       },

@@ -746,16 +746,18 @@ export class AiCrmService {
     coinReward: number,
     favouriteItem?: string
   ): string {
+    const custName = customer.name || 'Friend';
+    const restName = restaurantName || 'SwaadSevak';
+    const currentBalance = customer.coinBalance ?? 0;
+    const rewardVal = Number(coinReward) || 0;
+
     return (template || '')
-      .replace(/\{\{\s*customer_name\s*\}\}/gi, customer.name || 'Friend')
-      .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurantName || 'SwaadSevak')
-      .replace(/\{\{\s*coin_reward\s*\}\}/gi, String(coinReward || 0))
-      .replace(/\{\{\s*discount_coins\s*\}\}/gi, String(coinReward || 0))
-      .replace(/\{\{\s*discount_value\s*\}\}/gi, String(coinReward || 0))
-      .replace(/\{\{\s*coins\s*\}\}/gi, String(coinReward || 0))
-      .replace(/\{\{\s*coin_balance\s*\}\}/gi, String(customer.coinBalance || 0))
-      .replace(/\{\{\s*favourite_item\s*\}\}/gi, favouriteItem || (customer as any).favoriteDish || 'your favourites')
-      .replace(/\{\{\s*discount_expiry\s*\}\}/gi, '7 days');
+      .replace(/\{{1,2}\s*(customer_?name|name|client_?name)\s*\}{1,2}/gi, custName)
+      .replace(/\{{1,2}\s*(restaurant_?name|restaurant|cafe_?name)\s*\}{1,2}/gi, restName)
+      .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(rewardVal))
+      .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
+      .replace(/\{{1,2}\s*(favourite_?item|favorite_?item|fav_?dish|favorite_?dish)\s*\}{1,2}/gi, favouriteItem || (customer as any).favoriteDish || 'your favourites')
+      .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, '7 days');
   }
 
   /**
@@ -780,6 +782,9 @@ export class AiCrmService {
     // Treat manual execution as immediate so interval constraints don't suppress delivery
     (campaign as any).scheduleType = 'IMMEDIATE';
     (campaign as any).status = 'APPROVED';
+    if (!campaign.messageTemplate && (campaign as any).message) {
+      campaign.messageTemplate = (campaign as any).message;
+    }
 
     const result = await CampaignScheduler.evaluateAndExecuteCampaign(
       restaurantId,

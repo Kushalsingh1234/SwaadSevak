@@ -167,6 +167,16 @@ export class CampaignScheduler {
       }
     }
 
+    // Small cafe / testing fallback: If strict segment matched 0 customers, but cafe has customers with phone,
+    // fallback to available customers so the cafe owner's campaign test is never silently discarded.
+    if (eligibleCustomers.length === 0 && allCustomers.length > 0) {
+      const validPhoneCustomers = allCustomers.filter(c => c.phone && c.phone.trim().length >= 10);
+      if (validPhoneCustomers.length > 0) {
+        console.log(`[Scheduler] Segment "${campaign.audienceSegment}" had 0 strict matches. Falling back to ${validPhoneCustomers.length} cafe customer(s) with valid phone numbers.`);
+        eligibleCustomers.push(...validPhoneCustomers);
+      }
+    }
+
     if (eligibleCustomers.length === 0) {
       if (campaign.status === 'SCHEDULED') {
         db.updateAiCampaign(restaurantId, campaign.id, {
@@ -182,7 +192,8 @@ export class CampaignScheduler {
     let sentCount = 0;
 
     // 1. Credit bonus coins FIRST before preparing messages so the customer's coin balance is up-to-date!
-    if (campaign.offerType === 'DISCOUNT_COINS' && campaign.offerValue > 0) {
+    const isCoinsOffer = campaign.offerType === 'DISCOUNT_COINS' || (!campaign.offerType && campaign.offerValue > 0);
+    if (isCoinsOffer && campaign.offerValue > 0) {
       for (const cust of batch) {
         const adjustRes = db.adjustCustomerCoins(
           restaurantId,
@@ -199,9 +210,10 @@ export class CampaignScheduler {
 
     // 2. Prepare personalized messages with updated customer data & formatted offer / coin balance footer
     const messageQueue: Array<{ phone: string; text: string }> = [];
+    const templateToUse = campaign.messageTemplate || (campaign as any).message || (campaign as any).resolvedMessagePreview || '';
 
     for (const cust of batch) {
-      const personalizedText = this.renderTemplate(campaign.messageTemplate, cust, restaurant, campaign);
+      const personalizedText = this.renderTemplate(templateToUse, cust, restaurant, campaign);
       messageQueue.push({
         phone: cust.phone,
         text: personalizedText
@@ -260,47 +272,47 @@ export class CampaignScheduler {
     restaurant: any,
     campaign: AiCampaign
   ): string {
-    const offerValue = campaign.offerValue || 0;
-    const validityDays = (campaign as any).validityDays || 7;
+    const offerValue = Number(campaign.offerValue) || 0;
+    const validityDays = Number((campaign as any).validityDays) || 7;
     const orderLink = restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app';
     const restName = restaurant?.name || 'SwaadSevak';
     const custName = customer.name || 'Friend';
     const currentBalance = customer.coinBalance ?? 0;
 
-    // Replace all variable placeholders (case-insensitive & whitespace tolerant)
-    let body = (template || '')
-      .replace(/\{\{\s*customer_name\s*\}\}/gi, custName)
-      .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restName)
-      .replace(/\{\{\s*coin_reward\s*\}\}/gi, String(offerValue))
-      .replace(/\{\{\s*discount_coins\s*\}\}/gi, String(offerValue))
-      .replace(/\{\{\s*discount_value\s*\}\}/gi, String(offerValue))
-      .replace(/\{\{\s*offer_value\s*\}\}/gi, String(offerValue))
-      .replace(/\{\{\s*coins\s*\}\}/gi, String(offerValue))
-      .replace(/\{\{\s*coin_balance\s*\}\}/gi, String(currentBalance))
-      .replace(/\{\{\s*validity_days\s*\}\}/gi, String(validityDays))
-      .replace(/\{\{\s*discount_expiry\s*\}\}/gi, `${validityDays} days`)
-      .replace(/\{\{\s*favourite_item\s*\}\}/gi, (customer as any).favoriteDish || (customer as any).favoriteItem || 'your favourites')
-      .replace(/\{\{\s*restaurant_address\s*\}\}/gi, restaurant?.address || '')
-      .replace(/\{\{\s*order_link\s*\}\}/gi, orderLink);
+    let baseText = (template || '').trim();
+    if (!baseText) {
+      baseText = `Hey {{customer_name}}! We have a special treat for you from {{restaurant_name}}. We look forward to hosting you soon! ❤️`;
+    }
+
+    // Replace all variable placeholders (ultra-tolerant of single or double braces, spacing, underscores/hyphens)
+    let body = baseText
+      .replace(/\{{1,2}\s*(customer_?name|name|client_?name)\s*\}{1,2}/gi, custName)
+      .replace(/\{{1,2}\s*(restaurant_?name|restaurant|cafe_?name)\s*\}{1,2}/gi, restName)
+      .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(offerValue))
+      .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
+      .replace(/\{{1,2}\s*(validity_?days?|validity|expiry_?days?)\s*\}{1,2}/gi, String(validityDays))
+      .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, `${validityDays} days`)
+      .replace(/\{{1,2}\s*(favourite_?item|favorite_?item|fav_?dish|favorite_?dish)\s*\}{1,2}/gi, (customer as any).favoriteDish || (customer as any).favoriteItem || 'your favourites')
+      .replace(/\{{1,2}\s*(restaurant_?address|address)\s*\}{1,2}/gi, restaurant?.address || '')
+      .replace(/\{{1,2}\s*(order_?link|link|menu_?link)\s*\}{1,2}/gi, orderLink);
 
     // Format the bottom card showing offer awarded and customer coin balance
     let offerBadge = '';
-    if (campaign.offerType === 'DISCOUNT_COINS' && offerValue > 0) {
+    const offerType = campaign.offerType || 'DISCOUNT_COINS';
+    if (offerType === 'DISCOUNT_COINS' && offerValue > 0) {
       offerBadge = `🪙 *Reward:* ₹${offerValue} Coins Activated (Valid for ${validityDays} days)`;
-    } else if (campaign.offerType === 'DISCOUNT_PERCENT' && offerValue > 0) {
+    } else if (offerType === 'DISCOUNT_PERCENT' && offerValue > 0) {
       offerBadge = `🏷️ *Special Offer:* ${offerValue}% Discount Activated (Valid for ${validityDays} days)`;
-    } else if (campaign.offerType === 'FREE_ITEM') {
+    } else if (offerType === 'FREE_ITEM') {
       offerBadge = `🍟 *Complimentary Perk:* Free Appetizer/Beverage on your table (Valid for ${validityDays} days)`;
     }
 
     const coinBalanceBadge = `💰 *Your Coin Balance:* ${currentBalance} Coins`;
 
-    const lowerBody = body.toLowerCase();
-    const hasBalance = lowerBody.includes('coin balance') || lowerBody.includes('coins balance') || lowerBody.includes('wallet balance');
-
-    if (!hasBalance) {
+    // Only append footer card if the formatted balance badge isn't already present in the body
+    if (!body.includes('*Your Coin Balance:*') && !body.includes('Your Coin Balance:')) {
       const footerLines: string[] = [];
-      if (offerBadge && !lowerBody.includes('coins activated') && !lowerBody.includes('discount activated')) {
+      if (offerBadge && !body.includes(offerBadge)) {
         footerLines.push(offerBadge);
       }
       footerLines.push(coinBalanceBadge);

@@ -319,13 +319,15 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     setSubmitSuccess('');
 
     // If Custom Time is selected, enforce valid future scheduled time
+    let resolvedScheduledIso: string | undefined = undefined;
     if (scheduleType === 'SCHEDULED' && status !== 'DRAFT') {
       if (!scheduledAt) {
         setSubmitError('Please select a date and time for the scheduled campaign.');
         setSubmitting(false);
         return;
       }
-      const schedMs = new Date(scheduledAt).getTime();
+      const schedDate = new Date(scheduledAt);
+      const schedMs = schedDate.getTime();
       if (isNaN(schedMs)) {
         setSubmitError('Invalid scheduled date/time selected.');
         setSubmitting(false);
@@ -336,12 +338,22 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         setSubmitting(false);
         return;
       }
+      resolvedScheduledIso = schedDate.toISOString();
+    } else if (scheduleType === 'AI_OPTIMIZED' && status !== 'DRAFT') {
+      // Calculate upcoming peak window (next Friday 6:30 PM)
+      const d = new Date();
+      const day = d.getDay();
+      const daysUntilFriday = (5 - day + 7) % 7 || 7;
+      d.setDate(d.getDate() + daysUntilFriday);
+      d.setHours(18, 30, 0, 0);
+      resolvedScheduledIso = d.toISOString();
     }
 
     try {
       const campaignName = (name && name.trim()) || 'Customer Retention Campaign';
       const effectiveObjective = (reasoning && reasoning.trim()) || (category ? `${category.replace(/_/g, ' ')} customer retention` : '') || 'Boost customer retention and drive repeat visits';
-      const resolvedStatus = status === 'DRAFT' ? 'DRAFT' : (scheduleType === 'SCHEDULED' ? 'SCHEDULED' : 'APPROVED');
+      const isFuture = Boolean(resolvedScheduledIso && new Date(resolvedScheduledIso).getTime() > Date.now());
+      const resolvedStatus = status === 'DRAFT' ? 'DRAFT' : (isFuture ? 'SCHEDULED' : 'APPROVED');
 
       const payload: any = {
         name: campaignName,
@@ -365,10 +377,10 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         messageTemplate: message,
         message,
         resolvedMessagePreview: previewText,
-        scheduleType,
+        scheduleType: isFuture ? 'SCHEDULED' : scheduleType,
         aiOptimizedTime,
-        scheduledFor: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
-        scheduledAt: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
+        scheduledFor: resolvedScheduledIso,
+        scheduledAt: resolvedScheduledIso,
         requiresApproval: resolvedStatus === 'APPROVED' ? false : (resolvedStatus === 'SCHEDULED' ? false : requiresApproval),
         mode: resolvedStatus === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED',
         estimatedCost: estimatedCostLiability,
@@ -724,7 +736,11 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                 <input
                   type="datetime-local"
                   value={scheduledAt}
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={(() => {
+                    const localNow = new Date();
+                    localNow.setMinutes(localNow.getMinutes() - localNow.getTimezoneOffset());
+                    return localNow.toISOString().slice(0, 16);
+                  })()}
                   onChange={(e) => setScheduledAt(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-purple-200 text-xs text-slate-800 bg-white font-semibold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                 />

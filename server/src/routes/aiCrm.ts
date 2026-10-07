@@ -73,9 +73,23 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
   }
 
   const campaignId = `camp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
-  const status = payload.status || 'PENDING_APPROVAL';
-  const requiresApproval = status === 'APPROVED' ? false : (payload.requiresApproval !== false);
-  const mode = payload.mode || (status === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED');
+  const scheduledFor = payload.scheduledFor || payload.scheduledAt;
+  const scheduleType = payload.scheduleType || (scheduledFor ? 'SCHEDULED' : 'IMMEDIATE');
+
+  // Check if scheduled in the future
+  const isFutureScheduled = Boolean(
+    (scheduleType === 'SCHEDULED' || Boolean(scheduledFor)) &&
+    scheduledFor &&
+    new Date(scheduledFor).getTime() > Date.now()
+  );
+
+  let status = payload.status || 'PENDING_APPROVAL';
+  if (isFutureScheduled) {
+    status = 'SCHEDULED';
+  }
+
+  const requiresApproval = (status === 'APPROVED' || status === 'SCHEDULED') ? false : (payload.requiresApproval !== false);
+  const mode = payload.mode || ((status === 'APPROVED' || status === 'SCHEDULED') ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED');
 
   const campaign: AiCampaign = {
     id: campaignId,
@@ -85,7 +99,7 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
     objective,
     audienceSegment: payload.audienceSegment || payload.targetSegment || 'ALL',
     audienceConditions: payload.audienceConditions || payload.audienceFilterDesc || 'All customers',
-    targetCount: Number(payload.targetCount) || 20,
+    targetCount: Number(payload.targetCount) >= 0 ? Number(payload.targetCount) : 0,
     channel: payload.channel || 'WHATSAPP',
     mode,
     priority: payload.priority || 'MEDIUM',
@@ -93,13 +107,13 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
     tone: payload.tone || 'FRIENDLY',
     language: payload.language || 'HINGLISH',
     offerType: payload.offerType || 'DISCOUNT_COINS',
-    offerValue: Number(payload.offerValue) || 50,
+    offerValue: Number(payload.offerValue) || 0,
     offerPerkText: payload.offerPerkText || '',
     validityDays: Number(payload.validityDays) || 7,
     messageTemplate: payload.messageTemplate || payload.message || '',
     resolvedMessagePreview: payload.resolvedMessagePreview || payload.message || payload.messageTemplate || '',
-    scheduledFor: payload.scheduledFor || payload.scheduledAt,
-    maxRewardCost: Number(payload.maxRewardCost || payload.estimatedCost) || Math.round((Number(payload.targetCount) || 20) * ((Number(payload.offerValue) || 50) / 10)),
+    scheduledFor: scheduledFor || undefined,
+    maxRewardCost: Number(payload.maxRewardCost || payload.estimatedCost) || 0,
     requiresApproval,
     frequencyGuard: payload.frequencyGuard || { maxPerMonth: 3, minGapDays: 5 },
     createdAt: new Date(),
@@ -108,8 +122,8 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
 
   db.saveAiCampaign(campaign);
 
-  // If approved, running, or immediate, trigger automation execution in the background
-  if (status === 'APPROVED' || status === 'RUNNING' || payload.scheduleType === 'IMMEDIATE') {
+  // If approved, running, or immediate, trigger automation execution in the background ONLY if NOT future scheduled!
+  if (!isFutureScheduled && (status === 'APPROVED' || status === 'RUNNING' || scheduleType === 'IMMEDIATE')) {
     CampaignScheduler.processAutomations().catch(err => {
       console.error('[Campaigns] Immediate execution error:', err);
     });
@@ -123,21 +137,34 @@ router.post('/campaigns/:id/approve', (req: AuthenticatedRequest, res: Response)
   const restaurantId = req.manager!.restaurantId;
   const campaignId = req.params.id as string;
 
-  const updated = db.updateAiCampaign(restaurantId, campaignId, {
-    status: 'APPROVED',
-    requiresApproval: false
-  });
-
-  if (!updated) {
+  const campaign = db.getAiCampaignById(restaurantId, campaignId);
+  if (!campaign) {
     return res.status(404).json({ success: false, message: 'Campaign not found.' });
   }
 
-  // Trigger automation processor immediately
-  CampaignScheduler.processAutomations().catch(err => {
-    console.error('[Campaigns] Immediate approve execution error:', err);
+  const isFutureScheduled = Boolean(
+    campaign.scheduledFor && new Date(campaign.scheduledFor).getTime() > Date.now()
+  );
+
+  const updatedStatus = isFutureScheduled ? 'SCHEDULED' : 'APPROVED';
+
+  const updated = db.updateAiCampaign(restaurantId, campaignId, {
+    status: updatedStatus,
+    requiresApproval: false
   });
 
-  return res.json({ success: true, message: 'Campaign approved successfully.', campaign: updated });
+  if (!isFutureScheduled) {
+    // Trigger automation processor immediately only if due right now
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Campaigns] Immediate approve execution error:', err);
+    });
+  }
+
+  return res.json({
+    success: true,
+    message: isFutureScheduled ? 'Campaign scheduled successfully.' : 'Campaign approved successfully.',
+    campaign: updated
+  });
 });
 
 // 8. Execute / Send Campaign (Phase 17, 20, 21, 23)

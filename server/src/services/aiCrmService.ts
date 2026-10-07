@@ -746,12 +746,16 @@ export class AiCrmService {
     coinReward: number,
     favouriteItem?: string
   ): string {
-    return template
-      .replace(/\{\{customer_name\}\}/g, customer.name || 'Friend')
-      .replace(/\{\{restaurant_name\}\}/g, restaurantName || 'SwaadSevak')
-      .replace(/\{\{coin_reward\}\}/g, String(coinReward || 0))
-      .replace(/\{\{favourite_item\}\}/g, favouriteItem || 'your favourites')
-      .replace(/\{\{discount_expiry\}\}/g, '7 days');
+    return (template || '')
+      .replace(/\{\{\s*customer_name\s*\}\}/gi, customer.name || 'Friend')
+      .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurantName || 'SwaadSevak')
+      .replace(/\{\{\s*coin_reward\s*\}\}/gi, String(coinReward || 0))
+      .replace(/\{\{\s*discount_coins\s*\}\}/gi, String(coinReward || 0))
+      .replace(/\{\{\s*discount_value\s*\}\}/gi, String(coinReward || 0))
+      .replace(/\{\{\s*coins\s*\}\}/gi, String(coinReward || 0))
+      .replace(/\{\{\s*coin_balance\s*\}\}/gi, String(customer.coinBalance || 0))
+      .replace(/\{\{\s*favourite_item\s*\}\}/gi, favouriteItem || (customer as any).favoriteDish || 'your favourites')
+      .replace(/\{\{\s*discount_expiry\s*\}\}/gi, '7 days');
   }
 
   /**

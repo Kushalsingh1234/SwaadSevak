@@ -21,10 +21,11 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { api } from '../../services/api';
-import { AiCampaign, AiRecommendation, AiSegment, Restaurant } from '../../types';
+import { AiCampaign, AiRecommendation, AiSegment, Restaurant, Customer } from '../../types';
 
 interface AiCampaignBuilderTabProps {
   restaurant: Restaurant | null;
+  customers?: Customer[];
   initialPrompt?: string;
   initialRecommendation?: AiRecommendation | null;
   initialSegment?: AiSegment | null;
@@ -34,12 +35,68 @@ interface AiCampaignBuilderTabProps {
 
 export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   restaurant,
+  customers = [],
   initialPrompt = '',
   initialRecommendation = null,
   initialSegment = null,
   onCampaignCreated,
   onNavigateTab
 }) => {
+  // Real Customers state
+  const [customerList, setCustomerList] = useState<Customer[]>(customers);
+
+  // Helper to accurately compute cohort count & description from real customers
+  const computeCohort = (segment: string, list: Customer[]): { count: number; desc: string } => {
+    const now = Date.now();
+    const validWithPhone = list.filter(c => c.phone && c.phone.trim().length >= 10);
+
+    if (segment === 'AT_RISK' || segment === 'INACTIVE') {
+      const atRisk = validWithPhone.filter(c => {
+        const days = c.lastVisit ? Math.floor((now - new Date(c.lastVisit).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+        return c.status === 'AT_RISK' || c.status === 'INACTIVE' || days >= 14;
+      });
+      return {
+        count: atRisk.length,
+        desc: atRisk.length > 0
+          ? `Customers inactive for 14+ days (${atRisk.length} of ${validWithPhone.length} registered customers)`
+          : `No inactive diners found (0 out of ${validWithPhone.length} registered customers)`
+      };
+    }
+    if (segment === 'VIP') {
+      const vips = validWithPhone.filter(c => c.status === 'VIP' || (c.totalSpent || 0) >= 5000);
+      return {
+        count: vips.length,
+        desc: `High-value guests with ₹5,000+ spend or VIP tier (${vips.length} of ${validWithPhone.length})`
+      };
+    }
+    if (segment === 'NEW_CUSTOMERS' || segment === 'NEW') {
+      const newDiners = validWithPhone.filter(c => c.status === 'NEW' || (c.totalOrders || 0) <= 1);
+      return {
+        count: newDiners.length,
+        desc: `First-time diners with <= 1 order (${newDiners.length} of ${validWithPhone.length})`
+      };
+    }
+    if (segment === 'WEEKEND_REGULARS' || segment === 'REGULAR') {
+      const regulars = validWithPhone.filter(c => c.status === 'REGULAR' || (c.totalOrders || 0) >= 2);
+      return {
+        count: regulars.length,
+        desc: `Repeat regulars with >= 2 visits (${regulars.length} of ${validWithPhone.length})`
+      };
+    }
+    if (segment === 'DEAL_SEEKERS') {
+      const dealSeekers = validWithPhone.filter(c => (c.coinBalance || 0) > 0 || ((c as any).totalDiscountUsed || 0) > 0);
+      return {
+        count: dealSeekers.length,
+        desc: `Coin collectors & offer redeemers (${dealSeekers.length} of ${validWithPhone.length})`
+      };
+    }
+    // ALL
+    return {
+      count: validWithPhone.length,
+      desc: `All ${validWithPhone.length} customers with verified phone numbers`
+    };
+  };
+
   // Input Prompt
   const [prompt, setPrompt] = useState<string>(initialPrompt);
   const [parsing, setParsing] = useState<boolean>(false);
@@ -50,8 +107,18 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   const [category, setCategory] = useState<string>('WIN_BACK');
   const [channel, setChannel] = useState<'WHATSAPP' | 'SMS' | 'EMAIL'>('WHATSAPP');
   const [targetSegment, setTargetSegment] = useState<string>('AT_RISK');
-  const [targetCount, setTargetCount] = useState<number>(43);
-  const [audienceFilterDesc, setAudienceFilterDesc] = useState<string>('Customers inactive for 30+ days with >= 2 prior visits');
+  const [targetCount, setTargetCount] = useState<number>(() => {
+    if (customers && customers.length > 0) {
+      return computeCohort('AT_RISK', customers).count;
+    }
+    return 0;
+  });
+  const [audienceFilterDesc, setAudienceFilterDesc] = useState<string>(() => {
+    if (customers && customers.length > 0) {
+      return computeCohort('AT_RISK', customers).desc;
+    }
+    return 'Calculating identified cohort from verified customer records...';
+  });
   
   // Offer
   const [offerType, setOfferType] = useState<'DISCOUNT_COINS' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT'>('DISCOUNT_COINS');
@@ -80,13 +147,39 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
 
+  // Load customers if not passed via props
+  useEffect(() => {
+    if (customers && customers.length > 0) {
+      setCustomerList(customers);
+    } else {
+      api.getCustomers('ALL').then(res => {
+        if (res.success && res.customers) {
+          setCustomerList(res.customers);
+        }
+      }).catch(err => {
+        console.error('Failed to load customers for campaign builder:', err);
+      });
+    }
+  }, [customers]);
+
+  // Dynamically update cohort count and description whenever customer list or segment changes
+  useEffect(() => {
+    if (!initialRecommendation && !initialSegment) {
+      const cohort = computeCohort(targetSegment, customerList);
+      setTargetCount(cohort.count);
+      setAudienceFilterDesc(cohort.desc);
+    }
+  }, [customerList, targetSegment]);
+
   // Auto-init from recommendation or segment
   useEffect(() => {
     if (initialRecommendation) {
       setName(initialRecommendation.title);
       setCategory(initialRecommendation.category);
-      setTargetCount(initialRecommendation.targetAudience?.count ?? initialRecommendation.targetAudienceCount ?? 43);
-      setAudienceFilterDesc(initialRecommendation.targetAudience?.description ?? initialRecommendation.targetAudienceLabel ?? 'Targeted cohort');
+      // If recommendation has a count, only cap it to real customers if real customers exist
+      const cohort = computeCohort(initialRecommendation.actionPayload?.audienceFilter || 'ALL', customerList);
+      setTargetCount(cohort.count > 0 ? cohort.count : (initialRecommendation.targetAudience?.count ?? initialRecommendation.targetAudienceCount ?? 0));
+      setAudienceFilterDesc(cohort.count > 0 ? cohort.desc : (initialRecommendation.targetAudience?.description ?? initialRecommendation.targetAudienceLabel ?? 'Targeted cohort'));
       const offerCoins = initialRecommendation.recommendedOffer?.coins ?? initialRecommendation.recommendedCoins ?? 75;
       setOfferValue(offerCoins);
       setReasoning(initialRecommendation.explanation);
@@ -97,8 +190,9 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     } else if (initialSegment) {
       setName(`Special Offer for ${initialSegment.name}`);
       setCategory('INCREASE_AOV');
-      setTargetCount(initialSegment.customerCount);
-      setAudienceFilterDesc(`Members of ${initialSegment.name} (${initialSegment.characteristics.join(', ')})`);
+      const cohort = computeCohort(initialSegment.id || 'ALL', customerList);
+      setTargetCount(cohort.count > 0 ? cohort.count : initialSegment.customerCount);
+      setAudienceFilterDesc(cohort.count > 0 ? cohort.desc : `Members of ${initialSegment.name} (${initialSegment.characteristics.join(', ')})`);
       setOfferValue(50);
       setReasoning(`Targeting ${initialSegment.name} whose AOV is ₹${initialSegment.avgOrderValue || initialSegment.averageOrder || 500}. An incentive stimulates extra frequency.`);
       generateMultiLangMessage('INCREASE_AOV', 50, tone, language);
@@ -118,12 +212,14 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
       const res = await api.parseAiCampaign(textToParse.trim());
       if (res.success && res.draft) {
         const d = res.draft;
+        const assignedSegment = d.targetSegment || 'AT_RISK';
         setName(d.name || name);
         setCategory(d.category || category);
         setChannel(d.channel || 'WHATSAPP');
-        setTargetSegment(d.targetSegment || 'AT_RISK');
-        setTargetCount(d.targetCount || 35);
-        setAudienceFilterDesc(d.audienceFilterDesc || 'Targeted segment based on ordering recency');
+        setTargetSegment(assignedSegment);
+        const cohort = computeCohort(assignedSegment, customerList);
+        setTargetCount(cohort.count);
+        setAudienceFilterDesc(cohort.desc);
         setOfferType(d.offerType || 'DISCOUNT_COINS');
         setOfferValue(d.offerValue ?? 75);
         setValidityDays(d.validityDays || 7);
@@ -189,16 +285,30 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     generateMultiLangMessage(category, offerValue, newTone, language);
   };
 
-  // Preview Message Interpolation
-  const previewText = message
-    .replace(/{{customer_name}}/g, 'Rahul Sharma')
-    .replace(/{{restaurant_name}}/g, restaurant?.name || 'SwaadSevak')
-    .replace(/{{coin_reward}}/g, offerValue.toString())
-    .replace(/{{favourite_item}}/g, 'Paneer Tikka Roll')
-    .replace(/{{discount_expiry}}/g, '7 days')
-    .replace(/{{restaurant_address}}/g, 'Indiranagar, Bangalore');
+  const handleTargetSegmentChange = (newSegment: string) => {
+    setTargetSegment(newSegment);
+    const cohort = computeCohort(newSegment, customerList);
+    setTargetCount(cohort.count);
+    setAudienceFilterDesc(cohort.desc);
+  };
 
-  // Phase 20: Cost Liability Calculation
+  // Preview Message Interpolation (Replaces all variable placeholders)
+  const previewText = message
+    .replace(/\{\{\s*customer_name\s*\}\}/gi, 'Rahul Sharma')
+    .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant?.name || 'SwaadSevak')
+    .replace(/\{\{\s*coin_reward\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*discount_coins\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*discount_value\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*offer_value\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*coins\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*coin_balance\s*\}\}/gi, '125')
+    .replace(/\{\{\s*validity_days\s*\}\}/gi, validityDays.toString())
+    .replace(/\{\{\s*discount_expiry\s*\}\}/gi, `${validityDays} days`)
+    .replace(/\{\{\s*favourite_item\s*\}\}/gi, 'Paneer Tikka Roll')
+    .replace(/\{\{\s*order_link\s*\}\}/gi, restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app')
+    .replace(/\{\{\s*restaurant_address\s*\}\}/gi, restaurant?.address || 'Indiranagar, Bangalore');
+
+  // Cost Liability Calculation
   const estimatedCostLiability = offerType === 'DISCOUNT_COINS' ? targetCount * offerValue : 0;
   const isHighCost = estimatedCostLiability > 5000;
 
@@ -208,9 +318,30 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     setSubmitError('');
     setSubmitSuccess('');
 
+    // If Custom Time is selected, enforce valid future scheduled time
+    if (scheduleType === 'SCHEDULED' && status !== 'DRAFT') {
+      if (!scheduledAt) {
+        setSubmitError('Please select a date and time for the scheduled campaign.');
+        setSubmitting(false);
+        return;
+      }
+      const schedMs = new Date(scheduledAt).getTime();
+      if (isNaN(schedMs)) {
+        setSubmitError('Invalid scheduled date/time selected.');
+        setSubmitting(false);
+        return;
+      }
+      if (schedMs < Date.now() - 60000) {
+        setSubmitError('The scheduled time is in the past. Please select a future time, or select "Send Immediately".');
+        setSubmitting(false);
+        return;
+      }
+    }
+
     try {
       const campaignName = (name && name.trim()) || 'Customer Retention Campaign';
       const effectiveObjective = (reasoning && reasoning.trim()) || (category ? `${category.replace(/_/g, ' ')} customer retention` : '') || 'Boost customer retention and drive repeat visits';
+      const resolvedStatus = status === 'DRAFT' ? 'DRAFT' : (scheduleType === 'SCHEDULED' ? 'SCHEDULED' : 'APPROVED');
 
       const payload: any = {
         name: campaignName,
@@ -219,14 +350,14 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         reasoning: reasoning || effectiveObjective,
         category,
         channel,
-        status,
+        status: resolvedStatus,
         audienceSegment: targetSegment || 'ALL',
         targetSegment: targetSegment || 'ALL',
         audienceConditions: audienceFilterDesc || 'Targeted customer cohort',
         audienceFilterDesc: audienceFilterDesc || 'Targeted customer cohort',
-        targetCount: Number(targetCount) || 20,
+        targetCount: Number(targetCount) || 0,
         offerType,
-        offerValue: Number(offerValue) || 50,
+        offerValue: Number(offerValue) || 0,
         validityDays: Number(validityDays) || 7,
         minOrderValue: Number(minOrderValue) || 0,
         tone,
@@ -238,8 +369,8 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         aiOptimizedTime,
         scheduledFor: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
         scheduledAt: scheduleType === 'SCHEDULED' ? scheduledAt : undefined,
-        requiresApproval: status === 'APPROVED' ? false : requiresApproval,
-        mode: status === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED',
+        requiresApproval: resolvedStatus === 'APPROVED' ? false : (resolvedStatus === 'SCHEDULED' ? false : requiresApproval),
+        mode: resolvedStatus === 'APPROVED' ? 'AUTONOMOUS' : 'APPROVAL_REQUIRED',
         estimatedCost: estimatedCostLiability,
         maxRewardCost: estimatedCostLiability,
         maxBudget: estimatedCostLiability * 1.2
@@ -247,11 +378,16 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
 
       const res = await api.createAiCampaign(payload);
       if (res.success && res.campaign) {
-        setSubmitSuccess(`Campaign "${res.campaign.name}" created successfully with status: ${res.campaign.status}!`);
+        const schedTimeDisplay = scheduledAt ? new Date(scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
+        setSubmitSuccess(
+          resolvedStatus === 'SCHEDULED'
+            ? `Campaign "${res.campaign.name}" scheduled successfully for ${schedTimeDisplay}!`
+            : `Campaign "${res.campaign.name}" launched successfully!`
+        );
         if (onCampaignCreated) onCampaignCreated(res.campaign);
         setTimeout(() => {
           onNavigateTab('campaigns');
-        }, 1200);
+        }, 1400);
       } else {
         setSubmitError(res.message || 'Failed to save campaign');
       }
@@ -400,7 +536,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                   <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">Audience Segment</label>
                   <select
                     value={targetSegment}
-                    onChange={(e) => setTargetSegment(e.target.value)}
+                    onChange={(e) => handleTargetSegmentChange(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white font-medium focus:border-orange-500 outline-none"
                   >
                     <option value="AT_RISK">⚠️ Inactive & At Risk</option>
@@ -580,14 +716,21 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
             )}
 
             {scheduleType === 'SCHEDULED' && (
-              <div>
-                <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">Pick Date & Time</label>
+              <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 space-y-1.5">
+                <label className="text-[11px] font-bold text-purple-900 uppercase block flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Select Date & Dispatch Time</span>
+                </label>
                 <input
                   type="datetime-local"
                   value={scheduledAt}
+                  min={new Date().toISOString().slice(0, 16)}
                   onChange={(e) => setScheduledAt(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 rounded-xl border border-purple-200 text-xs text-slate-800 bg-white font-semibold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                 />
+                <span className="text-[10px] text-purple-700 block">
+                  Campaign will remain queued and send automatically at this exact time.
+                </span>
               </div>
             )}
           </div>
@@ -674,7 +817,9 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{customer_name}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{restaurant_name}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_reward}}'}</span>
+                <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_balance}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{favourite_item}}'}</span>
+                <span className="bg-slate-100 px-1 rounded font-mono">{'{{discount_expiry}}'}</span>
               </div>
             </div>
 
@@ -693,7 +838,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
 
                 {/* WhatsApp Chat Bubble Mockup */}
                 <div className="bg-[#EFEAE2] rounded-xl p-3 min-h-[170px] flex flex-col justify-end text-slate-900">
-                  <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-xs max-w-[92%] space-y-1.5 border border-slate-100">
+                  <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-xs max-w-[92%] space-y-2 border border-slate-100">
                     <div className="flex items-center justify-between text-[10px] text-slate-500 pb-0.5 border-b border-slate-100">
                       <span className="font-bold text-emerald-800 flex items-center gap-1">
                         <span>{restaurant?.name || 'SwaadSevak Restaurant'}</span>
@@ -706,12 +851,34 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                       {previewText}
                     </p>
 
-                    {offerValue > 0 && (
-                      <div className="bg-amber-50 rounded p-1.5 border border-amber-200 flex items-center justify-between text-[11px] text-amber-900">
-                        <span className="font-bold">🪙 ₹{offerValue} Coins Activated</span>
-                        <span className="text-[9px] text-amber-700">Expires in {validityDays}d</span>
+                    {/* Bottom Offer & Coin Balance Card */}
+                    <div className="bg-amber-50/90 rounded-lg p-2.5 border border-amber-200/80 space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between text-[11px] text-amber-900 font-bold">
+                        <span className="flex items-center gap-1.5">
+                          <span>
+                            {offerType === 'DISCOUNT_COINS' ? '🪙' : offerType === 'DISCOUNT_PERCENT' ? '🏷️' : offerType === 'FREE_ITEM' ? '🍟' : '❤️'}
+                          </span>
+                          <span>
+                            {offerType === 'DISCOUNT_COINS'
+                              ? `₹${offerValue} Coins Activated`
+                              : offerType === 'DISCOUNT_PERCENT'
+                              ? `${offerValue}% Discount Activated`
+                              : offerType === 'FREE_ITEM'
+                              ? 'Complimentary Appetizer/Beverage'
+                              : 'Loyalty Appreciation'}
+                          </span>
+                        </span>
+                        {offerType !== 'NO_DISCOUNT' && (
+                          <span className="text-[9px] text-amber-700 font-semibold bg-amber-100/80 px-1.5 py-0.5 rounded">
+                            Expires in {validityDays}d
+                          </span>
+                        )}
                       </div>
-                    )}
+                      <div className="pt-1 border-t border-amber-200/60 flex items-center justify-between text-[10px] text-amber-800 font-medium">
+                        <span>Your Coin Balance:</span>
+                        <span className="font-bold text-amber-950">125 Coins</span>
+                      </div>
+                    </div>
                   </div>
                   <span className="text-[9px] text-slate-400 text-center mt-2">End-to-end encrypted promotional notification</span>
                 </div>
@@ -736,14 +903,36 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
             )}
 
             <div className="flex flex-col sm:flex-row items-center gap-2">
-              <button
-                onClick={() => handleSubmitCampaign('APPROVED')}
-                disabled={submitting}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>Approve & Launch Campaign</span>
-              </button>
+              {scheduleType === 'SCHEDULED' ? (
+                <button
+                  onClick={() => handleSubmitCampaign('SCHEDULED')}
+                  disabled={submitting}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    Schedule Campaign {scheduledAt ? `for ${new Date(scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                  </span>
+                </button>
+              ) : scheduleType === 'IMMEDIATE' ? (
+                <button
+                  onClick={() => handleSubmitCampaign('APPROVED')}
+                  disabled={submitting}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Send Immediately</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleSubmitCampaign('APPROVED')}
+                  disabled={submitting}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Approve & Launch Campaign</span>
+                </button>
+              )}
 
               <button
                 onClick={() => handleSubmitCampaign('DRAFT')}

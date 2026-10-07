@@ -69,7 +69,7 @@ app.get('/health', handleHealth);
 app.get('/api/health', handleHealth);
 
 // Start Automated CRM Campaign Scheduler & Resume WhatsApp Sessions
-const AUTOMATION_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+const AUTOMATION_INTERVAL_MS = 60 * 1000; // 1 minute (for on-time execution of scheduled campaigns)
 setTimeout(() => {
   // Auto-resume existing paired WhatsApp connections
   WhatsAppService.autoResumeAllSessions().catch(err => {

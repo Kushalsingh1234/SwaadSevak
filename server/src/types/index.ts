@@ -643,7 +643,7 @@ export type CampaignChannel = 'WHATSAPP' | 'SMS' | 'EMAIL';
 export type CampaignPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 export type CampaignTone = 'FRIENDLY' | 'PREMIUM' | 'CASUAL' | 'URGENT' | 'FESTIVE' | 'PROFESSIONAL';
 export type CampaignLanguage = 'ENGLISH' | 'HINDI' | 'HINGLISH';
-export type CampaignOfferType = 'DISCOUNT_COINS' | 'FLAT_DISCOUNT' | 'FREE_ITEM' | 'NO_DISCOUNT';
+export type CampaignOfferType = 'DISCOUNT_COINS' | 'FLAT_DISCOUNT' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT';
 
 export interface CampaignStats {
   sent: number;

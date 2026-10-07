@@ -660,6 +660,7 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
       {activeTab === 'ai-builder' && (
         <AiCampaignBuilderTab
           restaurant={restaurant}
+          customers={customers}
           initialPrompt={builderPrefillPrompt}
           initialRecommendation={builderPrefillRec}
           initialSegment={builderPrefillSegment}

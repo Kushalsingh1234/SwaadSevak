@@ -3,7 +3,6 @@ import { SEO } from './components/ui/SEO';
 import { Header } from './components/layout/Header';
 import { HeroSection } from './components/sections/HeroSection';
 import { ProductTabsSection } from './components/sections/ProductTabsSection';
-import { TrustStripSection } from './components/sections/TrustStripSection';
 import { WhyUsSection } from './components/sections/WhyUsSection';
 import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
 import { EcosystemSection } from './components/sections/EcosystemSection';
@@ -350,9 +349,6 @@ export const App: React.FC = () => {
 
         {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
         <ProductTabsSection />
-
-        {/* 4. Trust Strip on Cream Band (Infinite Marquee) */}
-        <TrustStripSection />
 
         {/* 5. Dark "Why Us" Section (4 Cards in One Line) */}
         <WhyUsSection />

@@ -32,6 +32,8 @@ import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
 import { api } from './services/api';
+import { getSocket, joinRestaurantRoom } from './services/socket';
+import { soundManager } from './utils/sound';
 import { Restaurant, Manager, Order, TableItem, MenuCategory, MenuItem, Bill } from './types';
 
 export const App: React.FC = () => {
@@ -116,6 +118,83 @@ export const App: React.FC = () => {
     }
   };
 
+  // Initial load if token exists
+  useEffect(() => {
+    if (localStorage.getItem('swaad_token')) {
+      refreshAllData();
+    }
+  }, []);
+
+  // Calculate pending orders requiring attention
+  const pendingCount = orders.filter(o => o.status === 'PENDING').length;
+  const pendingAdditionsCount = orders.reduce((sum, o) => {
+    return sum + (o.additions?.filter(a => a.status === 'PENDING').length || 0);
+  }, 0);
+  const totalNeedsAttentionCount = pendingCount + pendingAdditionsCount;
+
+  // Global continuous sound alert: rings continuously on pending order until accepted
+  useEffect(() => {
+    if (view === 'dashboard' && totalNeedsAttentionCount > 0) {
+      soundManager.startPendingLoop();
+    } else {
+      soundManager.stopPendingLoop();
+    }
+  }, [totalNeedsAttentionCount, view]);
+
+  // Real-time socket listener for orders, additions, bills
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const socket = getSocket();
+    joinRestaurantRoom(restaurant.id);
+
+    const handleNewOrder = (newOrder: Order) => {
+      soundManager.playTing(1174.66, 0.7);
+      setOrders(prev => {
+        const exists = prev.some(o => o.id === newOrder.id);
+        if (exists) return prev.map(o => o.id === newOrder.id ? newOrder : o);
+        return [newOrder, ...prev];
+      });
+    };
+
+    const handleAddition = ({ order }: { order: Order; addition: any }) => {
+      soundManager.playTing(1318.5, 0.7);
+      setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+    };
+
+    const handleStatusUpdate = (updatedOrder: Order) => {
+      setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+    };
+
+    const handleBillRequested = () => {
+      soundManager.playTing(987.77, 0.6);
+      refreshAllData();
+    };
+
+    socket.on('order:new', handleNewOrder);
+    socket.on(`order:new_${restaurant.id}`, handleNewOrder);
+    socket.on('order:addition_added', handleAddition);
+    socket.on(`order:addition_added_${restaurant.id}`, handleAddition);
+    socket.on('order:status_updated', handleStatusUpdate);
+    socket.on(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
+    socket.on('bill:requested', handleBillRequested);
+    socket.on(`bill:requested_${restaurant.id}`, handleBillRequested);
+    socket.on('bill:generated', () => refreshAllData());
+    socket.on('table_updated', () => refreshAllData());
+
+    return () => {
+      socket.off('order:new', handleNewOrder);
+      socket.off(`order:new_${restaurant.id}`, handleNewOrder);
+      socket.off('order:addition_added', handleAddition);
+      socket.off(`order:addition_added_${restaurant.id}`, handleAddition);
+      socket.off('order:status_updated', handleStatusUpdate);
+      socket.off(`order:status_updated_${restaurant.id}`, handleStatusUpdate);
+      socket.off('bill:requested', handleBillRequested);
+      socket.off(`bill:requested_${restaurant.id}`, handleBillRequested);
+      socket.off('bill:generated');
+      socket.off('table_updated');
+    };
+  }, [restaurant?.id]);
+
   const handleLoginSuccess = async (data: { token: string; restaurant: any; manager: any }) => {
     setRestaurant(data.restaurant);
     setManager(data.manager);
@@ -178,7 +257,7 @@ export const App: React.FC = () => {
           restaurant={restaurant}
           manager={manager}
           onLogout={handleLogout}
-          pendingOrdersCount={orders.filter(o => o.status === 'PENDING').length}
+          pendingOrdersCount={totalNeedsAttentionCount}
         />
 
         <main className={`flex-1 min-w-0 ${

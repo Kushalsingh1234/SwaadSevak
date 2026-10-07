@@ -54,32 +54,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
         </a>
 
         {/* Desktop Navigation - Enlarged Typography & Spacing */}
-        <nav className="hidden lg:flex items-center gap-8 xl:gap-10 text-base font-bold text-sand-100 font-sans">
+        <nav className="hidden lg:flex items-center gap-8 xl:gap-10 text-base font-bold text-white/90 font-sans">
           <a
             href="#products"
             onClick={() => handleNavClick('products')}
-            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
+            className="text-white/90 hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
             Products
           </a>
           <a
             href="#features"
             onClick={() => handleNavClick('features')}
-            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
+            className="text-white/90 hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
             Features
           </a>
           <a
             href="#calculator"
             onClick={() => handleNavClick('calculator')}
-            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
+            className="text-white/90 hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
             Calculator
           </a>
           <a
             href={SITE_CONTENT.links.websiteInquiry}
             onClick={() => handleNavClick('website')}
-            className="flex items-center gap-2 hover:text-orange-400 transition-colors focus-ring rounded group py-1"
+            className="flex items-center gap-2 text-white/90 hover:text-orange-400 transition-colors focus-ring rounded group py-1"
           >
             <span>Website</span>
             <span className="text-[11px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-espresso-950 transition-colors">
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
           <a
             href="#why-us"
             onClick={() => handleNavClick('why-us')}
-            className="hover:text-orange-400 transition-colors focus-ring rounded py-1"
+            className="text-white/90 hover:text-orange-400 transition-colors focus-ring rounded py-1"
           >
             Why Us
           </a>
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2.5 rounded-xl border border-walnut text-sand-100 hover:bg-cocoa transition-colors focus-ring cursor-pointer"
+            className="lg:hidden p-2.5 rounded-xl border border-walnut text-white/90 hover:bg-cocoa transition-colors focus-ring cursor-pointer"
             aria-label="Toggle mobile menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -124,32 +124,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-espresso-950 border-b border-walnut px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
-          <nav className="flex flex-col space-y-2 text-sm font-semibold text-sand-100">
+          <nav className="flex flex-col space-y-2 text-sm font-semibold text-white/90">
             <a
               href="#products"
               onClick={() => handleNavClick('products')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors"
             >
               Products
             </a>
             <a
               href="#features"
               onClick={() => handleNavClick('features')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors"
             >
               Features
             </a>
             <a
               href="#calculator"
               onClick={() => handleNavClick('calculator')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors"
             >
               Calculator
             </a>
             <a
               href={SITE_CONTENT.links.websiteInquiry}
               onClick={() => handleNavClick('website')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors flex items-center justify-between"
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors flex items-center justify-between"
             >
               <span>Website</span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">
@@ -159,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
             <a
               href="#why-us"
               onClick={() => handleNavClick('why-us')}
-              className="px-3 py-2 rounded-lg hover:bg-cocoa transition-colors"
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors"
             >
               Why Us
             </a>

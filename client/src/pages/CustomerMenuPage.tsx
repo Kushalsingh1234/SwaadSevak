@@ -22,7 +22,7 @@ import {
 import confetti from 'canvas-confetti';
 import { VegIcon } from '../components/VegIcon';
 import { api } from '../services/api';
-import { getSocket, joinTableRoom } from '../services/socket';
+import { getSocket, joinTableRoom, joinCustomerRoom } from '../services/socket';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
@@ -132,11 +132,26 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     loadPublicMenu();
   }, [restaurantSlug, qrToken]);
 
+  const refreshCustomerProfile = async (targetId?: string) => {
+    const custId = targetId || identifiedCustomer?.id;
+    if (!custId || !restaurantSlug) return;
+    try {
+      const res = await api.getPublicCustomer(restaurantSlug, custId);
+      if (res.success && res.customer) {
+        setIdentifiedCustomer(res.customer);
+        localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(res.customer));
+      }
+    } catch {
+      // Non-blocking background sync
+    }
+  };
+
   const loadPublicMenu = async () => {
     setLoading(true);
     setErrorMsg('');
     try {
-      const data = await api.getPublicMenu(restaurantSlug, qrToken);
+      const savedCustomerId = identifiedCustomer?.id;
+      const data = await api.getPublicMenu(restaurantSlug, qrToken, savedCustomerId);
       if (data.success) {
         setRestaurant(data.restaurant);
         setTable(data.table);
@@ -151,9 +166,22 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
           }
         }
 
-        // Join real-time socket room for this table
+        // Authoritative customer sync: if server returned fresh customer data, sync it
+        if (data.customer) {
+          setIdentifiedCustomer(data.customer);
+          localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(data.customer));
+        } else if (savedCustomerId) {
+          // If customer ID no longer exists in DB, wipe stale profile
+          setIdentifiedCustomer(null);
+          localStorage.removeItem(`swaad_customer_${restaurantSlug}`);
+        }
+
+        // Join real-time socket room for this table and customer
         if (data.restaurant?.id && data.table?.id) {
           joinTableRoom(data.restaurant.id, data.table.id);
+          if (data.customer?.id || savedCustomerId) {
+            joinCustomerRoom(data.restaurant.id, data.customer?.id || savedCustomerId);
+          }
         }
       } else {
         setErrorMsg(data.message || 'Could not load menu.');
@@ -186,6 +214,9 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     const handleOrderStatus = (order: any) => {
       if (order.tableId === table.id) {
         setActiveOrder(order);
+        if (order.status === 'COMPLETED') {
+          refreshCustomerProfile();
+        }
       }
     };
 
@@ -193,12 +224,16 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     const handleBillGenerated = (bill: any) => {
       if (activeOrder && bill.orderId === activeOrder.id) {
         setActiveBill(bill);
+        refreshCustomerProfile();
       }
     };
 
     // Reconnect handler
     const handleConnect = () => {
       joinTableRoom(restaurant.id, table.id);
+      if (identifiedCustomer?.id) {
+        joinCustomerRoom(restaurant.id, identifiedCustomer.id);
+      }
     };
     socket.on('connect', handleConnect);
 
@@ -229,7 +264,38 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
       socket.off('bill:generated', handleBillGenerated);
       socket.off(`bill:generated_${restaurant.id}`, handleBillGenerated);
     };
-  }, [restaurant?.id, table?.id, activeOrder?.id]);
+  }, [restaurant?.id, table?.id, activeOrder?.id, identifiedCustomer?.id]);
+
+  // Real-time listener for customer coin balance updates (manager adjustment, order earn/redeem, campaign)
+  useEffect(() => {
+    if (!restaurant?.id || !identifiedCustomer?.id) return;
+    const socket = getSocket();
+    joinCustomerRoom(restaurant.id, identifiedCustomer.id);
+
+    const handleCoinsUpdated = (data: any) => {
+      if (data?.customerId === identifiedCustomer.id) {
+        setIdentifiedCustomer((prev: any) => {
+          if (!prev) return prev;
+          const updated = {
+            ...prev,
+            coinBalance: data.coinBalance ?? prev.coinBalance,
+            reservedCoins: data.reservedCoins ?? prev.reservedCoins,
+            usableCoins: data.usableCoins ?? Math.max(0, (data.coinBalance ?? prev.coinBalance) - (data.reservedCoins ?? prev.reservedCoins ?? 0))
+          };
+          localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(updated));
+          return updated;
+        });
+      }
+    };
+
+    socket.on('customer:coins_updated', handleCoinsUpdated);
+    socket.on(`customer:coins_updated_${identifiedCustomer.id}`, handleCoinsUpdated);
+
+    return () => {
+      socket.off('customer:coins_updated', handleCoinsUpdated);
+      socket.off(`customer:coins_updated_${identifiedCustomer.id}`, handleCoinsUpdated);
+    };
+  }, [restaurant?.id, identifiedCustomer?.id, restaurantSlug]);
 
   // Cart operations
   const addToCart = (item: any) => {
@@ -440,12 +506,15 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
           }, 900);
         }
 
-        // If coins were used, update local customer state
-        if (identifiedCustomer && res.coinsReserved > 0) {
+        // If customer profile returned or coins were used, update local customer state
+        if (res.customer) {
+          setIdentifiedCustomer(res.customer);
+          localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(res.customer));
+        } else if (identifiedCustomer && res.coinsReserved > 0) {
           const updated = {
             ...identifiedCustomer,
             reservedCoins: (identifiedCustomer.reservedCoins || 0) + res.coinsReserved,
-            usableCoins: Math.max(0, identifiedCustomer.coinBalance - ((identifiedCustomer.reservedCoins || 0) + res.coinsReserved))
+            usableCoins: Math.max(0, (identifiedCustomer.coinBalance || 0) - ((identifiedCustomer.reservedCoins || 0) + res.coinsReserved))
           };
           setIdentifiedCustomer(updated);
           localStorage.setItem(`swaad_customer_${restaurantSlug}`, JSON.stringify(updated));
@@ -544,12 +613,15 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             {crmConfig?.enabled && (
               identifiedCustomer ? (
                 <button
-                  onClick={() => setShowLoyaltyInfoModal(true)}
+                  onClick={() => {
+                    refreshCustomerProfile();
+                    setShowLoyaltyInfoModal(true);
+                  }}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-linear-to-r from-amber-50 to-orange-50 border border-amber-300 text-amber-900 text-xs font-bold hover:shadow-xs transition-all active:scale-95 cursor-pointer"
                   title="View your Discount Coins"
                 >
                   <span className="text-sm">🪙</span>
-                  <span>{identifiedCustomer.coinBalance} Coins</span>
+                  <span>{identifiedCustomer.coinBalance ?? 0} Coins</span>
                 </button>
               ) : (
                 <button
@@ -1026,7 +1098,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                             <div className="flex items-center gap-2">
                               <h4 className="text-xs font-bold text-gray-900">Discount Coins</h4>
                               <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                                Balance: {identifiedCustomer.coinBalance}
+                                Balance: {identifiedCustomer.coinBalance ?? 0}
                               </span>
                             </div>
                             {coinDiscountCalc.eligible ? (
@@ -1253,7 +1325,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   Welcome back, {identifiedCustomer.name}!
                 </h3>
                 <p className="text-xs text-gray-600 mt-1">
-                  You have <span className="font-bold text-orange-600">{identifiedCustomer.coinBalance} Discount Coins</span>.
+                  You have <span className="font-bold text-orange-600">{identifiedCustomer.coinBalance ?? 0} Discount Coins</span>.
                 </p>
 
                 <div className="my-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium text-left flex items-center gap-2.5">
@@ -1433,7 +1505,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-center">
               <span className="text-xs text-amber-800 font-medium block">Current Balance</span>
               <span className="text-2xl font-black text-amber-900 block mt-0.5">
-                {identifiedCustomer.coinBalance} <span className="text-sm font-bold text-amber-700">Coins</span>
+                {identifiedCustomer.coinBalance ?? 0} <span className="text-sm font-bold text-amber-700">Coins</span>
               </span>
               {identifiedCustomer.reservedCoins > 0 && (
                 <span className="text-[11px] text-amber-700 block mt-1">
@@ -1584,7 +1656,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   <span className="font-bold text-orange-600">{crmConfig?.signupBonusCoins || 100} Coins added</span> to your profile!
                 </p>
                 <div className="my-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-900">
-                  Current Balance: 🪙 {identifiedCustomer?.coinBalance || 100} Coins
+                  Current Balance: 🪙 {identifiedCustomer?.coinBalance ?? (crmConfig?.signupBonusCoins || 100)} Coins
                 </div>
                 <button
                   onClick={() => setShowPostOrderModal(false)}

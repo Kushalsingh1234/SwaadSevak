@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 import { WhatsAppService } from '../services/whatsappService.js';
+import { emitCustomerCoinsUpdated } from '../realtime/socket.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -72,6 +73,9 @@ router.post('/customers/:id/adjust-coins', (req: AuthenticatedRequest, res: Resp
     });
   }
 
+  // Real-time broadcast to diner QR menu and restaurant dashboard
+  emitCustomerCoinsUpdated(restaurantId, result.customer);
+
   return res.json({
     success: true,
     message: `Successfully ${numCoins > 0 ? 'added' : 'deducted'} ${Math.abs(numCoins)} coins.`,
@@ -104,6 +108,9 @@ router.post('/customers/:id/direct-message', async (req: AuthenticatedRequest, r
   if (numCoins > 0) {
     const coinReason = reason?.trim() || 'Direct Loyalty Reward & Perk';
     adjustResult = db.adjustCustomerCoins(restaurantId, customerId, numCoins, coinReason);
+    if (adjustResult) {
+      emitCustomerCoinsUpdated(restaurantId, adjustResult.customer);
+    }
   }
 
   // Check restaurant WhatsApp connection status

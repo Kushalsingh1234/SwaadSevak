@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
-import { emitOrderStatus } from '../realtime/socket.js';
+import { emitOrderStatus, emitCustomerCoinsUpdated } from '../realtime/socket.js';
 import { PrinterService } from '../printing/printerService.js';
 import { OrderStatus } from '../types/index.js';
 import { aggregatorManager } from '../aggregators/aggregatorManager.js';
@@ -61,6 +61,14 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
 
   // Real-time broadcast to manager and table
   emitOrderStatus(restaurantId, updatedOrder.tableId, updatedOrder);
+
+  // If order was completed and associated with a customer, broadcast updated coin balance
+  if (status === 'COMPLETED' && updatedOrder.customerId) {
+    const cust = db.getCustomerById(restaurantId, updatedOrder.customerId);
+    if (cust) {
+      emitCustomerCoinsUpdated(restaurantId, cust);
+    }
+  }
 
   // Aggregator notification if order came from Swiggy or Zomato
   if (updatedOrder.source === 'SWIGGY' || updatedOrder.source === 'ZOMATO') {

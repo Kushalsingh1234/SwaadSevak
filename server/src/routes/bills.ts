@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
-import { emitBillGenerated, emitOrderStatus } from '../realtime/socket.js';
+import { emitBillGenerated, emitOrderStatus, emitCustomerCoinsUpdated } from '../realtime/socket.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -50,6 +50,12 @@ router.patch('/:id/settle', (req: AuthenticatedRequest, res: Response) => {
   if (order) {
     emitBillGenerated(restaurantId, order.tableId, updatedBill);
     emitOrderStatus(restaurantId, order.tableId, order);
+    if (order.customerId) {
+      const cust = db.getCustomerById(restaurantId, order.customerId);
+      if (cust) {
+        emitCustomerCoinsUpdated(restaurantId, cust);
+      }
+    }
   }
 
   return res.json({

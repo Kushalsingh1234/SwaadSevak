@@ -1,6 +1,7 @@
 import { db } from '../db/index.js';
 import { WhatsAppService } from './whatsappService.js';
 import { Customer, AiCampaign } from '../types/index.js';
+import { emitCustomerCoinsUpdated } from '../realtime/socket.js';
 
 export class CampaignScheduler {
   private static isRunning = false;
@@ -199,12 +200,15 @@ export class CampaignScheduler {
     // Credit bonus coins if configured
     if (campaign.offerType === 'DISCOUNT_COINS' && campaign.offerValue > 0) {
       for (const cust of batch) {
-        db.adjustCustomerCoins(
+        const adjustRes = db.adjustCustomerCoins(
           restaurantId,
           cust.id,
           campaign.offerValue,
           `Campaign Bonus: ${campaign.name}`
         );
+        if (adjustRes) {
+          emitCustomerCoinsUpdated(restaurantId, adjustRes.customer);
+        }
       }
     }
 

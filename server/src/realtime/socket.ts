@@ -27,6 +27,13 @@ export function initializeSocket(httpServer: HttpServer): SocketIOServer {
       }
     });
 
+    // Customer joins their customer room for real-time loyalty balance updates
+    socket.on('join_customer', (data: { restaurantId?: string; customerId: string }) => {
+      if (data?.customerId) {
+        socket.join(`customer_${data.customerId}`);
+      }
+    });
+
     socket.on('disconnect', () => {
       // Clean disconnect
     });
@@ -97,5 +104,30 @@ export function emitMenuStockChange(restaurantId: string, itemId: string, isAvai
     // Broadcast to restaurant dashboard and any customer browsing
     ioInstance.to(`restaurant_${restaurantId}`).emit('menu:stock_updated', { itemId, isAvailable });
     ioInstance.emit(`menu:stock_updated_${restaurantId}`, { itemId, isAvailable });
+  }
+}
+
+export function emitCustomerCoinsUpdated(restaurantId: string, customer: any) {
+  if (ioInstance && customer) {
+    const payload = {
+      customerId: customer.id,
+      coinBalance: customer.coinBalance,
+      reservedCoins: customer.reservedCoins || 0,
+      usableCoins: Math.max(0, customer.coinBalance - (customer.reservedCoins || 0)),
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        coinBalance: customer.coinBalance,
+        reservedCoins: customer.reservedCoins || 0,
+        usableCoins: Math.max(0, customer.coinBalance - (customer.reservedCoins || 0)),
+        status: customer.status,
+        totalCoinsEarned: customer.totalCoinsEarned,
+        totalCoinsRedeemed: customer.totalCoinsRedeemed
+      }
+    };
+    ioInstance.to(`customer_${customer.id}`).emit('customer:coins_updated', payload);
+    ioInstance.emit(`customer:coins_updated_${customer.id}`, payload);
+    ioInstance.to(`restaurant_${restaurantId}`).emit('customer:coins_updated', payload);
   }
 }

@@ -25,3 +25,9 @@ export function joinTableRoom(restaurantId: string, tableId: string): void {
   const s = getSocket();
   s.emit('join_table', { restaurantId, tableId });
 }
+
+export function joinCustomerRoom(restaurantId: string, customerId: string): void {
+  const s = getSocket();
+  s.emit('join_customer', { restaurantId, customerId });
+}
+

@@ -156,7 +156,8 @@ export const api = {
   },
 
   // Public Diner APIs (No auth needed)
-  getPublicMenu: (restaurantSlug: string, qrToken: string) => fetch(`${API_BASE}/public/menu/${restaurantSlug}/${qrToken}`).then(r => r.json()),
+  getPublicMenu: (restaurantSlug: string, qrToken: string, customerId?: string) =>
+    fetch(`${API_BASE}/public/menu/${restaurantSlug}/${qrToken}${customerId ? `?customerId=${encodeURIComponent(customerId)}` : ''}`).then(r => r.json()),
   placePublicOrder: (payload: any) => fetch(`${API_BASE}/public/order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -171,6 +172,8 @@ export const api = {
   getPublicInvoice: (orderId: string) => fetch(`${API_BASE}/public/order/${orderId}/invoice`).then(r => r.json()),
 
   // Public Diner CRM & Discount Coins (No auth needed)
+  getPublicCustomer: (restaurantSlug: string, customerId: string) =>
+    fetch(`${API_BASE}/public/crm/customer/${encodeURIComponent(customerId)}?restaurantSlug=${encodeURIComponent(restaurantSlug)}`).then(r => r.json()),
   identifyPublicCustomer: (restaurantSlug: string, phone: string) =>
     fetch(`${API_BASE}/public/crm/identify`, {
       method: 'POST',

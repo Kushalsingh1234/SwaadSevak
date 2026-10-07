@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { emitNewOrder, emitBillRequested, emitOrderAddition } from '../realtime/socket.js';
+import { emitNewOrder, emitBillRequested, emitOrderAddition, emitCustomerCoinsUpdated } from '../realtime/socket.js';
 import { OrderItem } from '../types/index.js';
 
 const router = Router();
@@ -38,6 +38,27 @@ router.get('/menu/:restaurantSlug/:qrToken', (req: Request, res: Response) => {
   const orders = db.getOrders(restaurant.id).filter(o => o.tableId === table.id && o.status !== 'COMPLETED' && o.status !== 'REJECTED');
   const activeOrder = orders.length > 0 ? orders[0] : null;
 
+  // Real-time authoritative customer verification if diner previously identified
+  const requestedCustomerId = (req.query.customerId as string) || (req.headers['x-customer-id'] as string) || activeOrder?.customerId;
+  let customerData = null;
+  if (requestedCustomerId) {
+    const cust = db.getCustomerById(restaurant.id, requestedCustomerId);
+    if (cust) {
+      customerData = {
+        id: cust.id,
+        name: cust.name,
+        phoneMasked: db.maskPhone(cust.phone),
+        phone: cust.phone,
+        coinBalance: cust.coinBalance,
+        reservedCoins: cust.reservedCoins || 0,
+        usableCoins: Math.max(0, cust.coinBalance - (cust.reservedCoins || 0)),
+        status: cust.status,
+        totalCoinsEarned: cust.totalCoinsEarned,
+        totalCoinsRedeemed: cust.totalCoinsRedeemed
+      };
+    }
+  }
+
   // CRM Config for Diner
   const crmSettings = db.getCrmSettings(restaurant.id);
   const crmConfig = {
@@ -69,6 +90,7 @@ router.get('/menu/:restaurantSlug/:qrToken', (req: Request, res: Response) => {
     },
     menu: menuData,
     activeOrder,
+    customer: customerData,
     crmConfig
   });
 });
@@ -216,17 +238,71 @@ router.post('/order', (req: Request, res: Response) => {
   // Real-time broadcast to manager dashboard
   emitNewOrder(restaurant.id, order);
 
+  // Broadcast customer reserved coins update if coins were used
+  if (identifiedCustomer) {
+    emitCustomerCoinsUpdated(restaurant.id, identifiedCustomer);
+  }
+
   return res.status(201).json({
     success: true,
     isAddition: false,
     message: 'Your order has been sent to the kitchen!',
     order,
     discountApplied: coinDiscount,
-    coinsReserved: coinsUsed
+    coinsReserved: coinsUsed,
+    customer: identifiedCustomer ? {
+      id: identifiedCustomer.id,
+      name: identifiedCustomer.name,
+      phoneMasked: db.maskPhone(identifiedCustomer.phone),
+      phone: identifiedCustomer.phone,
+      coinBalance: identifiedCustomer.coinBalance,
+      reservedCoins: identifiedCustomer.reservedCoins || 0,
+      usableCoins: Math.max(0, identifiedCustomer.coinBalance - (identifiedCustomer.reservedCoins || 0)),
+      status: identifiedCustomer.status
+    } : null
   });
 });
 
 // --- PUBLIC CRM & DISCOUNT COIN ENDPOINTS ---
+
+// 0. Fetch real-time customer loyalty profile & coin balance
+router.get('/crm/customer/:identifier', (req: Request, res: Response) => {
+  const identifier = req.params.identifier as string;
+  const restaurantSlug = req.query.restaurantSlug as string;
+
+  if (!restaurantSlug || !identifier) {
+    return res.status(400).json({ success: false, message: 'Please provide restaurant slug and customer identifier.' });
+  }
+
+  const restaurant = db.getRestaurantBySlug(restaurantSlug);
+  if (!restaurant) {
+    return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+  }
+
+  const customer = identifier.startsWith('cust_')
+    ? db.getCustomerById(restaurant.id, identifier)
+    : db.getCustomerByPhone(restaurant.id, identifier);
+
+  if (!customer) {
+    return res.status(404).json({ success: false, message: 'Customer profile not found.' });
+  }
+
+  return res.json({
+    success: true,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      phoneMasked: db.maskPhone(customer.phone),
+      phone: customer.phone,
+      coinBalance: customer.coinBalance,
+      reservedCoins: customer.reservedCoins || 0,
+      usableCoins: Math.max(0, customer.coinBalance - (customer.reservedCoins || 0)),
+      status: customer.status,
+      totalCoinsEarned: customer.totalCoinsEarned,
+      totalCoinsRedeemed: customer.totalCoinsRedeemed
+    }
+  });
+});
 
 // 1. Identify customer by mobile number
 router.post('/crm/identify', (req: Request, res: Response) => {
@@ -308,6 +384,9 @@ router.post('/crm/signup', (req: Request, res: Response) => {
     ? crmSettings.signupBonusCoins
     : 0;
 
+  // Real-time broadcast
+  emitCustomerCoinsUpdated(restaurant.id, result.customer);
+
   return res.status(result.isNew ? 201 : 200).json({
     success: true,
     isNew: result.isNew,
@@ -317,7 +396,8 @@ router.post('/crm/signup', (req: Request, res: Response) => {
       phoneMasked: db.maskPhone(result.customer.phone),
       phone: result.customer.phone,
       coinBalance: result.customer.coinBalance,
-      usableCoins: Math.max(0, result.customer.coinBalance - result.customer.reservedCoins),
+      reservedCoins: result.customer.reservedCoins || 0,
+      usableCoins: Math.max(0, result.customer.coinBalance - (result.customer.reservedCoins || 0)),
       status: result.customer.status
     },
     bonusAwarded: bonusCoins
@@ -419,6 +499,9 @@ router.post('/crm/post-order-claim', (req: Request, res: Response) => {
     ? crmSettings.signupBonusCoins
     : 0;
 
+  // Real-time broadcast
+  emitCustomerCoinsUpdated(restaurant.id, result.customer);
+
   return res.json({
     success: true,
     isNew: result.isNew,
@@ -426,8 +509,11 @@ router.post('/crm/post-order-claim', (req: Request, res: Response) => {
       id: result.customer.id,
       name: result.customer.name,
       phoneMasked: db.maskPhone(result.customer.phone),
+      phone: result.customer.phone,
       coinBalance: result.customer.coinBalance,
-      usableCoins: Math.max(0, result.customer.coinBalance - result.customer.reservedCoins)
+      reservedCoins: result.customer.reservedCoins || 0,
+      usableCoins: Math.max(0, result.customer.coinBalance - (result.customer.reservedCoins || 0)),
+      status: result.customer.status
     },
     bonusAwarded: bonusCoins,
     message: result.isNew

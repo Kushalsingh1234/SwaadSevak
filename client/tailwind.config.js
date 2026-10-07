@@ -8,80 +8,101 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Espresso & Saffron System Tokens
-        espresso: '#2B1A12',
-        'espresso-50': '#FAF6F0',
-        'espresso-100': '#F5E9DD',
-        'espresso-800': '#3D2519',
-        'espresso-900': '#2B1A12',
-        'espresso-950': '#1A0F0A',
-        cocoa: '#3D2519',
-        'cocoa-light': '#4A2F21',
-        'cocoa-dark': '#2A180F',
-        walnut: '#5A3A28',
-        'walnut-light': '#6E4833',
-        cream: '#FFF8F1',
-        'cream-50': '#FFFAF5',
-        'cream-100': '#FFF8F1',
-        'cream-200': '#FDEEE0',
-        sand: '#F5E9DD',
-        'sand-50': '#FAF4ED',
-        'sand-100': '#F5E9DD',
-        'sand-200': '#E8D7C5',
-        'sand-300': '#D5BEAA',
-        orange: '#F97316',
-        'orange-50': '#FFF7ED',
-        'orange-100': '#FFEDD5',
-        'orange-200': '#FED7AA',
-        'orange-300': '#FDBA74',
-        'orange-400': '#FB923C',
-        'orange-500': '#F97316',
-        'orange-600': '#EA580C',
-        'orange-700': '#C2410C',
-        'orange-dark': '#C2410C',
-        bodyText: '#2B1A12',
-        bodyMuted: '#5A3A28',
-        success: '#16A34A',
+        // Design Token mappings (Saffron Cream default with CSS variable support)
+        theme: {
+          bg: 'var(--bg)',
+          'bg-alt': 'var(--bg-alt)',
+          surface: 'var(--surface)',
+          ink: 'var(--ink)',
+          muted: 'var(--muted)',
+          brand: 'var(--brand)',
+          'brand-deep': 'var(--brand-deep)',
+          turmeric: 'var(--turmeric)',
+          cardamom: 'var(--cardamom)',
+          masala: 'var(--masala)',
+          line: 'var(--line)',
+        },
+        brand: {
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f25c05', // Core Swaad Sevak Warm Saffron
+          600: '#ea580c',
+          700: '#c2410c', // Brand Deep
+          800: '#9a3412',
+          900: '#7c2d12',
+          DEFAULT: '#f25c05',
+        },
+        masala: {
+          DEFAULT: '#1B1226',
+          950: '#140c1d',
+          900: '#1B1226', // Deep aubergine-black
+          800: '#261b36',
+          700: '#38284f',
+        },
+        cardamom: {
+          DEFAULT: '#1F7A5C',
+          50: '#e8f5f0',
+          100: '#cbe7dd',
+          500: '#1F7A5C',
+          600: '#19634a',
+          700: '#124c39',
+        },
+        turmeric: {
+          DEFAULT: '#F5B83D',
+          50: '#fef9ee',
+          100: '#fdf1d3',
+          500: '#F5B83D',
+          600: '#e09e24',
+        },
+        status: {
+          incoming: {
+            bg: '#fef3c7',
+            text: '#92400e',
+            border: '#fde68a',
+            dot: '#f5b83d', // Turmeric dot
+          },
+          cooking: {
+            bg: '#eef2ff',
+            text: '#3730a3',
+            border: '#c7d2fe',
+            dot: '#4f46e5',
+          },
+          ready: {
+            bg: '#e8f5f0',
+            text: '#1f7a5c', // Cardamom text
+            border: '#b7e2d3',
+            dot: '#1f7a5c',
+          },
+          settled: {
+            bg: '#f5f2ef',
+            text: '#6b5b52', // Muted warm
+            border: '#e8e1dc',
+            dot: '#9e9087',
+          },
+          alert: {
+            bg: '#fee2e2',
+            text: '#991b1b',
+            border: '#fecaca',
+            dot: '#dc2626',
+          }
+        },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
-        hindi: ['Noto Sans Devanagari', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
-      },
-      borderRadius: {
-        'card': '20px',
-        'card-lg': '24px',
-        'pill': '9999px',
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px rgba(43, 26, 18, 0.08), 0 1px 4px -1px rgba(43, 26, 18, 0.04)',
-        'card': '0 8px 24px -4px rgba(43, 26, 18, 0.1), 0 2px 8px -2px rgba(43, 26, 18, 0.05)',
-        'elevated': '0 16px 40px -6px rgba(43, 26, 18, 0.25), 0 4px 14px -2px rgba(43, 26, 18, 0.1)',
-        'glow-orange': '0 0 32px -4px rgba(249, 115, 22, 0.45)',
-        'glow-hero': '0 0 80px -10px rgba(249, 115, 22, 0.25)',
+        'subtle': '0 1px 2px 0 rgba(30, 20, 16, 0.04)',
+        'card': '0 2px 8px -2px rgba(30, 20, 16, 0.06), 0 1px 4px -1px rgba(30, 20, 16, 0.04)',
+        'elevated': '0 8px 24px -4px rgba(30, 20, 16, 0.08), 0 4px 12px -2px rgba(30, 20, 16, 0.05)',
+        'dropdown': '0 12px 32px -4px rgba(30, 20, 16, 0.12)',
+        'glow-brand': '0 0 24px -4px rgba(242, 92, 5, 0.28)',
       },
-      maxWidth: {
-        'container': '980px',
-      },
-      keyframes: {
-        'float-slow': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-8px)' },
-        },
-        'shimmer': {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
-        },
-        'marquee': {
-          '0%': { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-50%)' },
-        },
-      },
-      animation: {
-        'float-slow': 'float-slow 4s ease-in-out infinite',
-        'shimmer': 'shimmer 2.5s infinite',
-        'marquee': 'marquee 25s linear infinite',
-      },
+      borderRadius: {
+        'card': '14px',
+      }
     },
   },
   plugins: [],

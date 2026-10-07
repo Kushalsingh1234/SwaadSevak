@@ -57,6 +57,32 @@ export default {
           500: '#F5B83D',
           600: '#e09e24',
         },
+        espresso: {
+          DEFAULT: '#2B1A12',
+          950: '#140c08',
+          900: '#1B120C',
+          800: '#251A12',
+          700: '#2B1A12',
+          600: '#3D281C',
+        },
+        sand: {
+          50: '#FAF8F5',
+          100: '#FAF4ED',
+          200: '#E5D7CA',
+          300: '#D5C3B2',
+          400: '#B8A796',
+          500: '#9E8D7C',
+        },
+        walnut: {
+          DEFAULT: '#3D281C',
+          light: '#4E3525',
+          dark: '#251A12',
+        },
+        cocoa: {
+          DEFAULT: '#3D281C',
+          light: '#4E3525',
+          dark: '#2B1A12',
+        },
         status: {
           incoming: {
             bg: '#fef3c7',

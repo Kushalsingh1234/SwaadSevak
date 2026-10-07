@@ -9,7 +9,7 @@ import {
   CustomerAiSummary
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5001/api';
 
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('swaad_token');

@@ -279,10 +279,10 @@ export const App: React.FC = () => {
           pendingOrdersCount={totalNeedsAttentionCount}
         />
 
-        <main className={`flex-1 min-w-0 pt-14 lg:pt-0 ${
+        <main className={`flex-1 min-w-0 pt-14 lg:pt-4 ${
           currentTab === 'orders'
-            ? 'p-2 sm:p-3.5 lg:p-4 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
-            : 'p-3 sm:p-5 lg:p-7 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
+            ? 'p-2 sm:p-3.5 lg:p-4 lg:pt-3 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
+            : 'p-3.5 sm:p-5 lg:p-6 lg:pt-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
         }`}>
           {currentTab === 'dashboard' && (
             <DashboardOverviewPage

@@ -414,36 +414,41 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
   return (
     <div className="space-y-5 w-full">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-xl border border-stone-200/80 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-sm transition-all">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-linear-to-tr from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0 ring-4 ring-amber-500/10">
             🪙
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <span>Customer Loyalty & CRM</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">
-                SwaadSevak Coins
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                Customer Loyalty & CRM
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-linear-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 text-amber-900 border border-amber-300/70 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" /> SwaadSevak Coins
               </span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Reward returning diners, build customer profiles, and automate retention
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Restaurant WhatsApp Device Link */}
           <button
             onClick={() => setShowWhatsAppModal(true)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border shadow-xs cursor-pointer ${
               isWhatsAppConnected
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:shadow-emerald-500/15'
+                : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:shadow-amber-500/15'
             }`}
             title="Connect your restaurant WhatsApp phone for automated campaign messaging"
           >
-            <span className={`w-2 h-2 rounded-full ${isWhatsAppConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isWhatsAppConnected ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isWhatsAppConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+            </span>
             <span>
               {isWhatsAppConnected ? `WhatsApp: ${whatsAppPhoneNumber || 'Connected'}` : '📱 Link Restaurant WhatsApp'}
             </span>
@@ -456,9 +461,9 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
               setSettings(prev => ({ ...prev, enabled: updated }));
               api.updateCrmSettings({ enabled: updated });
             }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border shadow-xs cursor-pointer ${
               settings.enabled
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:shadow-emerald-500/15'
                 : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'
             }`}
           >
@@ -469,7 +474,7 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-xs hover:shadow-sm active:scale-95 cursor-pointer disabled:opacity-50"
             title="Refresh CRM Data"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-orange-600' : ''}`} />

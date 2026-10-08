@@ -103,22 +103,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
 
           </div>
 
-          {/* Right Column: Visual Showcase Characters Cutout with Floating Status Badges (5.5 Cols on xl) */}
+          {/* Right Column: Visual Showcase Characters Cutout (5.5 Cols on xl) */}
           <div className="lg:col-span-6 xl:col-span-5 relative flex justify-center items-center py-4 lg:py-0">
             {/* Ambient Warm Glow behind Characters */}
             <div className="absolute inset-0 bg-gradient-to-t from-orange-500/25 via-amber-500/15 to-transparent rounded-full blur-3xl -z-10 pointer-events-none" />
-            
-            {/* Floating Live Badge Top Left */}
-            <div className="absolute -top-1 left-2 sm:-left-3 z-20 bg-[#24160F]/90 border border-orange-500/30 backdrop-blur-md rounded-2xl px-3 sm:px-3.5 py-1.5 sm:py-2 shadow-2xl flex items-center gap-2 hover:scale-105 transition-transform">
-              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] sm:text-xs font-black tracking-wide text-white">Live Orders • 0% Commission</span>
-            </div>
-
-            {/* Floating Live Badge Bottom Right */}
-            <div className="absolute -bottom-1 right-2 sm:-right-3 z-20 bg-[#24160F]/90 border border-amber-500/30 backdrop-blur-md rounded-2xl px-3 sm:px-3.5 py-1.5 sm:py-2 shadow-2xl flex items-center gap-2 hover:scale-105 transition-transform">
-              <Sparkles className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-400 shrink-0" />
-              <span className="text-[11px] sm:text-xs font-black tracking-wide text-amber-100">Swiggy &amp; Zomato Synced</span>
-            </div>
 
             {/* Character Illustration */}
             <div className="relative w-full flex items-center justify-center transition-transform hover:scale-[1.02] duration-500">

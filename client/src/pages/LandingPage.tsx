@@ -130,8 +130,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] max-w-4xl mx-auto">
-            Run your Restaurant <br className="hidden sm:block" />
-            <span className="text-brand-500">without the chaos.</span>
+            Run Your Restaurant. <br className="hidden sm:block" />
+            <span className="text-brand-500">Grow It Smarter.</span>
           </h1>
 
           {/* Subline */}

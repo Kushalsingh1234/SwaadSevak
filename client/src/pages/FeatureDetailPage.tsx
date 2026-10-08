@@ -26,7 +26,10 @@ import {
   HelpCircle,
   Smartphone,
   Wifi,
-  Laptop
+  Laptop,
+  TrendingUp,
+  Users,
+  PieChart
 } from 'lucide-react';
 
 export interface FeatureData {
@@ -52,10 +55,10 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     icon: QrCode,
     iconBg: 'bg-amber-500/10 border border-amber-500/30',
     iconColor: 'text-amber-400',
-    title: 'Smart QR Table Ordering & Digital Waiter Call',
-    subtitle: 'Frictionless mobile web dining without app downloads or guest registration',
+    title: 'Smart QR Table Ordering & Waiter Call',
+    subtitle: 'Let Guests Order. Let Your Team Focus on Service.',
     heroDescription:
-      'Empower your diners to browse your full visual catalog, customize spice levels & portion sizes, submit running orders, request bills, or summon waitstaff with a single tap from their phone camera.',
+      'Guests simply scan the table QR to open your digital menu, explore veg/non-veg options, customize their order and place it directly from their phone. They can also call a waiter or request the bill in seconds.\n\n• No app download required\n• Digital menu with food preferences\n• Customizable portions & add-ons\n• Direct table ordering\n• One-tap waiter & bill requests',
     stats: [
       { label: 'Wait Time Reduction', value: '70%', desc: 'Faster order placement from seating to chef dispatch' },
       { label: 'Average Ticket Lift', value: '+24%', desc: 'Higher average order value from rich visual menu photos' },
@@ -144,10 +147,10 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     icon: Flame,
     iconBg: 'bg-orange-500/10 border border-orange-500/30',
     iconColor: 'text-orange-400',
-    title: 'Live Kitchen Dispatch & Audio Sound Alerts',
-    subtitle: 'Zero delay between table orders and chef pans with 3-column live command',
+    title: 'Live Kitchen Display & Order Management',
+    subtitle: 'Keep Every Order Moving.',
     heroDescription:
-      'A real-time kitchen command screen that tracks tickets across Incoming, Cooking, and Ready columns. Features continuous loop audio chimes so line cooks never miss a rush order.',
+      'Orders appear instantly on the kitchen display as soon as they are placed. Kitchen staff can manage tickets through Incoming → Cooking → Ready, with clear status updates and instant alerts.\n\nReduce missed orders, improve kitchen coordination and get food out faster.\n\n• Real-time order updates\n• Custom kitchen sound alerts\n• Simple ticket management\n• Incoming → Cooking → Ready\n• Faster order fulfillment',
     stats: [
       { label: 'Order Dispatch Lag', value: '0 sec', desc: 'Direct WebSocket stream from table scan to kitchen display' },
       { label: 'Ticket Loss Rate', value: '0%', desc: 'Digital tracking replaces lost paper slips and confusion' },
@@ -227,10 +230,10 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     icon: Printer,
     iconBg: 'bg-purple-500/10 border border-purple-500/30',
     iconColor: 'text-purple-400',
-    title: 'Thermal KOT & POS Station Printing',
-    subtitle: 'Plug-and-play auto printing for 80mm & 58mm ESC/POS thermal printers',
+    title: 'Thermal KOT & POS Printing',
+    subtitle: 'Print Every Order Where It Belongs.',
     heroDescription:
-      'Directly print formatted kitchen order tickets (KOT) and customer billing receipts to USB, LAN (Ethernet/WiFi), and Bluetooth thermal printers with zero driver headaches.',
+      'Automatically send KOTs, bills and order tickets to the right printer or station. Support 80mm and 58mm thermal printers through USB, Bluetooth or LAN for fast, reliable restaurant printing.\n\n• Automatic KOT printing\n• 80mm & 58mm thermal printers\n• USB, Bluetooth & LAN support\n• Station-wise order routing\n• Formatted kitchen tickets\n• Running order additions',
     stats: [
       { label: 'Printer Support', value: '80mm & 58mm', desc: 'Standard ESC/POS thermal receipts and compact kitchen slips' },
       { label: 'Print Latency', value: '< 1 sec', desc: 'Instant hardware print trigger on order placement' },
@@ -310,9 +313,9 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     iconBg: 'bg-gradient-to-br from-amber-500/20 to-emerald-500/20 border border-amber-500/40',
     iconColor: 'text-amber-400',
     title: 'SwaadSevak CRM & AI Customer Growth Engine',
-    subtitle: 'Know customers, reward Discount Coins, predict churn, and automate profitable WhatsApp campaigns',
+    subtitle: "Your restaurant's data. Your customers. Your next growth opportunity.",
     heroDescription:
-      'Built specifically for fast, frictionless QR dining. Guests never need an app or OTP. Track anonymous dining habits, reward identified regulars with Discount Coins, detect at-risk churn using RFM intelligence, and execute margin-aware WhatsApp campaigns with verified incremental revenue attribution.',
+      'Automatically understand customer behavior, identify high-value and at-risk customers, create targeted segments, and launch personalized campaigns that bring customers back.\n\nFrom customer intelligence to campaign execution and results — SwaadSevak connects the entire growth cycle in one place.',
     stats: [
       { label: 'Frictionless QR Dining', value: '0 OTP', desc: 'Instant 1-tap mobile identification without forcing account creation' },
       { label: 'Repeat Visit Rate', value: '+42%', desc: 'Lift in 30-day diner re-engagement with Discount Coin incentives' },
@@ -402,9 +405,9 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     iconBg: 'bg-blue-500/10 border border-blue-500/30',
     iconColor: 'text-blue-400',
     title: 'High-Speed Billing & Split Payments',
-    subtitle: 'Ultra-fast counter checkout built for 200+ orders per hour rush',
+    subtitle: 'Bill Faster. Serve Faster. Keep the Rush Moving.',
     heroDescription:
-      'Lightning-fast 3-touch checkout flow supporting split tender (Cash, UPI QR, Card, and Swaad Coins), custom tax invoices, service charges, and daily shift cash drawer reconciliation audits.',
+      'Make checkout quick and effortless with a streamlined billing flow built for busy restaurants. Accept Cash, UPI, QR and Card payments while easily splitting bills and keeping every transaction organized.\n\n• Fast checkout\n• Cash, UPI, QR & Card payments\n• Easy split payments\n• Quick bill settlement\n• Daily shift & payment records',
     stats: [
       { label: 'Checkout Time', value: '< 3 sec', desc: 'Average time to tender and print a customer receipt' },
       { label: 'Split Payments', value: 'Multi-Tender', desc: 'Accept Cash + UPI + Swaad Coins in a single settlement' },
@@ -545,16 +548,86 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
       }
     ]
   },
+  'analytics': {
+    id: 'analytics',
+    tag: 'Operational Intelligence',
+    icon: BarChart3,
+    iconBg: 'bg-indigo-500/10 border border-indigo-500/30',
+    iconColor: 'text-indigo-400',
+    title: 'SwaadSevak Analytics',
+    subtitle: 'See What’s Happening Across Your Restaurant.',
+    heroDescription:
+      'Turn your restaurant\'s sales, customer, order and product data into clear, easy-to-understand insights.\n\nTrack performance, discover trends, compare results and understand what is driving your restaurant\'s business — all from one simple dashboard.\n\nSales. Customers. Orders. Products. Retention. Campaigns.\n\nEverything you need to understand your restaurant, in one place.',
+    stats: [
+      { label: 'Real-time Metrics', value: 'Live Stream', desc: 'Instant visibility across revenue, orders, covers & average bill value' },
+      { label: 'Trend Detection', value: 'Automated', desc: 'Discover peak rush hours, top menu items & customer retention health' },
+      { label: 'Unified View', value: '100% Connected', desc: 'All dine-in, takeaway, QR orders and WhatsApp campaigns in one place' }
+    ],
+    howItWorks: [
+      {
+        step: '01',
+        title: 'Centralize Restaurant Operations Data',
+        desc: 'Every transaction, customer visit, and table order is organized automatically without messy spreadsheets.'
+      },
+      {
+        step: '02',
+        title: 'Understand Performance & Customer Patterns',
+        desc: 'Compare daily, weekly, and monthly numbers, see peak sales periods, and understand repeat diner trends.'
+      },
+      {
+        step: '03',
+        title: 'Make Confident Business Decisions',
+        desc: 'Know exactly what drives your performance to optimize your menu, staffing, marketing campaigns, and growth.'
+      }
+    ],
+    keyCapabilities: [
+      {
+        title: 'Sales & Revenue Tracking',
+        desc: 'Track daily, weekly, and monthly revenue, order volumes, peak sales hours, and revenue trends.',
+        icon: TrendingUp
+      },
+      {
+        title: 'Customer & Retention Insights',
+        desc: 'Monitor new vs returning diners, visit frequency, spend tiers, and loyalty coin usage.',
+        icon: Users
+      },
+      {
+        title: 'Product & Menu Performance',
+        desc: 'Identify your top revenue drivers, high-margin combos, and slow-moving items with clarity.',
+        icon: PieChart
+      }
+    ],
+    benefits: [
+      {
+        role: 'For Restaurant Owners & Managers',
+        points: [
+          'Understand the health of your restaurant in seconds without tedious manual reporting',
+          'Identify what menu items and campaigns actually generate real bottom-line profit',
+          'Make clear, data-backed decisions based on unified restaurant numbers'
+        ]
+      }
+    ],
+    faqs: [
+      {
+        q: 'How frequently does SwaadSevak Analytics update?',
+        a: 'Analytics update in real-time with every completed transaction and order placed.'
+      },
+      {
+        q: 'Can I compare performance across different date ranges?',
+        a: 'Yes. You can compare today vs yesterday, this week vs last week, or custom date ranges easily.'
+      }
+    ]
+  },
   'growth-engine': {
     id: 'growth-engine',
     tag: 'AI Intelligence',
     icon: Sparkles,
     iconBg: 'bg-emerald-500/10 border border-emerald-500/30',
     iconColor: 'text-emerald-400',
-    title: 'AI Growth Engine & Menu Profitability Matrix',
-    subtitle: 'Your POS tells you what happened; Growth Engine tells you what to do',
+    title: 'SwaadSevak AI Growth Engine',
+    subtitle: 'Turn Your Restaurant Data Into Your Next Growth Opportunity.',
     heroDescription:
-      'Transforms raw sales logs into prioritized revenue actions. Uses menu engineering matrices to classify dishes into high-margin "Stars" vs low-profit "Dogs", recommending high-yield combo bundles.',
+      'The Growth Engine continuously analyzes your sales and customer data to find opportunities to increase repeat visits, recover inactive customers, improve retention and grow revenue.\n\nIt doesn\'t just tell you what happened. It identifies what needs attention, recommends what to do next, helps you launch the right campaign, and measures the results.\n\nDiscover opportunities • Take action • Measure growth • Repeat.',
     stats: [
       { label: 'Gross Margin Expansion', value: '+18%', desc: 'Average margin lift through menu engineering' },
       { label: 'POS Compatibility', value: 'Universal', desc: 'Import CSV/Excel from Petpooja, Posist, UrbanPiper & more' },
@@ -623,9 +696,9 @@ export const FEATURES_DATA: Record<string, FeatureData> = {
     iconBg: 'bg-amber-500/10 border border-amber-500/30',
     iconColor: 'text-amber-400',
     title: 'Tables & Printable Standee QRs',
-    subtitle: 'Configure dining tables and export print-ready high-res standee QRs in 1 click',
+    subtitle: 'Give Every Table Its Own Digital Doorway.',
     heroDescription:
-      'Manage dining areas (Indoor, Rooftop, Patio, AC Hall), assign unique high-res table QR standees with custom restaurant branding, and export batch printable PDFs and PNGs.',
+      'Create and manage your restaurant tables, generate branded QR standees and get them ready for printing in just a few clicks. Keep your QR experience consistent with your restaurant\'s identity.\n\n• Unlimited table configuration\n• Custom branded QR standees\n• High-resolution PDF & PNG export\n• Ready-to-print designs\n• Easy table management',
     stats: [
       { label: 'Batch Export Speed', value: '1 Click', desc: 'Download all table standees in a single formatted PDF or ZIP' },
       { label: 'Section Support', value: 'Unlimited', desc: 'Indoor, Outdoor, Bar, Balcony, Rooftop & Private Dining' },
@@ -762,9 +835,11 @@ export const FeatureDetailPage: React.FC<FeatureDetailPageProps> = ({
               {feature.subtitle}
             </p>
 
-            <p className="text-base sm:text-lg text-stone-300 leading-relaxed font-normal mb-8">
-              {feature.heroDescription}
-            </p>
+            <div className="text-base sm:text-lg text-stone-300 leading-relaxed font-normal mb-8 space-y-3">
+              {feature.heroDescription.split('\n\n').map((paragraph, pIdx) => (
+                <p key={pIdx}>{paragraph}</p>
+              ))}
+            </div>
 
             <div className="flex flex-wrap items-center gap-4">
               <a

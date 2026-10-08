@@ -230,13 +230,14 @@ export const WhyUsSection: React.FC = () => {
   ];
 
   return (
-    <section
-      id="why-us"
-      className="py-14 sm:py-20 font-sans relative overflow-hidden text-white"
-      style={{ backgroundColor: '#2B1A12' }}
-    >
-      {/* Subtle Ambient Lighting */}
-      <div className="absolute top-10 left-1/4 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[160px] pointer-events-none -z-0" />
+    <div className="overflow-hidden" style={{ backgroundColor: '#FFF8F1' }}>
+      <section
+        id="why-us"
+        className="py-14 sm:py-20 font-sans relative overflow-hidden text-white rounded-b-[2.5rem] sm:rounded-b-[3.5rem] lg:rounded-b-[4.5rem]"
+        style={{ backgroundColor: '#2B1A12' }}
+      >
+        {/* Subtle Ambient Lighting */}
+        <div className="absolute top-10 left-1/4 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[160px] pointer-events-none -z-0" />
       <div className="absolute bottom-10 right-1/4 w-[550px] h-[450px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none -z-0" />
 
       {/* Subtle Warm Grid Texture */}
@@ -546,5 +547,6 @@ export const WhyUsSection: React.FC = () => {
 
       </div>
     </section>
+  </div>
   );
 };

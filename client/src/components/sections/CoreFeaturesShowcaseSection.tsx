@@ -75,14 +75,22 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
               </div>
 
               {/* Title */}
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2.5">
                 SwaadSevak CRM &amp; AI Customer Growth Engine
               </h3>
 
               {/* Description */}
-              <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl mb-6">
-                Engineered specifically for high-speed restaurant QR dining without Salesforce bloat. Turn 1-time anonymous diners into repeat VIP regulars: track dining habits, reward Discount Coins (0-OTP), predict at-risk churn, and automatically execute margin-aware WhatsApp campaigns with 100% verified POS revenue attribution.
-              </p>
+              <div className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl mb-6 space-y-2">
+                <p className="font-semibold text-amber-300/90 text-sm sm:text-[15px]">
+                  Your restaurant's data. Your customers. Your next growth opportunity.
+                </p>
+                <p className="text-stone-300 text-xs sm:text-sm">
+                  Automatically understand customer behavior, identify high-value and at-risk customers, create targeted segments, and launch personalized campaigns that bring customers back.
+                </p>
+                <p className="text-stone-400 text-xs sm:text-sm">
+                  From customer intelligence to campaign execution and results — SwaadSevak connects the entire growth cycle in one place.
+                </p>
+              </div>
             </div>
 
             {/* Inner Dark Action Bar - Compact & Luxury */}
@@ -112,7 +120,110 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
           </div>
 
 
-          {/* ==================== CARD 2 (WHITE CARD - LIVE KITCHEN BOARD) ==================== */}
+          {/* ==================== CARD 2 (WHITE CARD - SWAADSEVAK AI GROWTH ENGINE) ==================== */}
+          <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <a
+                  href="#feature-growth-engine"
+                  onClick={(e) => handleFeatureClick(e, 'growth-engine')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors group cursor-pointer"
+                >
+                  <span>Know More</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+              </div>
+
+              <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
+                SwaadSevak AI Growth Engine
+              </h3>
+
+              <div className="space-y-2.5 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-emerald-700">
+                  Turn Your Restaurant Data Into Your Next Growth Opportunity.
+                </p>
+                <p>
+                  The Growth Engine continuously analyzes your sales and customer data to find opportunities to increase repeat visits, recover inactive customers, improve retention and grow revenue.
+                </p>
+                <p className="text-stone-500">
+                  It doesn't just tell you what happened. It identifies what needs attention, recommends what to do next, helps you launch the right campaign, and measures the results.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-emerald-700">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span>Discover • Action • Growth • Repeat</span>
+              </div>
+              <a
+                href="#feature-growth-engine"
+                onClick={(e) => handleFeatureClick(e, 'growth-engine')}
+                className="text-stone-500 hover:text-emerald-700 font-semibold cursor-pointer"
+              >
+                Details &rarr;
+              </a>
+            </div>
+          </div>
+
+
+          {/* ==================== CARD 3 (WHITE CARD - SWAADSEVAK ANALYTICS) ==================== */}
+          <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                  <BarChart3 className="w-6 h-6" />
+                </div>
+                <a
+                  href="#feature-analytics"
+                  onClick={(e) => handleFeatureClick(e, 'analytics')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 transition-colors group cursor-pointer"
+                >
+                  <span>Know More</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+              </div>
+
+              <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
+                SwaadSevak Analytics
+              </h3>
+
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-indigo-700">
+                  See What’s Happening Across Your Restaurant.
+                </p>
+                <p>
+                  Turn your restaurant's sales, customer, order and product data into clear, easy-to-understand insights.
+                </p>
+                <p>
+                  Track performance, discover trends, compare results and understand what is driving your restaurant's business — all from one simple dashboard.
+                </p>
+                <p className="text-stone-500 text-[11px] sm:text-xs pt-1 border-t border-stone-100 font-medium">
+                  Sales • Customers • Orders • Products • Retention • Campaigns
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-indigo-700">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                <span>Unified Intelligence Dashboard</span>
+              </div>
+              <a
+                href="#feature-analytics"
+                onClick={(e) => handleFeatureClick(e, 'analytics')}
+                className="text-stone-500 hover:text-indigo-700 font-semibold cursor-pointer"
+              >
+                Details &rarr;
+              </a>
+            </div>
+          </div>
+
+
+          {/* ==================== CARD 4 (WHITE CARD - LIVE KITCHEN BOARD) ==================== */}
           <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
             <div>
               <div className="flex items-center justify-between mb-5">
@@ -130,18 +241,26 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
               </div>
 
               <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
-                Live Kitchen Dispatch &amp; Sound Alerts
+                Live Kitchen Display &amp; Order Management
               </h3>
 
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Orders appear instantly with custom audio sound chimes. Kitchen staff smoothly move tickets from Incoming → Cooking → Ready with 1 tap.
-              </p>
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-amber-700">
+                  Keep Every Order Moving.
+                </p>
+                <p>
+                  Orders appear instantly on the kitchen display as soon as they are placed. Kitchen staff can manage tickets through Incoming → Cooking → Ready, with clear status updates and instant alerts.
+                </p>
+                <p className="text-stone-500">
+                  Reduce missed orders, improve kitchen coordination and get food out faster.
+                </p>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-amber-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                <span>Audio ting on every ticket</span>
+                <span>Instant Ticket Workflow</span>
               </div>
               <a
                 href="#feature-live-kot"
@@ -154,7 +273,7 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
           </div>
 
 
-          {/* ==================== CARD 3 (WHITE CARD - THERMAL PRINTER) ==================== */}
+          {/* ==================== CARD 5 (WHITE CARD - THERMAL PRINTER) ==================== */}
           <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
             <div>
               <div className="flex items-center justify-between mb-5">
@@ -172,18 +291,49 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
               </div>
 
               <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
-                Thermal KOT &amp; POS Station Printing
+                Thermal KOT &amp; POS Printing
               </h3>
 
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Automatic direct printing to 80mm and 58mm thermal printers over USB, Bluetooth, or LAN. Formatted tickets with running additions and station tags.
-              </p>
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-purple-700">
+                  Print Every Order Where It Belongs.
+                </p>
+                <p>
+                  Automatically send KOTs, bills and order tickets to the right printer or station. Support 80mm and 58mm thermal printers through USB, Bluetooth or LAN for fast, reliable restaurant printing.
+                </p>
+                <div className="pt-2 border-t border-stone-100 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] sm:text-xs text-stone-600 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>Automatic KOT printing</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>80mm &amp; 58mm thermal</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>USB, Bluetooth &amp; LAN</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>Station-wise routing</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>Formatted kitchen tickets</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>Running order additions</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-purple-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
-                <span>80mm POS &amp; 58mm compact slips</span>
+                <span>Smart station-wise printing</span>
               </div>
               <a
                 href="#feature-thermal-printer"
@@ -196,7 +346,7 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
           </div>
 
 
-          {/* ==================== CARD 4 (WHITE CARD - SMART QR TABLE ORDERING) ==================== */}
+          {/* ==================== CARD 6 (WHITE CARD - SMART QR TABLE ORDERING) ==================== */}
           <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
             <div>
               <div className="flex items-center justify-between mb-5">
@@ -217,15 +367,42 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
                 Smart QR Table Ordering &amp; Waiter Call
               </h3>
 
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Guests scan the table standee directly from phone camera to browse digital menus with veg/non-veg tags, customize portion sizes, place orders, or request bills in 1 tap.
-              </p>
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-orange-700">
+                  Let Guests Order. Let Your Team Focus on Service.
+                </p>
+                <p>
+                  Guests simply scan the table QR to open your digital menu, explore veg/non-veg options, customize their order and place it directly from their phone. They can also call a waiter or request the bill in seconds.
+                </p>
+                <div className="pt-2 border-t border-stone-100 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] sm:text-xs text-stone-600 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span>No app download required</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span>Digital dietary menu</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span>Custom portions &amp; add-ons</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span>Direct table ordering</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 col-span-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span>One-tap waiter &amp; bill requests</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-orange-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
-                <span>No App Download Required</span>
+                <span>Scan. Order. Call. Done.</span>
               </div>
               <a
                 href="#feature-qr-ordering"
@@ -238,7 +415,7 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
           </div>
 
 
-          {/* ==================== CARD 5 (WHITE CARD - COUNTER POS) ==================== */}
+          {/* ==================== CARD 7 (WHITE CARD - COUNTER POS) ==================== */}
           <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
             <div>
               <div className="flex items-center justify-between mb-5">
@@ -259,104 +436,47 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
                 High-Speed Billing &amp; Split Payments
               </h3>
 
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                High-speed 3-touch checkout flow for peak rush. Settle bills across Cash, UPI QR, Card, and Swaad Coin redemptions with daily shift audit ledgers.
-              </p>
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-blue-700">
+                  Bill Faster. Serve Faster. Keep the Rush Moving.
+                </p>
+                <p>
+                  Make checkout quick and effortless with a streamlined billing flow built for busy restaurants. Accept Cash, UPI, QR and Card payments while easily splitting bills and keeping every transaction organized.
+                </p>
+                <div className="pt-2 border-t border-stone-100 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] sm:text-xs text-stone-600 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span>Fast checkout</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span>Cash, UPI, QR &amp; Card</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span>Easy split payments</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span>Quick bill settlement</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 col-span-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span>Daily shift &amp; payment records</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-blue-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                <span>Split tender &amp; &lt; 3s checkout</span>
+                <span>Split the bill. Close in seconds.</span>
               </div>
               <a
                 href="#feature-pos-billing"
                 onClick={(e) => handleFeatureClick(e, 'pos-billing')}
                 className="text-stone-500 hover:text-blue-700 font-semibold cursor-pointer"
-              >
-                Details &rarr;
-              </a>
-            </div>
-          </div>
-
-
-          {/* ==================== CARD 6 (WHITE CARD - MENU OCR & 86) ==================== */}
-          <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
-                  <Store className="w-6 h-6" />
-                </div>
-                <a
-                  href="#feature-menu-ocr"
-                  onClick={(e) => handleFeatureClick(e, 'menu-ocr')}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-orange-700 hover:text-orange-900 transition-colors group cursor-pointer"
-                >
-                  <span>Know More</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                </a>
-              </div>
-
-              <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
-                AI Menu Scanner &amp; 86 Stock Toggles
-              </h3>
-
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Ran out of paneer? Toggle an item to "86 / Sold Out" in one tap to update every live table QR. Digitize physical menu cards from photo or PDF in 30 seconds.
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-orange-700">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
-                <span>Real-time stock sync &amp; AI OCR</span>
-              </div>
-              <a
-                href="#feature-menu-ocr"
-                onClick={(e) => handleFeatureClick(e, 'menu-ocr')}
-                className="text-stone-500 hover:text-orange-700 font-semibold cursor-pointer"
-              >
-                Details &rarr;
-              </a>
-            </div>
-          </div>
-
-
-          {/* ==================== CARD 7 (WHITE CARD - AI GROWTH ENGINE) ==================== */}
-          <div className="rounded-[2rem] p-7 sm:p-8 flex flex-col justify-between bg-white shadow-xl text-left transition-all duration-200 hover:-translate-y-1">
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <a
-                  href="#feature-growth-engine"
-                  onClick={(e) => handleFeatureClick(e, 'growth-engine')}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors group cursor-pointer"
-                >
-                  <span>Know More</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                </a>
-              </div>
-
-              <h3 className="text-xl font-bold text-stone-900 tracking-tight mb-2">
-                AI Growth Engine &amp; Menu Matrix
-              </h3>
-
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Analyzes your item sales against profitability to identify high-margin "Stars" vs low-margin "Dogs", recommending proven combo deals to lift ticket size.
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-emerald-700">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>Margin optimization &amp; combos</span>
-              </div>
-              <a
-                href="#feature-growth-engine"
-                onClick={(e) => handleFeatureClick(e, 'growth-engine')}
-                className="text-stone-500 hover:text-emerald-700 font-semibold cursor-pointer"
               >
                 Details &rarr;
               </a>
@@ -385,15 +505,42 @@ export const CoreFeaturesShowcaseSection: React.FC<CoreFeaturesShowcaseSectionPr
                 Tables &amp; Printable Standee QRs
               </h3>
 
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Add and configure dining tables, generate custom standee QRs with your restaurant branding, and export ready-to-print high-res PDF/PNG standees in 1 click.
-              </p>
+              <div className="space-y-2 text-stone-600 text-xs sm:text-[13px] leading-relaxed mb-6">
+                <p className="font-semibold text-amber-700">
+                  Give Every Table Its Own Digital Doorway.
+                </p>
+                <p>
+                  Create and manage your restaurant tables, generate branded QR standees and get them ready for printing in just a few clicks. Keep your QR experience consistent with your restaurant's identity.
+                </p>
+                <div className="pt-2 border-t border-stone-100 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] sm:text-xs text-stone-600 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>Unlimited table setup</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>Custom branded standees</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>High-res PDF &amp; PNG export</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>Ready-to-print designs</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 col-span-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>Easy table management</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-2 text-xs font-bold text-amber-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                <span>Printable standees &amp; ZIP export</span>
+                <span>Branded QRs. Ready to Print.</span>
               </div>
               <a
                 href="#feature-tables-standees"

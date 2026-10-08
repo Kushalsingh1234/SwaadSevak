@@ -5,7 +5,6 @@ import { HeroSection } from './components/sections/HeroSection';
 import { CoreFeaturesShowcaseSection } from './components/sections/CoreFeaturesShowcaseSection';
 import { ProductTabsSection } from './components/sections/ProductTabsSection';
 import { WhyUsSection } from './components/sections/WhyUsSection';
-import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
 import { EcosystemSection } from './components/sections/EcosystemSection';
 import { MetricsBandSection } from './components/sections/MetricsBandSection';
 import { AccordionBenefitsSection } from './components/sections/AccordionBenefitsSection';
@@ -30,6 +29,7 @@ import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { GrowthEnginePage } from './pages/GrowthEnginePage';
 import { CrmPage } from './pages/CrmPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
+import { FeatureDetailPage } from './pages/FeatureDetailPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
 import { api } from './services/api';
@@ -48,11 +48,19 @@ export const App: React.FC = () => {
     return <CustomerMenuPage restaurantSlug={restaurantSlug} qrToken={qrToken} />;
   }
 
-  const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard' | 'website-inquiry'>(() => {
+  const [activeFeatureId, setActiveFeatureId] = useState<string>(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash.startsWith('#feature-')) return hash.replace('#feature-', '');
+    if (hash.startsWith('#features/')) return hash.replace('#features/', '');
+    return 'qr-ordering';
+  });
+
+  const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard' | 'website-inquiry' | 'feature-detail'>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash === '#login') return 'login';
     if (hash === '#register') return 'register';
     if (hash === '#website-inquiry' || hash === '#website-service' || hash === '#website') return 'website-inquiry';
+    if (hash.startsWith('#feature-') || hash.startsWith('#features/')) return 'feature-detail';
     if (hash === '#dashboard' && localStorage.getItem('swaad_token')) return 'dashboard';
     return 'landing';
   });
@@ -92,6 +100,10 @@ export const App: React.FC = () => {
         setView('register');
       } else if (hash === '#website-inquiry' || hash === '#website-service' || hash === '#website') {
         setView('website-inquiry');
+      } else if (hash.startsWith('#feature-') || hash.startsWith('#features/')) {
+        const featId = hash.startsWith('#feature-') ? hash.replace('#feature-', '') : hash.replace('#features/', '');
+        setActiveFeatureId(featId);
+        setView('feature-detail');
       } else if (hash === '#dashboard') {
         setView('dashboard');
       } else if (hash === '#landing' || hash === '' || hash.startsWith('#features') || hash.startsWith('#why-us') || hash.startsWith('#calculator') || hash.startsWith('#ecosystem') || hash.startsWith('#products')) {
@@ -267,6 +279,23 @@ export const App: React.FC = () => {
     );
   }
 
+  // View: Feature Deep-Dive Detail Page
+  if (view === 'feature-detail') {
+    return (
+      <FeatureDetailPage
+        featureId={activeFeatureId}
+        onNavigateHome={() => {
+          setView('landing');
+          window.location.hash = '';
+        }}
+        onSelectFeature={(featId) => {
+          setActiveFeatureId(featId);
+          window.location.hash = `#feature-${featId}`;
+        }}
+      />
+    );
+  }
+
   // View: POS Platform Dashboard
   if (view === 'dashboard') {
     return (
@@ -428,7 +457,7 @@ export const App: React.FC = () => {
 
   // View: Landing Page (Default)
   return (
-    <div className="min-h-screen flex flex-col bg-cream text-espresso antialiased selection:bg-orange-500 selection:text-espresso font-sans">
+    <div className="min-h-screen flex flex-col bg-[#1A0F0A] text-stone-100 antialiased selection:bg-orange-500 selection:text-espresso font-sans overflow-x-hidden w-full max-w-[100vw]">
       {/* 0. SEO Meta & Structured JSON-LD */}
       <SEO />
 
@@ -453,20 +482,21 @@ export const App: React.FC = () => {
         }} />
 
         {/* 2.5. Attention-Grabbing Detailed Core Feature Showcase */}
-        <CoreFeaturesShowcaseSection />
+        <CoreFeaturesShowcaseSection
+          onSelectFeature={(featId) => {
+            setActiveFeatureId(featId);
+            setView('feature-detail');
+            window.location.hash = `#feature-${featId}`;
+          }}
+        />
 
         {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
         <ProductTabsSection />
 
-        {/* 5. Dark "Why Us" Section (4 Cards in One Line) */}
+        {/* 5. Why Choose SwaadSevak (Platform Analysis & Value Pillars) */}
         <WhyUsSection />
 
-        {/* 6. Features Bento Grid (8 Key Operational Capabilities) */}
-        <div className="bg-[#FFF8F1]">
-          <FeaturesBentoSection />
-        </div>
-
-        {/* 7. Ecosystem on White (2x2 Grid of Sand-Tinted Cards) */}
+        {/* 6. Ecosystem on White (2x2 Grid of Sand-Tinted Cards) */}
         <EcosystemSection />
 
         {/* 8. Accordion Benefits (What SwaadSevak Can Do For You + Team Illustration) */}

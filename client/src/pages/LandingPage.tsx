@@ -1195,14 +1195,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Mobile Sticky CTA Bar */}
       {showStickyCta && (
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#140D08]/95 backdrop-blur-md p-3 border-t border-white/[0.1] flex items-center justify-between gap-3 shadow-2xl animate-fade-in">
-          <div>
-            <p className="text-xs font-bold text-white leading-tight">Start Swaad Sevak</p>
-            <p className="text-[10px] text-slate-300">14-day free trial • No card</p>
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#140D08]/95 backdrop-blur-md p-3 pb-safe border-t border-white/[0.1] flex items-center justify-between gap-3 shadow-2xl animate-fade-in">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-white leading-tight truncate">Start Swaad Sevak</p>
+            <p className="text-[10px] text-slate-300 truncate">14-day free trial • No card</p>
           </div>
           <button
             onClick={onStartRegistration}
-            className="px-4 py-2 rounded-lg bg-brand-500 text-white font-bold text-xs shadow-xs"
+            className="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-xs shrink-0 active:scale-95 transition-all"
           >
             Start Free
           </button>

@@ -269,24 +269,34 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Mobile Drawer (When hamburger clicked) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end">
-          <div className="bg-[#1B1226] border-t border-white/[0.1] rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto space-y-4">
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col justify-end"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div 
+            className="bg-[#1B1226] border-t border-white/[0.1] rounded-t-3xl p-4 sm:p-5 max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl animate-in slide-in-from-bottom-5 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2">
-                <Logo variant="mark" theme="dark" size={24} />
-                <span className="font-bold text-sm text-white">{restaurant?.name || 'Swaad Sevak'}</span>
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <Logo variant="mark" theme="dark" size={26} />
+                <div className="overflow-hidden">
+                  <span className="font-bold text-sm text-white block truncate">{restaurant?.name || 'Swaad Sevak'}</span>
+                  <span className="text-[10px] text-slate-400 block truncate">{restaurant?.city || 'Dining Room'}</span>
+                </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white"
+                className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/[0.05] active:scale-95 transition-all"
+                aria-label="Close navigation drawer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Operations</p>
-              <div className="grid grid-cols-2 gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Operations</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {operationItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentTab === item.id;
@@ -297,16 +307,16 @@ export const Navigation: React.FC<NavigationProps> = ({
                         setCurrentTab(item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`flex items-center gap-2 p-3 rounded-xl text-left border text-xs font-medium transition-colors ${
+                      className={`flex items-center gap-2.5 p-3 rounded-xl text-left border text-xs font-semibold transition-all active:scale-98 ${
                         isActive
-                          ? 'bg-brand-500/15 border-brand-500/40 text-brand-400'
-                          : 'bg-white/[0.03] border-white/[0.06] text-slate-300'
+                          ? 'bg-brand-500/15 border-brand-500/40 text-brand-400 shadow-xs'
+                          : 'bg-white/[0.03] border-white/[0.06] text-slate-200 hover:bg-white/[0.06]'
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
                       <span className="truncate">{item.label}</span>
                       {item.badge !== null && item.badge !== undefined && (
-                        <span className="ml-auto px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+                        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
                           {item.badge}
                         </span>
                       )}
@@ -317,8 +327,8 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
 
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Business</p>
-              <div className="grid grid-cols-2 gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Business & Growth</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {businessItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentTab === item.id;
@@ -329,25 +339,33 @@ export const Navigation: React.FC<NavigationProps> = ({
                         setCurrentTab(item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`flex items-center gap-2 p-3 rounded-xl text-left border text-xs font-medium transition-colors ${
+                      className={`flex items-center gap-2.5 p-3 rounded-xl text-left border text-xs font-semibold transition-all active:scale-98 ${
                         isActive
-                          ? 'bg-brand-500/15 border-brand-500/40 text-brand-400'
-                          : 'bg-white/[0.03] border-white/[0.06] text-slate-300'
+                          ? 'bg-brand-500/15 border-brand-500/40 text-brand-400 shadow-xs'
+                          : 'bg-white/[0.03] border-white/[0.06] text-slate-200 hover:bg-white/[0.06]'
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
                       <span className="truncate">{item.label}</span>
+                      {(item as any).badge && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-xs">
+                          {(item as any).badge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-              <span className="text-xs text-slate-400">{manager?.username || 'Manager'}</span>
+            <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs text-slate-300 font-medium truncate">{manager?.username || 'Shift Manager'}</span>
+              </div>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 font-medium py-1 px-2"
+                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 font-semibold py-1.5 px-3 rounded-lg bg-red-500/10 border border-red-500/20 active:scale-95 transition-all"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>
@@ -357,8 +375,11 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       )}
 
-      {/* Mobile Fixed Bottom Navigation Bar (1-Thumb Touch) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1B1226]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around py-1 px-1">
+      {/* Mobile Fixed Bottom Navigation Bar (1-Thumb Touch with Safe-Area) */}
+      <nav 
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1B1226]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around px-1 pt-1.5"
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))' }}
+      >
         {mobileBottomItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentTab === item.id;
@@ -366,19 +387,19 @@ export const Navigation: React.FC<NavigationProps> = ({
             <button
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg text-[10px] font-medium transition-colors relative min-w-[56px] ${
+              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-[10px] font-medium transition-all active:scale-90 relative flex-1 max-w-[72px] ${
                 isActive ? 'text-brand-400 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <div className="relative">
-                <Icon className={`w-5 h-5 ${isActive ? 'text-brand-400' : 'text-slate-400'}`} />
+              <div className="relative flex items-center justify-center">
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'text-brand-400 scale-110' : 'text-slate-400'}`} />
                 {item.badge !== null && item.badge !== undefined && (
-                  <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-slate-950 animate-pulse">
+                  <span className="absolute -top-1.5 -right-2.5 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-500 text-slate-950 shadow-xs animate-pulse">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="mt-0.5">{item.label}</span>
+              <span className="mt-0.5 tracking-tight truncate w-full text-center">{item.label}</span>
             </button>
           );
         })}

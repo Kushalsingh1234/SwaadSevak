@@ -122,36 +122,39 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+    >
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-200 bg-gray-50/70">
           <h3 className="text-sm font-bold text-gray-900">
             {dishToEdit ? 'Edit Dish' : 'Add New Dish'}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 max-h-[75dvh] sm:max-h-[75vh] overflow-y-auto">
           {/* Veg / Non-Veg Selector */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1.5">Dietary Type</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setIsVeg(true)}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all active:scale-95 ${
                   isVeg
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-xs'
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -163,7 +166,7 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsVeg(false)}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all active:scale-95 ${
                   !isVeg
                     ? 'border-red-500 bg-red-50 text-red-800 shadow-xs'
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -255,7 +258,7 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
           </div>
 
           {/* Portion & Special Tag */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Portion / Serving</label>
               <input
@@ -296,14 +299,14 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
           </div>
 
           {/* Aggregator Channel Publishing */}
-          <div className="p-3.5 bg-orange-50/70 rounded-xl border border-orange-200">
-            <div className="flex items-center justify-between mb-2">
+          <div className="p-3 sm:p-3.5 bg-orange-50/70 rounded-xl border border-orange-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
               <span className="block text-xs font-bold text-gray-900">Publish Price & Availability To:</span>
-              <span className="text-[10px] text-orange-700 font-bold bg-orange-100/80 px-2 py-0.5 rounded-full border border-orange-200">
+              <span className="text-[10px] text-orange-700 font-bold bg-orange-100/80 px-2 py-0.5 rounded-full border border-orange-200 w-fit">
                 Auto-syncs ₹{price ? parseFloat(price) || 0 : 0}
               </span>
             </div>
-            <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex flex-wrap gap-3 sm:gap-4 text-xs">
               <label className="flex items-center gap-1.5 font-medium text-gray-700 cursor-pointer">
                 <input
                   type="checkbox"
@@ -337,18 +340,18 @@ export const AddDishModal: React.FC<AddDishModalProps> = ({
             </p>
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-5 py-2.5 sm:py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors disabled:opacity-50 text-center active:scale-98"
             >
               {isSubmitting ? 'Saving...' : dishToEdit ? 'Save Changes' : 'Add Dish'}
             </button>

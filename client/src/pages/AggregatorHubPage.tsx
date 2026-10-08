@@ -726,18 +726,18 @@ export const AggregatorHubPage: React.FC<AggregatorHubPageProps> = ({
         </div>
       </div>
 
-      {/* Sub Tabs Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
-        <div className="flex items-center gap-2">
+      {/* Sub Tabs Navigation - Smooth Mobile Horizontal Swipe Container */}
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
           <button
             onClick={() => setActiveSubTab('menu')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeSubTab === 'menu'
                 ? 'border-orange-500 text-orange-600 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Layers className="w-4 h-4" /> Menu Control Center
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Menu Control
             <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
               {menuItems.length}
             </span>
@@ -745,13 +745,13 @@ export const AggregatorHubPage: React.FC<AggregatorHubPageProps> = ({
 
           <button
             onClick={() => setActiveSubTab('orders')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeSubTab === 'orders'
                 ? 'border-orange-500 text-orange-600 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Clock className="w-4 h-4" /> Online Orders Stream
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Online Orders
             {onlineOrders.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white">
                 {onlineOrders.length}
@@ -761,33 +761,33 @@ export const AggregatorHubPage: React.FC<AggregatorHubPageProps> = ({
 
           <button
             onClick={() => setActiveSubTab('reconciliation')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeSubTab === 'reconciliation'
                 ? 'border-orange-500 text-orange-600 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <DollarSign className="w-4 h-4" /> Aggregator Reconciliation
+            <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Reconciliation
           </button>
 
           <button
             onClick={() => setActiveSubTab('logs')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeSubTab === 'logs'
                 ? 'border-orange-500 text-orange-600 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Receipt className="w-4 h-4" /> Sync & Audit History
+            <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Sync &amp; Audit
           </button>
         </div>
 
         {/* Global Sync Action Button */}
-        <div className="flex items-center gap-2 py-2">
+        <div className="hidden sm:flex items-center gap-2 py-2 shrink-0">
           <button
             onClick={() => handleSyncMenu('ALL')}
             disabled={syncingMenu}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncingMenu ? 'animate-spin text-orange-500' : ''}`} />
             {syncingMenu ? 'Syncing...' : 'Sync Now'}
@@ -841,8 +841,8 @@ export const AggregatorHubPage: React.FC<AggregatorHubPageProps> = ({
 
           {/* Unified Menu Table */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left text-xs min-w-[720px]">
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">Dish & Category</th>

@@ -1441,8 +1441,13 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
 
       {/* CUSTOMER PROFILE DRAWER / MODAL (Phase 19) */}
       {selectedCustomer && createPortal(
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end">
-          <div className="bg-white w-full max-w-md h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedCustomer(null);
+          }}
+        >
+          <div className="bg-white w-full sm:max-w-md h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Header */}
             <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
@@ -1844,7 +1849,7 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
             </div>
 
             {/* Drawer Bottom Action Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+            <div className="p-4 pb-6 sm:pb-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
               <button
                 onClick={() => {
                   setAdjustCustomerId(selectedCustomer.id);

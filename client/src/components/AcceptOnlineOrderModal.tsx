@@ -60,38 +60,41 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-scaleIn">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto animate-fadeIn"
+    >
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-scaleIn my-auto">
         {/* Header */}
-        <div className={`p-4 border-b flex items-center justify-between ${
+        <div className={`p-3.5 sm:p-4 border-b flex items-center justify-between ${
           isSwiggy ? 'bg-[#FC8019]/10 border-[#FC8019]/20' : 'bg-[#E23744]/10 border-[#E23744]/20'
         }`}>
           <div className="flex items-center gap-2.5">
-            <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center text-white ${
+            <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center text-white shrink-0 ${
               isSwiggy ? 'bg-[#FC8019]' : 'bg-[#E23744]'
             }`}>
               {isSwiggy ? 'SW' : 'ZM'}
             </span>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 truncate">
                 <span>Accept {order.source} Order</span>
                 <span className="font-mono text-xs text-slate-500">#{order.orderNumber}</span>
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 truncate">
                 Set estimated preparation time for delivery partner
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white/80 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white/80 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Order Items Preview */}
-        <div className="p-4 bg-slate-50/70 border-b border-slate-100 max-h-36 overflow-y-auto">
+        <div className="p-3.5 sm:p-4 bg-slate-50/70 border-b border-slate-100 max-h-36 overflow-y-auto">
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
             <span>Order Items ({order.items.length})</span>
             <span className="text-slate-900 font-bold">Total: ₹{order.total}</span>
@@ -99,12 +102,12 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
           <div className="space-y-1 text-xs text-slate-700">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex justify-between items-center py-0.5">
-                <span className="font-medium">
+                <span className="font-medium truncate pr-2">
                   <strong className="text-slate-900 mr-1.5">{item.quantity}×</strong>
                   {item.name}
                   {item.portion && <span className="text-[10px] text-slate-400 ml-1">({item.portion})</span>}
                 </span>
-                <span className="text-slate-500 tabular-nums">₹{item.price * item.quantity}</span>
+                <span className="text-slate-500 tabular-nums shrink-0">₹{item.price * item.quantity}</span>
               </div>
             ))}
           </div>
@@ -116,7 +119,7 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
         </div>
 
         {/* Estimated Time Selection */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
           <div>
             <label className="flex items-center justify-between text-xs font-bold text-slate-800 mb-2">
               <span className="flex items-center gap-1.5">
@@ -135,9 +138,9 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
                     key={mins}
                     type="button"
                     onClick={() => handleSelectPreset(mins)}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 ${
                       isSelected
-                        ? 'border-orange-500 bg-orange-500 text-white shadow-xs scale-102'
+                        ? 'border-orange-500 bg-orange-500 text-white shadow-xs'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
@@ -178,11 +181,11 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/40">
+        <div className="p-3.5 sm:p-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 bg-slate-50/40">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition text-center"
           >
             Cancel
           </button>
@@ -190,9 +193,9 @@ export const AcceptOnlineOrderModal: React.FC<AcceptOnlineOrderModalProps> = ({
             type="button"
             disabled={isSubmitting || prepTimeMinutes <= 0}
             onClick={handleConfirm}
-            className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition-all flex items-center gap-1.5 ${
+            className={`w-full sm:w-auto px-5 py-2.5 sm:py-2 rounded-xl text-xs font-bold text-white shadow-xs transition-all flex items-center justify-center gap-1.5 ${
               isSwiggy ? 'bg-[#FC8019] hover:bg-[#e47011]' : 'bg-[#E23744] hover:bg-[#c92f3b]'
-            } disabled:opacity-50`}
+            } disabled:opacity-50 active:scale-98`}
           >
             <Check className="w-4 h-4" />
             <span>{isSubmitting ? 'Accepting...' : `Accept Order (${prepTimeMinutes}m)`}</span>

@@ -83,7 +83,7 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
+      <div className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-stone-200/80 shadow-xs overflow-x-auto no-scrollbar">
         {[
           { id: 'ALL', label: `All Invoices (${bills.length})` },
           { id: 'PAID', label: `Settled / Paid (${bills.filter(b => b.paymentStatus.startsWith('PAID')).length})` },
@@ -92,7 +92,7 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
           <button
             key={tab.id}
             onClick={() => setStatusFilter(tab.id as any)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               statusFilter === tab.id
                 ? 'bg-slate-900 text-white'
                 : 'text-slate-600 hover:bg-stone-100'

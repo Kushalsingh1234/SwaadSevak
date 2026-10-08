@@ -990,22 +990,22 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* Sticky Bottom Cart Bar */}
       {cartItemCount > 0 && !isCartOpen && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 animate-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-4 left-3 sm:left-4 right-3 sm:right-4 max-w-md mx-auto z-40 pb-safe animate-in slide-in-from-bottom-3 duration-200">
           <button
             onClick={() => setIsCartOpen(true)}
-            className="w-full bg-[#111827] text-white rounded-xl p-3.5 shadow-lg border border-gray-800 flex items-center justify-between hover:bg-gray-900 transition-all"
+            className="w-full bg-[#111827] text-white rounded-xl p-3.5 shadow-xl border border-gray-800 flex items-center justify-between hover:bg-gray-900 transition-all active:scale-98 cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center font-bold text-xs shrink-0">
                 {cartItemCount}
               </div>
-              <div className="text-left">
-                <span className="text-xs font-semibold block">{table?.tableNumber} Cart</span>
-                <span className="text-[11px] text-gray-400">₹{cartTotal} (+ ₹{cartTax} GST)</span>
+              <div className="text-left min-w-0">
+                <span className="text-xs font-semibold block truncate">{table?.tableNumber} Cart</span>
+                <span className="text-[11px] text-gray-400 truncate">₹{cartTotal} (+ ₹{cartTax} GST)</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 font-semibold text-xs text-orange-400">
+            <div className="flex items-center gap-1.5 font-semibold text-xs text-orange-400 shrink-0">
               <span>View Cart</span>
               <ArrowRight className="w-4 h-4" />
             </div>
@@ -1015,7 +1015,10 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* Cart Modal / Drawer */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end">
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setIsCartOpen(false); }}
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end"
+        >
           <div className="bg-white rounded-t-2xl max-w-lg mx-auto w-full max-h-[85vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
             {/* Cart Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/80">
@@ -1200,7 +1203,7 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
             </div>
 
             {/* Submit Order Action */}
-            <div className="p-4 bg-white border-t border-gray-200 shrink-0 shadow-lg">
+            <div className="p-4 pb-safe bg-white border-t border-gray-200 shrink-0 shadow-lg">
               <button
                 onClick={handlePlaceOrder}
                 disabled={isPlacingOrder}
@@ -1210,8 +1213,8 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   <span>Sending to Kitchen...</span>
                 ) : (
                   <>
-                    <span>Place Order for {table?.tableNumber} • ₹{cartGrandTotal.toFixed(2)}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span className="truncate">Place Order for {table?.tableNumber} • ₹{cartGrandTotal.toFixed(2)}</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </>
                 )}
               </button>
@@ -1233,8 +1236,16 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* PHASE 6, 7, 8 — CUSTOMER IDENTIFICATION MODAL */}
       {isIdentityModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsIdentityModalOpen(false);
+              setIdentityError('');
+            }
+          }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative my-auto">
             <button
               onClick={() => {
                 setIsIdentityModalOpen(false);
@@ -1481,8 +1492,11 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* LOYALTY INFO MODAL (Phase 9) */}
       {showLoyaltyInfoModal && identifiedCustomer && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 relative">
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLoyaltyInfoModal(false); }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 relative my-auto">
             <button
               onClick={() => setShowLoyaltyInfoModal(false)}
               className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600"
@@ -1565,8 +1579,11 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
 
       {/* PHASE 15 & 16 — POST-ORDER SIGNUP MODAL FOR GUESTS */}
       {showPostOrderModal && !identifiedCustomer && crmConfig?.enabled && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative text-center">
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPostOrderModal(false); }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 relative text-center my-auto">
             <button
               onClick={() => setShowPostOrderModal(false)}
               className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600"

@@ -37,25 +37,28 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+    >
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-200 bg-gray-50/70">
           <div>
             <h3 className="text-sm font-bold text-gray-900">Settle Bill & Complete Order</h3>
             <p className="text-xs text-gray-500 mt-0.5">{order.tableNumber} • {order.orderNumber}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Order Items Snapshot */}
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-40 overflow-y-auto space-y-1.5 text-xs">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-36 sm:max-h-40 overflow-y-auto space-y-1.5 text-xs">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex justify-between items-center text-gray-700">
                 <span className="truncate pr-2">
@@ -67,7 +70,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
           </div>
 
           {/* Amount Breakdown */}
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1.5 text-xs">
+          <div className="bg-gray-50 rounded-lg p-3.5 sm:p-4 border border-gray-200 space-y-1.5 text-xs">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal:</span>
               <span>₹{subtotal.toFixed(2)}</span>
@@ -87,11 +90,11 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
             <label className="block text-xs font-semibold text-gray-700 mb-2">
               Select Payment Mode Received
             </label>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_UPI')}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border text-xs font-semibold transition-all active:scale-95 ${
                   selectedMethod === 'PAID_UPI'
                     ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-xs'
                     : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
@@ -104,7 +107,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_CASH')}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border text-xs font-semibold transition-all active:scale-95 ${
                   selectedMethod === 'PAID_CASH'
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-xs'
                     : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
@@ -117,7 +120,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedMethod('PAID_CARD')}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-semibold transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border text-xs font-semibold transition-all active:scale-95 ${
                   selectedMethod === 'PAID_CARD'
                     ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-xs'
                     : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
@@ -133,15 +136,15 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-3 px-4 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 active:scale-98 cursor-pointer"
           >
             {loading ? (
               <span>Settling Bill...</span>
             ) : (
               <>
-                <CheckCircle className="w-4 h-4 text-white" />
-                <span>Confirm Payment (₹{grandTotal}) & Free Table</span>
-                <ArrowRight className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                <span className="truncate">Confirm Payment (₹{grandTotal}) & Free Table</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </>
             )}
           </button>

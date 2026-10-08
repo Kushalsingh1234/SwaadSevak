@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SEO } from './components/ui/SEO';
 import { Header } from './components/layout/Header';
 import { HeroSection } from './components/sections/HeroSection';
+import { CoreFeaturesShowcaseSection } from './components/sections/CoreFeaturesShowcaseSection';
 import { ProductTabsSection } from './components/sections/ProductTabsSection';
 import { WhyUsSection } from './components/sections/WhyUsSection';
 import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
@@ -450,6 +451,9 @@ export const App: React.FC = () => {
           setView('login');
           window.location.hash = 'login';
         }} />
+
+        {/* 2.5. Attention-Grabbing Detailed Core Feature Showcase */}
+        <CoreFeaturesShowcaseSection />
 
         {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
         <ProductTabsSection />

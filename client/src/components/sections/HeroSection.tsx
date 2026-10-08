@@ -49,17 +49,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
           
           {/* Left Column: Copy & Actions (6.5 Cols on xl) */}
           <div className="lg:col-span-6 xl:col-span-7 space-y-4 sm:space-y-5 xl:space-y-6 text-left">
-            
-            {/* Top Pill Label */}
-            <div
-              className="inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-xs font-bold shadow-soft"
-              style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FAF4ED' }}
-            >
-              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              <span>Every order. Every table. Every rupee.</span>
-              <span style={{ color: '#D5BEAA' }}>•</span>
-              <span className="font-mono font-extrabold text-orange-400">One calm system for your whole food business</span>
-            </div>
 
             {/* Big Bold High-Impact Headline */}
             <h1

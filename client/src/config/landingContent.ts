@@ -39,10 +39,10 @@ export const LANDING_CONTENT = {
   // 3.1 & 3.2 Hero
   hero: {
     eyebrow: "Built for cafes and restaurants",
-    headlineMain: "Run your Restaurant without the chaos.",
-    headlineAlt: "Every order. Every table. Every rupee.",
-    headlineSubline: "One calm system for your whole food business.",
-    subhead: "Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy & Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.",
+    headlineMain: "Run Your Restaurant. Grow It Smarter.",
+    headlineAlt: "Everything you need to run your restaurant",
+    headlineSubline: "From ordering and billing to customer insights & growth analytics.",
+    subhead: "Everything you need to run your restaurant — from ordering and billing to customer insights, automated campaigns and growth analytics. SwaadSevak brings your operations, customer data and growth tools into one simple platform, so you can spend less time managing numbers and more time growing your business.",
     primaryCta: "Start Free Trial",
     secondaryCta: "Watch 60-sec demo",
     guestMenuDemoLink: "Try the guest menu demo",

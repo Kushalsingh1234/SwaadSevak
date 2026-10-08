@@ -50,18 +50,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
               className="text-[2.15rem] sm:text-5xl lg:text-[3.25rem] xl:text-[3.85rem] 2xl:text-[4.35rem] font-black tracking-tight leading-[1.1]"
               style={{ color: '#FFFFFF' }}
             >
-              Run your Restaurant{' '}
+              Run Your Restaurant.{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 inline-block drop-shadow-[0_2px_12px_rgba(242,92,5,0.3)]">
-                without the chaos.
+                Grow It Smarter.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p
-              className="text-sm sm:text-base xl:text-lg leading-relaxed font-normal max-w-xl text-stone-200/90"
-            >
-              Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy &amp; Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.
-            </p>
+            <div className="space-y-2 text-sm sm:text-base xl:text-lg leading-relaxed font-normal max-w-xl text-stone-200/90">
+              <p>
+                Everything you need to run your restaurant — from ordering and billing to customer insights, automated campaigns and growth analytics.
+              </p>
+              <p className="text-xs sm:text-sm text-stone-400">
+                SwaadSevak brings your operations, customer data and growth tools into one simple platform, so you can spend less time managing numbers and more time growing your business.
+              </p>
+            </div>
 
             {/* CTA Button: Platform Login */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">

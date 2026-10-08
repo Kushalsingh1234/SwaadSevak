@@ -70,10 +70,9 @@ export const ProductTabsSection: React.FC = () => {
   };
 
   return (
-    <section id="products" className="relative pt-6 sm:pt-8 pb-8 sm:pb-10 overflow-hidden font-sans">
-      {/* Split Background: Upper White, Lower Brown with Smooth Dramatic Curve */}
-      <div className="absolute inset-0 pointer-events-none -z-0 bg-white">
-        {/* Full-bleed SVG defining the smooth curved bottom espresso area */}
+    <section id="products" className="relative pt-6 sm:pt-8 pb-8 sm:pb-10 overflow-hidden font-sans w-full" style={{ backgroundColor: '#2B1A12' }}>
+      {/* Split Background: Top White Region with Smooth Dramatic Curve, Base Solid #2B1A12 */}
+      <div className="absolute inset-0 pointer-events-none -z-0 overflow-hidden">
         <svg
           viewBox="0 0 1440 600"
           fill="none"
@@ -81,10 +80,10 @@ export const ProductTabsSection: React.FC = () => {
           className="absolute inset-0 w-full h-full"
           preserveAspectRatio="none"
         >
-          {/* Smooth continuous curve dividing top white and bottom espresso brown */}
+          {/* White top region with curved bottom */}
           <path
-            d="M 0 240 Q 720 440 1440 240 L 1440 600 L 0 600 Z"
-            fill="#2B1A12"
+            d="M 0 0 L 1440 0 L 1440 240 Q 720 440 0 240 Z"
+            fill="#FFFFFF"
           />
         </svg>
 

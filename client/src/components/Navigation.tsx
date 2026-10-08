@@ -234,8 +234,8 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       </aside>
 
-      {/* Mobile Top Header */}
-      <header className="lg:hidden flex items-center justify-between px-3.5 py-2.5 bg-[#1B1226] text-white border-b border-white/[0.08] sticky top-0 z-40 w-full">
+      {/* Mobile Top Header - Pinned Fixed to Top */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#1B1226]/95 backdrop-blur-md text-white border-b border-white/[0.08] px-3.5 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <Logo variant="mark" theme="dark" size={26} />
           <div className="overflow-hidden">
@@ -243,7 +243,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               {restaurant?.name || 'Swaad Sevak'}
             </h1>
             <p className="text-[10px] text-slate-400 capitalize flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {currentTab} Mode
             </p>
           </div>
@@ -253,13 +253,14 @@ export const Navigation: React.FC<NavigationProps> = ({
           <button
             onClick={onLogout}
             title="Sign Out"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-white/[0.06] active:scale-95 transition-all"
+            aria-label="Sign out"
           >
             <LogOut className="w-4 h-4" />
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06]"
+            className="p-2 rounded-xl text-slate-300 hover:text-white bg-white/[0.05] active:scale-95 transition-all"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
@@ -377,7 +378,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Mobile Fixed Bottom Navigation Bar (1-Thumb Touch with Safe-Area) */}
       <nav 
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1B1226]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around px-1 pt-1.5"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1B1226]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-around px-1 pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.35)]"
         style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))' }}
       >
         {mobileBottomItems.map((item) => {
@@ -387,12 +388,15 @@ export const Navigation: React.FC<NavigationProps> = ({
             <button
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-[10px] font-medium transition-all active:scale-90 relative flex-1 max-w-[72px] ${
-                isActive ? 'text-brand-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-2xl text-[10px] font-medium transition-all active:scale-90 relative flex-1 max-w-[72px] ${
+                isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
+              {isActive && (
+                <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+              )}
               <div className="relative flex items-center justify-center">
-                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'text-brand-400 scale-110' : 'text-slate-400'}`} />
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'text-amber-400 scale-110' : 'text-slate-400'}`} />
                 {item.badge !== null && item.badge !== undefined && (
                   <span className="absolute -top-1.5 -right-2.5 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-500 text-slate-950 shadow-xs animate-pulse">
                     {item.badge}

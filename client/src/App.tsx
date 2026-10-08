@@ -249,7 +249,7 @@ export const App: React.FC = () => {
   // View: POS Platform Dashboard
   if (view === 'dashboard') {
     return (
-      <div className="min-h-[100dvh] lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden relative overflow-x-hidden">
+      <div className="min-h-[100dvh] lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden relative">
         <Navigation
           currentTab={currentTab}
           setCurrentTab={setCurrentTab}
@@ -259,7 +259,7 @@ export const App: React.FC = () => {
           pendingOrdersCount={totalNeedsAttentionCount}
         />
 
-        <main className={`flex-1 min-w-0 ${
+        <main className={`flex-1 min-w-0 pt-14 lg:pt-0 ${
           currentTab === 'orders'
             ? 'p-2 sm:p-3.5 lg:p-4 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
             : 'p-3 sm:p-5 lg:p-7 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'

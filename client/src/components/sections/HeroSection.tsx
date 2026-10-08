@@ -89,15 +89,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
             <div className="pt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold">
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Fast Delivery</span>
+                <span>Live KOT &amp; Sound Alerts</span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Affordable Pricing</span>
+                <span>Zero Hardware Lock-in</span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                <span>No Technical Skills Needed</span>
+                <span>Instant 5-Min Setup</span>
               </div>
             </div>
 
@@ -133,7 +133,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
               </div>
               <div className="min-w-0">
                 <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Custom Website</h4>
-                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Modern &amp; Mobile</p>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">0% Commission Direct</p>
               </div>
             </div>
 
@@ -143,8 +143,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Digital Menu</h4>
-                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Instant QR Ordering</p>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Digital QR Menu</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Table Scan &amp; Add-ons</p>
               </div>
             </div>
 
@@ -154,19 +154,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
                 <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Online Orders</h4>
-                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Swiggy &amp; Zomato</p>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Aggregator Hub</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Swiggy &amp; Zomato Sync</p>
               </div>
             </div>
 
             {/* Card 4 */}
             <div className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Table Booking</h4>
-                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Instant Reservation</p>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">AI Growth &amp; CRM</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Coins &amp; WhatsApp Bot</p>
               </div>
             </div>
 
@@ -176,8 +176,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin }) => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">More Revenue</h4>
-                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Grow Your Business</p>
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">POS &amp; 5% GST</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Fast Thermal Invoices</p>
               </div>
             </div>
 

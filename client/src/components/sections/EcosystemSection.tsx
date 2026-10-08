@@ -92,7 +92,7 @@ export const EcosystemSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2: Online Orders Hub */}
+          {/* Card 2: Aggregator Hub */}
           <div
             className="rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-[0_14px_36px_-6px_rgba(43,26,18,0.35)] hover:shadow-[0_22px_48px_-8px_rgba(249,115,22,0.30)] transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden text-white border border-[#5A3A28] hover:border-blue-500/70"
             style={{ backgroundColor: '#3D2519' }}
@@ -104,14 +104,14 @@ export const EcosystemSection: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight">Online Orders Hub</h3>
-                    <span className="px-1.5 py-0.2 rounded-full text-[8.5px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono tracking-wide uppercase">Coming Soon</span>
+                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight">Aggregator Hub</h3>
+                    <span className="px-1.5 py-0.2 rounded-full text-[8.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono tracking-wide uppercase">Live Sync</span>
                   </div>
-                  <span className="text-[9.5px] font-mono text-blue-300 font-extrabold uppercase tracking-wider">Zomato, Swiggy &amp; ONDC Sync</span>
+                  <span className="text-[9.5px] font-mono text-blue-300 font-extrabold uppercase tracking-wider">Swiggy &amp; Zomato Sync + Rush Mode</span>
                 </div>
               </div>
               <p className="text-[11px] sm:text-xs text-[#E8D5C4] leading-relaxed mb-3.5 font-normal">
-                Auto-accept food delivery orders on a single kitchen screen without juggling five separate aggregator tablets.
+                Auto-accept food delivery orders on a single kitchen screen with channel pricing overrides and rush-hour kitchen protection.
               </p>
             </div>
 
@@ -135,58 +135,65 @@ export const EcosystemSection: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                   <span className="font-bold text-white text-[11px]">Swiggy #410</span>
-                  <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-extrabold border border-blue-500/30">RIDER</span>
+                  <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-extrabold border border-blue-500/30">RUSH MODE</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9.5px] text-emerald-400 font-bold">Packed</span>
+                  <span className="text-[9.5px] text-emerald-400 font-bold">Prep: 35m</span>
                   <span className="font-mono font-bold text-white text-xs">₹495</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card 3: Inventory & Stock */}
+          {/* Card 3: AI Growth & CRM */}
           <div
             className="rounded-xl sm:rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-[0_14px_36px_-6px_rgba(43,26,18,0.35)] hover:shadow-[0_22px_48px_-8px_rgba(249,115,22,0.30)] transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden text-white border border-[#5A3A28] hover:border-emerald-500/70"
             style={{ backgroundColor: '#3D2519' }}
           >
             <div>
               <div className="flex items-center gap-2.5 mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold shadow-xs shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold shadow-xs shrink-0">
                   <Boxes className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-white leading-tight">Inventory &amp; Stock</h3>
-                  <span className="text-[9.5px] font-mono text-emerald-300 font-extrabold uppercase tracking-wider">Automated Recipe Deductions</span>
+                  <h3 className="text-sm sm:text-base font-bold text-white leading-tight">AI Growth &amp; CRM</h3>
+                  <span className="text-[9.5px] font-mono text-amber-300 font-extrabold uppercase tracking-wider">Loyalty Coins &amp; WhatsApp Bot</span>
                 </div>
               </div>
               <p className="text-[11px] sm:text-xs text-[#E8D5C4] leading-relaxed mb-3.5 font-normal">
-                Prevent kitchen pilferage and stockouts with recipe-level ingredient consumption tracking and automated purchase alerts.
+                Reward returning diners with SwaadSevak Coins, profile guest visit habits, and re-engage lapsed customers with automated WhatsApp perks.
               </p>
             </div>
 
-            {/* Rich Micro UI: Live Stock Gauges */}
+            {/* Rich Micro UI: Live Loyalty Coins & Campaign Status */}
             <div
               className="rounded-xl p-2.5 sm:p-3 shadow-inner space-y-2 text-xs"
               style={{ backgroundColor: '#24140D', border: '1px solid #5A3A28' }}
             >
-              <div className="bg-[#1C0E08] p-2.5 rounded-lg border border-[#5A3A28]">
-                <div className="flex justify-between font-bold text-white mb-1.5 text-[10.5px]">
-                  <span>Paneer Blocks (Fresh)</span>
-                  <span className="font-mono text-orange-400 font-extrabold">4.2 kg left • <span className="text-[9px] font-normal text-[#A89080]">-220g</span></span>
+              <div className="bg-[#1C0E08] p-2 rounded-lg border border-[#5A3A28] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-mono text-sm">🪙</span>
+                  <div>
+                    <span className="font-bold text-white text-[11px] block">VIP Diner #204</span>
+                    <span className="text-[9px] text-[#A89080]">Favorite: Paneer Tikka</span>
+                  </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#3D2519] overflow-hidden">
-                  <div className="w-[32%] h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full shadow-[0_0_6px_rgba(249,115,22,0.5)]" />
+                <div className="text-right font-mono">
+                  <span className="font-bold text-amber-400 text-xs block">+80 Coins</span>
+                  <span className="text-[9px] text-emerald-400 font-bold">Active VIP</span>
                 </div>
               </div>
-              <div className="bg-[#1C0E08] p-2.5 rounded-lg border border-[#5A3A28]">
-                <div className="flex justify-between font-bold text-white mb-1.5 text-[10.5px]">
-                  <span>Basmati Rice (Daily)</span>
-                  <span className="font-mono text-emerald-400 font-extrabold">38 kg left</span>
+              <div className="bg-[#1C0E08] p-2 rounded-lg border border-[#5A3A28] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div>
+                    <span className="font-bold text-white text-[10.5px] block">Auto-Retention Bot</span>
+                    <span className="text-[9px] text-[#A89080]">Re-engage 14D Inactive</span>
+                  </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#3D2519] overflow-hidden">
-                  <div className="w-[82%] h-full bg-emerald-500 rounded-full shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                </div>
+                <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
+                  34% Return Rate
+                </span>
               </div>
             </div>
           </div>

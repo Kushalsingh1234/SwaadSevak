@@ -4,7 +4,7 @@ import { TableViewMockup } from '../mockups/TableViewMockup';
 import { LiveOrderFeedMockup } from '../mockups/LiveOrderFeedMockup';
 import { InventoryMockup } from '../mockups/InventoryMockup';
 import { WebsitePreviewMockup } from '../mockups/WebsitePreviewMockup';
-import { ArrowRight, Monitor, ShoppingBag, Boxes, Globe } from 'lucide-react';
+import { ArrowRight, Monitor, ShoppingBag, Sparkles, Globe } from 'lucide-react';
 import { SITE_CONTENT } from '../../content/site';
 import { trackEvent } from '../../lib/analytics';
 
@@ -26,34 +26,34 @@ const TABS: TabItem[] = [
     label: 'POS & Billing',
     icon: Monitor,
     headline: 'Fast 3-Touch Billing & Instant Thermal KOTs',
-    description: 'Punch orders, split checks, apply GST rules and print instant KOTs with zero latency during peak rush hours.',
+    description: 'Punch orders, split checks, apply 5% GST rules, and auto-print thermal KOTs directly to kitchen stations with zero lag.',
     exploreLink: SITE_CONTENT.links.demo,
     exploreText: 'Explore POS features',
   },
   {
     id: 'online',
-    label: 'Online Orders',
+    label: 'Aggregator Hub',
     icon: ShoppingBag,
-    headline: 'Unified Hub for Zomato, Swiggy & Table QR Orders',
-    description: 'Auto-accept delivery orders on one kitchen screen with synchronized menu items and automatic rider status updates.',
+    headline: 'Unified Hub for Swiggy, Zomato & Table QR Orders',
+    description: 'Auto-accept delivery orders on one kitchen screen with synchronized menu items, channel price overrides, and rush hour protection.',
     exploreLink: SITE_CONTENT.links.demo,
-    exploreText: 'Explore online ordering',
+    exploreText: 'Explore aggregator hub',
   },
   {
     id: 'inventory',
-    label: 'Inventory & Stock',
-    icon: Boxes,
-    headline: 'Automated Recipe Deductions & Raw Material Alerts',
-    description: 'Selling 1 butter chicken deducts exact grams of chicken, butter and gravy in real-time, preventing kitchen shrinkage.',
+    label: 'AI Growth & CRM',
+    icon: Sparkles,
+    headline: 'Actionable Revenue Insights & Automated WhatsApp CRM',
+    description: 'Convert POS sales into prioritized margin recommendations, reward diners with SwaadSevak Coins, and automate WhatsApp retention.',
     exploreLink: SITE_CONTENT.links.demo,
-    exploreText: 'Explore inventory engine',
+    exploreText: 'Explore AI growth engine',
   },
   {
     id: 'website',
     label: 'Restaurant Website',
     icon: Globe,
     headline: 'Custom Branded Website with 0% Commission Direct Ordering',
-    description: 'Get your own digital ordering menu and WhatsApp flow. We reply with complete scope and quote within 24 hours.',
+    description: 'Launch your direct digital ordering menu with instant WhatsApp checkout and table bookings. We deliver custom quotes in 24 hours.',
     exploreLink: SITE_CONTENT.links.websiteInquiry,
     exploreText: 'Get a 24-hour website quote',
   },

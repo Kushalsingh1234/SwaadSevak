@@ -13,7 +13,6 @@ import { SavingsCalculatorSection } from './components/sections/SavingsCalculato
 import { TestimonialsSection } from './components/sections/TestimonialsSection';
 import { Footer } from './components/layout/Footer';
 import { CookieBanner } from './components/ui/CookieBanner';
-import { MobileBottomBar } from './components/ui/MobileBottomBar';
 
 // Platform Pages & Components
 import { LoginPage } from './pages/LoginPage';
@@ -461,7 +460,6 @@ export const App: React.FC = () => {
 
       {/* Global Action Utilities */}
       <CookieBanner />
-      <MobileBottomBar />
     </div>
   );
 };

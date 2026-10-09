@@ -48,6 +48,12 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
   }
 
   if (!response.ok) {
+    if (response.status === 401 && !endpoint.startsWith('/auth/login') && !endpoint.startsWith('/auth/register')) {
+      localStorage.removeItem('swaad_token');
+      localStorage.removeItem('swaad_restaurant');
+      localStorage.removeItem('swaad_manager');
+      window.dispatchEvent(new CustomEvent('swaad:unauthorized'));
+    }
     throw new ApiError(data?.message || `Request failed with status ${response.status}`, response.status, data);
   }
   return data as T;

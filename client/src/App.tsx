@@ -47,11 +47,35 @@ export const App: React.FC = () => {
     return <CustomerMenuPage restaurantSlug={restaurantSlug} qrToken={qrToken} />;
   }
 
+  const isMarketingHash = (hash: string) => {
+    return (
+      hash === '#landing' ||
+      hash.startsWith('#features') ||
+      hash.startsWith('#why-us') ||
+      hash.startsWith('#calculator') ||
+      hash.startsWith('#website-inquiry') ||
+      hash.startsWith('#ecosystem') ||
+      hash.startsWith('#products')
+    );
+  };
+
   const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard'>(() => {
+    const hasToken = !!localStorage.getItem('swaad_token');
     const hash = window.location.hash.toLowerCase();
+
+    // If authenticated:
+    if (hasToken) {
+      // If user explicitly navigated to a landing page anchor:
+      if (isMarketingHash(hash)) {
+        return 'landing';
+      }
+      // Direct link / empty hash / #dashboard / #login / #register: always open inside the app!
+      return 'dashboard';
+    }
+
+    // If unauthenticated:
     if (hash === '#login') return 'login';
     if (hash === '#register') return 'register';
-    if (hash === '#dashboard' && localStorage.getItem('swaad_token')) return 'dashboard';
     return 'landing';
   });
 
@@ -80,20 +104,46 @@ export const App: React.FC = () => {
   });
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
 
-  // Sync hash routing
+  // Sync hash routing & ensure correct URL on initial load and navigation
   useEffect(() => {
+    const initialHash = window.location.hash.toLowerCase();
+    const hasToken = !!localStorage.getItem('swaad_token');
+
+    // If already logged in and visiting without a hash or on auth hashes, ensure URL points to #dashboard
+    if (hasToken && (initialHash === '' || initialHash === '#login' || initialHash === '#register')) {
+      window.location.hash = 'dashboard';
+    }
+
     const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash === '#login') {
-        setView('login');
-      } else if (hash === '#register') {
-        setView('register');
-      } else if (hash === '#dashboard') {
-        setView('dashboard');
-      } else if (hash === '#landing' || hash === '' || hash.startsWith('#features') || hash.startsWith('#why-us') || hash.startsWith('#calculator') || hash.startsWith('#website-inquiry') || hash.startsWith('#ecosystem') || hash.startsWith('#products')) {
-        setView('landing');
+      const currentHash = window.location.hash.toLowerCase();
+      const currentHasToken = !!localStorage.getItem('swaad_token');
+
+      if (currentHasToken) {
+        if (isMarketingHash(currentHash)) {
+          setView('landing');
+        } else if (currentHash === '#login' || currentHash === '#register') {
+          // Prevent showing login form to already-authenticated manager
+          setView('dashboard');
+          window.location.hash = 'dashboard';
+        } else {
+          // #dashboard, empty, or inside app routes
+          setView('dashboard');
+        }
+      } else {
+        if (currentHash === '#login') {
+          setView('login');
+        } else if (currentHash === '#register') {
+          setView('register');
+        } else if (currentHash === '#dashboard') {
+          // Unauthenticated user attempting to access dashboard -> redirect to login
+          setView('login');
+          window.location.hash = 'login';
+        } else {
+          setView('landing');
+        }
       }
     };
+
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -118,11 +168,42 @@ export const App: React.FC = () => {
     }
   };
 
-  // Initial load if token exists
+  // Initial load if token exists: verify session with backend & refresh all live data
   useEffect(() => {
     if (localStorage.getItem('swaad_token')) {
+      // Validate session and refresh restaurant/manager info
+      api.getMe()
+        .then((res) => {
+          if (res?.success) {
+            if (res.restaurant) {
+              setRestaurant(res.restaurant);
+              localStorage.setItem('swaad_restaurant', JSON.stringify(res.restaurant));
+            }
+            if (res.manager) {
+              setManager(res.manager);
+              localStorage.setItem('swaad_manager', JSON.stringify(res.manager));
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn('Session verification notice:', err?.message || err);
+        });
+
       refreshAllData();
     }
+  }, []);
+
+  // Listen for unauthorized/expired session events
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setRestaurant(null);
+      setManager(null);
+      setView('landing');
+      window.location.hash = '';
+    };
+
+    window.addEventListener('swaad:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('swaad:unauthorized', handleUnauthorized);
   }, []);
 
   // Calculate pending orders requiring attention
@@ -224,7 +305,7 @@ export const App: React.FC = () => {
         }}
         onBackToLanding={() => {
           setView('landing');
-          window.location.hash = '';
+          window.location.hash = 'landing';
         }}
       />
     );
@@ -237,7 +318,7 @@ export const App: React.FC = () => {
         onSuccess={handleLoginSuccess}
         onBackToLanding={() => {
           setView('landing');
-          window.location.hash = '';
+          window.location.hash = 'landing';
         }}
         onGoToLogin={() => {
           setView('login');
@@ -413,18 +494,36 @@ export const App: React.FC = () => {
       <SEO />
 
       {/* 1. Header (Slim espresso, sticky with blur-and-shrink on scroll) */}
-      <Header onOpenLogin={() => {
-        setView('login');
-        window.location.hash = 'login';
-      }} />
+      <Header
+        isLoggedIn={!!restaurant || !!localStorage.getItem('swaad_token')}
+        onOpenLogin={() => {
+          const hasToken = !!localStorage.getItem('swaad_token');
+          if (hasToken) {
+            setView('dashboard');
+            window.location.hash = 'dashboard';
+          } else {
+            setView('login');
+            window.location.hash = 'login';
+          }
+        }}
+      />
 
       {/* Main Sections in Exact Rhythm */}
       <main id="main-content" className="flex-1">
         {/* 2. Dark Espresso Hero */}
-        <HeroSection onOpenLogin={() => {
-          setView('login');
-          window.location.hash = 'login';
-        }} />
+        <HeroSection
+          isLoggedIn={!!restaurant || !!localStorage.getItem('swaad_token')}
+          onOpenLogin={() => {
+            const hasToken = !!localStorage.getItem('swaad_token');
+            if (hasToken) {
+              setView('dashboard');
+              window.location.hash = 'dashboard';
+            } else {
+              setView('login');
+              window.location.hash = 'login';
+            }
+          }}
+        />
 
         {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
         <ProductTabsSection />

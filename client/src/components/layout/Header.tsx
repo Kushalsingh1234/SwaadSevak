@@ -6,9 +6,10 @@ import { trackEvent } from '../../lib/analytics';
 
 interface HeaderProps {
   onOpenLogin?: () => void;
+  isLoggedIn?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenLogin, isLoggedIn = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,11 +29,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
   const handleLoginClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setMobileMenuOpen(false);
-    trackEvent('header_get_started_click');
+    trackEvent(isLoggedIn ? 'header_dashboard_click' : 'header_get_started_click');
     if (onOpenLogin) {
       onOpenLogin();
     } else {
-      window.location.hash = 'login';
+      window.location.hash = isLoggedIn ? 'dashboard' : 'login';
     }
   };
 
@@ -97,15 +98,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-4">
-          {/* Orange Primary Button - Platform Login */}
+          {/* Primary CTA Button: Platform Login or Go to Dashboard */}
           <a
-            href="#login"
-            data-event="header_get_started_click"
+            href={isLoggedIn ? "#dashboard" : "#login"}
+            data-event={isLoggedIn ? "header_dashboard_click" : "header_get_started_click"}
             onClick={handleLoginClick}
             className="btn-shine hidden sm:inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 rounded-xl font-extrabold text-base bg-orange-500 text-espresso hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring cursor-pointer"
             style={{ color: '#1A0F0A' }}
           >
-            <span>Platform Login</span>
+            <span>{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
             <ArrowRight className="w-5 h-5" />
           </a>
 
@@ -167,11 +168,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin }) => {
 
           <div className="pt-2">
             <a
-              href="#login"
+              href={isLoggedIn ? "#dashboard" : "#login"}
               onClick={handleLoginClick}
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft cursor-pointer"
             >
-              <span>Platform Login</span>
+              <span>{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

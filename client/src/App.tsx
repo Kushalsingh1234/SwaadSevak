@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { SEO } from './components/ui/SEO';
 import { Header } from './components/layout/Header';
 import { HeroSection } from './components/sections/HeroSection';
+import { CoreFeaturesShowcaseSection } from './components/sections/CoreFeaturesShowcaseSection';
 import { ProductTabsSection } from './components/sections/ProductTabsSection';
 import { WhyUsSection } from './components/sections/WhyUsSection';
-import { FeaturesBentoSection } from './components/sections/FeaturesBentoSection';
 import { EcosystemSection } from './components/sections/EcosystemSection';
 import { MetricsBandSection } from './components/sections/MetricsBandSection';
 import { AccordionBenefitsSection } from './components/sections/AccordionBenefitsSection';
@@ -13,11 +13,11 @@ import { SavingsCalculatorSection } from './components/sections/SavingsCalculato
 import { TestimonialsSection } from './components/sections/TestimonialsSection';
 import { Footer } from './components/layout/Footer';
 import { CookieBanner } from './components/ui/CookieBanner';
-import { MobileBottomBar } from './components/ui/MobileBottomBar';
 
 // Platform Pages & Components
 import { LoginPage } from './pages/LoginPage';
 import { RegisterOnboardingPage } from './pages/RegisterOnboardingPage';
+import { WebsiteServicePage } from './pages/WebsiteServicePage';
 import { DashboardOverviewPage } from './pages/DashboardOverviewPage';
 import { LiveOrdersPage } from './pages/LiveOrdersPage';
 import { MenuManagementPage } from './pages/MenuManagementPage';
@@ -29,6 +29,7 @@ import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { GrowthEnginePage } from './pages/GrowthEnginePage';
 import { CrmPage } from './pages/CrmPage';
 import { CustomerMenuPage } from './pages/CustomerMenuPage';
+import { FeatureDetailPage } from './pages/FeatureDetailPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
 import { api } from './services/api';
@@ -53,15 +54,25 @@ export const App: React.FC = () => {
       hash.startsWith('#features') ||
       hash.startsWith('#why-us') ||
       hash.startsWith('#calculator') ||
-      hash.startsWith('#website-inquiry') ||
       hash.startsWith('#ecosystem') ||
       hash.startsWith('#products')
     );
   };
 
-  const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard'>(() => {
+  const [activeFeatureId, setActiveFeatureId] = useState<string>(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash.startsWith('#feature-')) return hash.replace('#feature-', '');
+    if (hash.startsWith('#features/')) return hash.replace('#features/', '');
+    return 'qr-ordering';
+  });
+
+  const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard' | 'website-inquiry' | 'feature-detail'>(() => {
     const hasToken = !!localStorage.getItem('swaad_token');
     const hash = window.location.hash.toLowerCase();
+
+    // Specific feature detail or website inquiry views
+    if (hash === '#website-inquiry' || hash === '#website-service' || hash === '#website') return 'website-inquiry';
+    if (hash.startsWith('#feature-') || hash.startsWith('#features/')) return 'feature-detail';
 
     // If authenticated:
     if (hasToken) {
@@ -118,15 +129,19 @@ export const App: React.FC = () => {
       const currentHash = window.location.hash.toLowerCase();
       const currentHasToken = !!localStorage.getItem('swaad_token');
 
-      if (currentHasToken) {
+      if (currentHash === '#website-inquiry' || currentHash === '#website-service' || currentHash === '#website') {
+        setView('website-inquiry');
+      } else if (currentHash.startsWith('#feature-') || currentHash.startsWith('#features/')) {
+        const featId = currentHash.startsWith('#feature-') ? currentHash.replace('#feature-', '') : currentHash.replace('#features/', '');
+        setActiveFeatureId(featId);
+        setView('feature-detail');
+      } else if (currentHasToken) {
         if (isMarketingHash(currentHash)) {
           setView('landing');
         } else if (currentHash === '#login' || currentHash === '#register') {
-          // Prevent showing login form to already-authenticated manager
           setView('dashboard');
           window.location.hash = 'dashboard';
         } else {
-          // #dashboard, empty, or inside app routes
           setView('dashboard');
         }
       } else {
@@ -135,7 +150,6 @@ export const App: React.FC = () => {
         } else if (currentHash === '#register') {
           setView('register');
         } else if (currentHash === '#dashboard') {
-          // Unauthenticated user attempting to access dashboard -> redirect to login
           setView('login');
           window.location.hash = 'login';
         } else {
@@ -328,10 +342,43 @@ export const App: React.FC = () => {
     );
   }
 
+  // View: Website Service & 24h Inquiry Page
+  if (view === 'website-inquiry') {
+    return (
+      <WebsiteServicePage
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = '';
+        }}
+        onOpenLogin={() => {
+          setView('login');
+          window.location.hash = 'login';
+        }}
+      />
+    );
+  }
+
+  // View: Feature Deep-Dive Detail Page
+  if (view === 'feature-detail') {
+    return (
+      <FeatureDetailPage
+        featureId={activeFeatureId}
+        onNavigateHome={() => {
+          setView('landing');
+          window.location.hash = '';
+        }}
+        onSelectFeature={(featId) => {
+          setActiveFeatureId(featId);
+          window.location.hash = `#feature-${featId}`;
+        }}
+      />
+    );
+  }
+
   // View: POS Platform Dashboard
   if (view === 'dashboard') {
     return (
-      <div className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden relative">
+      <div className="min-h-[100dvh] lg:h-screen bg-slate-50 flex flex-col lg:pl-60 font-sans w-full max-w-full lg:overflow-hidden relative">
         <Navigation
           currentTab={currentTab}
           setCurrentTab={setCurrentTab}
@@ -341,10 +388,10 @@ export const App: React.FC = () => {
           pendingOrdersCount={totalNeedsAttentionCount}
         />
 
-        <main className={`flex-1 min-w-0 ${
+        <main className={`flex-1 min-w-0 pt-14 lg:pt-4 ${
           currentTab === 'orders'
-            ? 'p-2.5 sm:p-3.5 lg:p-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
-            : 'p-3 sm:p-5 lg:p-7 max-w-7xl mx-auto w-full pb-20 lg:pb-8 lg:h-full lg:overflow-y-auto'
+            ? 'p-2 sm:p-3.5 lg:p-4 lg:pt-3 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
+            : 'p-3.5 sm:p-5 lg:p-6 lg:pt-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
         }`}>
           {currentTab === 'dashboard' && (
             <DashboardOverviewPage
@@ -489,7 +536,7 @@ export const App: React.FC = () => {
 
   // View: Landing Page (Default)
   return (
-    <div className="min-h-screen flex flex-col bg-cream text-espresso antialiased selection:bg-orange-500 selection:text-espresso font-sans">
+    <div className="min-h-screen flex flex-col bg-[#1A0F0A] text-stone-100 antialiased selection:bg-orange-500 selection:text-espresso font-sans overflow-x-hidden w-full max-w-[100vw]">
       {/* 0. SEO Meta & Structured JSON-LD */}
       <SEO />
 
@@ -505,6 +552,10 @@ export const App: React.FC = () => {
             setView('login');
             window.location.hash = 'login';
           }
+        }}
+        onOpenWebsiteService={() => {
+          setView('website-inquiry');
+          window.location.hash = 'website-inquiry';
         }}
       />
 
@@ -525,25 +576,32 @@ export const App: React.FC = () => {
           }}
         />
 
+        {/* 2.5. Attention-Grabbing Detailed Core Feature Showcase */}
+        <CoreFeaturesShowcaseSection
+          onSelectFeature={(featId) => {
+            setActiveFeatureId(featId);
+            setView('feature-detail');
+            window.location.hash = `#feature-${featId}`;
+          }}
+        />
+
         {/* 3. Product Tab Switcher (Crossfading Device Screens) */}
         <ProductTabsSection />
 
-        {/* 5. Dark "Why Us" Section (4 Cards in One Line) */}
+        {/* 5. Why Choose SwaadSevak (Platform Analysis & Value Pillars) */}
         <WhyUsSection />
 
-        {/* 6. Features Bento Grid (8 Key Operational Capabilities) */}
-        <div className="bg-[#FFF8F1]">
-          <FeaturesBentoSection />
-        </div>
-
-        {/* 7. Ecosystem on White (2x2 Grid of Sand-Tinted Cards) */}
+        {/* 6. Ecosystem on White (2x2 Grid of Sand-Tinted Cards) */}
         <EcosystemSection />
 
         {/* 8. Accordion Benefits (What SwaadSevak Can Do For You + Team Illustration) */}
         <AccordionBenefitsSection />
 
-        {/* 9. Website Inquiry Section (Dark Espresso Band, 24h Response Guarantee) */}
-        <WebsiteInquirySection />
+        {/* 9. Website Promo Advertisement Section (Dark Espresso Band, 24h Response Guarantee) */}
+        <WebsiteInquirySection onOpenWebsiteService={() => {
+          setView('website-inquiry');
+          window.location.hash = 'website-inquiry';
+        }} />
 
         {/* 10. Savings Calculator on White (Visible Formula) */}
         <SavingsCalculatorSection />
@@ -560,7 +618,6 @@ export const App: React.FC = () => {
 
       {/* Global Action Utilities */}
       <CookieBanner />
-      <MobileBottomBar />
     </div>
   );
 };

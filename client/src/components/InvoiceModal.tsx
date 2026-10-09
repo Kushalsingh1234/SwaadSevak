@@ -37,30 +37,33 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+    >
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-200 bg-gray-50/70">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-gray-900">Tax Invoice</h3>
-              <p className="text-xs text-gray-500 mt-0.5">{invoiceNumber} • {order.tableNumber}</p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-gray-900 truncate">Tax Invoice</h3>
+              <p className="text-xs text-gray-500 truncate">{invoiceNumber} • {order.tableNumber}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Invoice Body */}
-        <div className="p-6 overflow-y-auto max-h-[70vh]">
-          <div id="thermal-print-area" className="bg-white border border-gray-200 rounded-lg p-6 shadow-xs font-sans">
+        <div className="p-3 sm:p-6 overflow-y-auto max-h-[70dvh] sm:max-h-[70vh]">
+          <div id="thermal-print-area" className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-xs font-sans">
             {/* Restaurant Details */}
             <div className="text-center pb-4 border-b border-gray-200">
               <h2 className="text-base font-bold text-gray-900 tracking-tight">
@@ -94,8 +97,8 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             </div>
 
             {/* Itemized Table */}
-            <div className="py-3">
-              <table className="w-full text-xs">
+            <div className="py-3 overflow-x-auto">
+              <table className="w-full text-xs min-w-[240px]">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-600 font-semibold">
                     <th className="text-left py-2">Item</th>
@@ -165,26 +168,26 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 bg-gray-50/70 border-t border-gray-200 flex items-center justify-end gap-2.5">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-gray-50/70 border-t border-gray-200 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 text-center"
           >
             Close
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors shadow-xs"
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors shadow-xs"
           >
             <Printer className="w-3.5 h-3.5" />
-            Print
+            <span>Print</span>
           </button>
           <button
             onClick={() => downloadInvoicePdf(order, bill || null, restaurant)}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-xs transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            Download PDF
+            <span>Download PDF</span>
           </button>
         </div>
       </div>

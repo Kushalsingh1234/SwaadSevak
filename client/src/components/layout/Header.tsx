@@ -6,10 +6,11 @@ import { trackEvent } from '../../lib/analytics';
 
 interface HeaderProps {
   onOpenLogin?: () => void;
+  onOpenWebsiteService?: () => void;
   isLoggedIn?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenLogin, isLoggedIn = false }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenLogin, onOpenWebsiteService, isLoggedIn = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -24,6 +25,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, isLoggedIn = false 
   const handleNavClick = (section: string) => {
     setMobileMenuOpen(false);
     trackEvent('nav_click', { navSection: section });
+    if (section === 'website') {
+      if (onOpenWebsiteService) {
+        onOpenWebsiteService();
+      } else {
+        window.location.hash = 'website-inquiry';
+      }
+    }
   };
 
   const handleLoginClick = (e: React.MouseEvent) => {
@@ -79,8 +87,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, isLoggedIn = false 
           </a>
           <a
             href={SITE_CONTENT.links.websiteInquiry}
-            onClick={() => handleNavClick('website')}
-            className="flex items-center gap-2 text-white/90 hover:text-orange-400 transition-colors focus-ring rounded group py-1"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('website');
+            }}
+            className="flex items-center gap-2 text-white/90 hover:text-orange-400 transition-colors focus-ring rounded group py-1 cursor-pointer"
           >
             <span>Website</span>
             <span className="text-[11px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-espresso-950 transition-colors">
@@ -149,8 +160,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, isLoggedIn = false 
             </a>
             <a
               href={SITE_CONTENT.links.websiteInquiry}
-              onClick={() => handleNavClick('website')}
-              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors flex items-center justify-between"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick('website');
+              }}
+              className="px-3 py-2 rounded-lg text-white/90 hover:text-orange-400 hover:bg-white/5 transition-colors flex items-center justify-between cursor-pointer"
             >
               <span>Website</span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">

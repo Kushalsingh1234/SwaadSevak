@@ -25,37 +25,37 @@ interface BenefitItem {
 const BENEFITS: BenefitItem[] = [
   {
     id: 'growth',
-    title: 'Boost restaurant growth',
-    tag: 'Revenue & Table Turn Speed',
+    title: 'Boost restaurant revenue & table turns',
+    tag: 'AI Growth & Analytics',
     icon: TrendingUp,
-    description: 'Speed up table turn times with fast 3-touch billing, QR table ordering menus, customer loyalty re-engagement, and real-time revenue analytics.',
+    description: 'Speed up table turns with instant QR ordering, identify high-margin dishes, and convert daily sales into prioritized growth recommendations.',
     exploreLink: SITE_CONTENT.links.demo,
-    exploreText: 'Explore growth tools',
+    exploreText: 'Explore growth engine',
   },
   {
     id: 'orders',
     title: 'Manage online orders in one hub',
-    tag: 'Zomato, Swiggy & ONDC Sync',
+    tag: 'Swiggy, Zomato & QR Sync',
     icon: ShoppingBag,
-    description: 'Auto-accept Swiggy, Zomato, and Direct orders onto a single kitchen screen. Eliminate tablet clutter and missed rush hour tickets.',
+    description: 'Auto-accept Swiggy, Zomato, and Dine-In QR orders onto a single kitchen screen with rush mode to protect kitchen prep times.',
     exploreLink: SITE_CONTENT.links.demo,
     exploreText: 'Explore delivery hub',
   },
   {
     id: 'stock',
-    title: 'Control stock & raw materials',
-    tag: 'Recipe-Level Auto Deductions',
+    title: 'Automate customer loyalty & CRM',
+    tag: 'Coins & WhatsApp Retention',
     icon: Boxes,
-    description: 'Automate raw ingredient deductions down to grams of dairy, paneer, and poultry. Prevent kitchen pilferage and receive smart reorder alerts.',
+    description: 'Reward diners with SwaadSevak Coins on every bill, segment guests into VIP and At-Risk tiers, and launch targeted WhatsApp campaigns.',
     exploreLink: SITE_CONTENT.links.demo,
-    exploreText: 'Explore inventory engine',
+    exploreText: 'Explore loyalty & CRM',
   },
   {
     id: 'website',
     title: 'Launch a custom restaurant website',
     tag: '0% Commission Direct Orders',
     icon: Globe,
-    description: 'Launch your direct digital ordering portal with instant WhatsApp ordering and 0% aggregator commission. We deploy your site within 24 hours.',
+    description: 'Launch your direct digital ordering portal with instant WhatsApp ordering and 0% aggregator commission. We reply with a complete quote in 24 hours.',
     exploreLink: SITE_CONTENT.links.websiteInquiry,
     exploreText: 'Get 24h website quote',
   },
@@ -280,7 +280,7 @@ export const AccordionBenefitsSection: React.FC = () => {
                     </motion.div>
                   )}
 
-                  {/* View 3: Control Stock & Raw Materials */}
+                  {/* View 3: Customer Loyalty & CRM */}
                   {openId === 'stock' && (
                     <motion.div
                       key="stock"
@@ -290,25 +290,31 @@ export const AccordionBenefitsSection: React.FC = () => {
                       transition={{ duration: 0.18 }}
                       className="w-full space-y-2 text-left"
                     >
-                      <div className="bg-[#3D2519] p-2.5 rounded-xl border border-[#5A3A28] space-y-1">
-                        <div className="flex justify-between font-bold text-white text-[11px]">
-                          <span>Fresh Malai Paneer</span>
-                          <span className="font-mono text-orange-400 font-bold">3.8 kg Left</span>
+                      <div className="bg-[#3D2519] p-2.5 rounded-xl border border-[#5A3A28] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-amber-400 font-mono text-sm">🪙</span>
+                          <div>
+                            <span className="font-bold text-white text-[11px] block">VIP Diner #184</span>
+                            <span className="text-[9px] text-[#A89080]">Favorite: Paneer Butter Masala</span>
+                          </div>
                         </div>
-                        <div className="w-full h-2 rounded-full bg-[#1C0E08] overflow-hidden">
-                          <div className="w-[38%] h-full bg-orange-500 rounded-full" />
+                        <div className="text-right font-mono">
+                          <span className="font-bold text-amber-400 text-xs block">+120 Coins</span>
+                          <span className="text-[9px] text-emerald-400 font-bold">12 Visits</span>
                         </div>
-                        <span className="text-[9px] text-[#A89080] block">-220g auto deducted / dish</span>
                       </div>
 
-                      <div className="bg-[#3D2519] p-2.5 rounded-xl border border-[#5A3A28] space-y-1">
-                        <div className="flex justify-between font-bold text-white text-[11px]">
-                          <span>Aged Basmati Rice</span>
-                          <span className="font-mono text-emerald-400 font-bold">42 kg Left</span>
+                      <div className="bg-[#3D2519] p-2.5 rounded-xl border border-[#5A3A28] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <div>
+                            <span className="font-bold text-white text-[11px] block">Auto-Retention Campaign</span>
+                            <span className="text-[9px] text-[#A89080]">Re-engage 14D Inactive Diners</span>
+                          </div>
                         </div>
-                        <div className="w-full h-2 rounded-full bg-[#1C0E08] overflow-hidden">
-                          <div className="w-[84%] h-full bg-emerald-400 rounded-full" />
-                        </div>
+                        <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
+                          38% Return
+                        </span>
                       </div>
                     </motion.div>
                   )}

@@ -152,12 +152,12 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-xl border border-stone-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-5 rounded-2xl border border-stone-200/80 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
               {greeting}, {manager?.username || 'Shift Manager'}
             </h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -169,15 +169,16 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <SoundBanner pendingCount={pendingOrders.length} />
 
           <button
             onClick={handleManualRefresh}
-            className={`p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors ${
+            className={`p-2 rounded-xl border border-stone-200 text-slate-600 hover:bg-stone-50 active:scale-95 transition-all ${
               isRefreshing ? 'animate-spin text-brand-600' : ''
             }`}
             title="Refresh Data"
+            aria-label="Refresh Data"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -185,11 +186,11 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('orders')}
-              className="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-1.5"
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-stone-950 text-xs font-black transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
             >
               <span>Live Kitchen</span>
               {activeOrdersCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-white text-[10px] font-bold">
+                <span className="px-1.5 py-0.2 rounded-full bg-stone-950/20 text-stone-950 text-[10px] font-black">
                   {activeOrdersCount}
                 </span>
               )}
@@ -199,102 +200,102 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
       </div>
 
       {/* KPI Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
         {/* Today's Revenue */}
-        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Today's Sales</span>
-            <div className="w-7 h-7 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">Today's Sales</span>
+            <div className="w-7 h-7 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
             ₹{calculatedSales.toLocaleString('en-IN')}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+          <div className="mt-1 flex items-center gap-1 text-[10.5px] sm:text-[11px] text-emerald-600 font-semibold truncate">
             <span>● Settled revenue</span>
           </div>
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Tickets</span>
-            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">Total Tickets</span>
+            <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
             {totalOrdersCount}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
-            {channelBreakdown.dineIn} Dine-in • {channelBreakdown.swiggy + channelBreakdown.zomato} Aggregators
+          <div className="mt-1 text-[10.5px] sm:text-[11px] text-slate-500 truncate font-medium">
+            {channelBreakdown.dineIn} Dine-in • {channelBreakdown.swiggy + channelBreakdown.zomato} Aggregator
           </div>
         </div>
 
         {/* Active In-Service */}
-        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">In Service</span>
-            <div className={`w-7 h-7 rounded-lg ${activeOrdersCount > 0 ? 'bg-amber-50 text-amber-600 animate-pulse' : 'bg-stone-50 text-slate-400'} flex items-center justify-center`}>
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">In Service</span>
+            <div className={`w-7 h-7 rounded-xl ${activeOrdersCount > 0 ? 'bg-amber-100 text-amber-700 animate-pulse' : 'bg-stone-50 text-slate-400'} flex items-center justify-center shrink-0`}>
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className={`text-2xl font-bold tabular-nums ${activeOrdersCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+          <div className={`text-xl sm:text-2xl font-black tabular-nums ${activeOrdersCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
             {activeOrdersCount}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
-            {pendingOrders.length} incoming • {preparingOrders.length} cooking • {readyOrders.length} ready
+          <div className="mt-1 text-[10.5px] sm:text-[11px] text-slate-500 truncate font-medium">
+            {pendingOrders.length} new • {preparingOrders.length + readyOrders.length} active
           </div>
         </div>
 
         {/* Completed & Settled */}
-        <div className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Settled</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">Settled</span>
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
             {completedOrders.length}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
-            Billed & paid out
+          <div className="mt-1 text-[10.5px] sm:text-[11px] text-slate-500 truncate font-medium">
+            Billed &amp; paid out
           </div>
         </div>
       </div>
 
       {/* Table Floor Occupancy Map */}
-      <div className="bg-white rounded-xl border border-stone-200/80 shadow-xs p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-stone-100">
+      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4 pb-3 border-b border-stone-100">
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <TableProperties className="w-4 h-4 text-brand-500" />
+              <TableProperties className="w-4 h-4 text-orange-500" />
               <span>Table Floor Occupancy</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">Real-time dining room seating and bill status</p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available
+          <div className="flex items-center gap-2.5 text-xs text-slate-600 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Available
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Seated
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Seated
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-purple-600" /> Bill Requested
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" /> Bill Requested
             </span>
           </div>
         </div>
 
         {tables.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-500">
-            No tables added yet. Go to <button onClick={() => onNavigateTab?.('tables')} className="text-brand-600 font-semibold underline">Tables & QR</button> to add your dining tables.
+            No tables added yet. Go to <button onClick={() => onNavigateTab?.('tables')} className="text-brand-600 font-semibold underline">Tables &amp; QR</button> to add your dining tables.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
             {tables.map(table => {
               const liveData = occupancyMap.get(table.tableNumber);
               const status = liveData?.status || 'AVAILABLE';
@@ -304,15 +305,15 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
                 <div
                   key={table.id}
                   onClick={() => onNavigateTab?.('orders')}
-                  className={`p-3 rounded-xl border text-left cursor-pointer transition-all card-hover-lift ${
+                  className={`p-3 rounded-xl border text-left cursor-pointer transition-all active:scale-95 shadow-xs ${
                     status === 'BILL_REQUESTED'
-                      ? 'bg-purple-50/70 border-purple-300 ring-1 ring-purple-300'
+                      ? 'bg-purple-50/80 border-purple-300 ring-2 ring-purple-300'
                       : status === 'OCCUPIED'
-                      ? 'bg-amber-50/60 border-amber-300'
+                      ? 'bg-amber-50/70 border-amber-300'
                       : 'bg-white border-stone-200/90 hover:border-stone-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-slate-900">{table.tableNumber}</span>
                     <span
                       className={`w-2 h-2 rounded-full ${
@@ -327,11 +328,11 @@ export const DashboardOverviewPage: React.FC<DashboardOverviewPageProps> = ({
 
                   {activeOrder ? (
                     <div>
-                      <div className="text-xs font-bold text-slate-900 tabular-nums">₹{activeOrder.total?.toFixed(0)}</div>
-                      <div className="text-[10px] text-slate-500">{activeOrder.items?.length || 0} items</div>
+                      <div className="text-xs font-black text-slate-900 tabular-nums">₹{activeOrder.total?.toFixed(0)}</div>
+                      <div className="text-[10px] text-slate-500 font-medium">{activeOrder.items?.length || 0} items</div>
                     </div>
                   ) : (
-                    <span className="text-[11px] text-slate-400">Available</span>
+                    <span className="text-[11px] text-slate-400 font-medium">Available</span>
                   )}
                 </div>
               );

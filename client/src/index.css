@@ -31,6 +31,12 @@
     --border-subtle: var(--line);
     --text-ink: var(--ink);
     --text-muted: var(--muted);
+
+    /* Safe-area insets for mobile edge-to-edge displays */
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
   }
 
   /* Alternative Drop-in Palette: Cardamom Calm */
@@ -60,7 +66,7 @@
     --turmeric: #E8A838;
     --cardamom: #1F7A5C;
     --masala: #2B0F24;
-    --line: rgba(42, 16, 32, 0.08);
+    --line: rgba(42, 16, 22, 0.08);
   }
 
   /* Alternative Drop-in Palette: Midnight Spice */
@@ -80,19 +86,40 @@
 
   * {
     border-color: var(--line);
+    -webkit-tap-highlight-color: transparent;
   }
 
-  body {
-    background-color: var(--bg);
+  html, body {
+    background-color: #1A0F0A;
     color: var(--ink);
     font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    touch-action: manipulation;
+  }
+
+  /* Firefox custom dark scrollbar */
+  * {
+    scrollbar-color: #4A2D1E #1A0F0A;
+    scrollbar-width: thin;
   }
 
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.025em;
     color: var(--ink);
+  }
+
+  /* Form controls minimum readable font on mobile to prevent iOS auto-zoom */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 640px) {
+    input, select, textarea {
+      font-size: 0.875rem; /* 14px */
+    }
   }
 }
 
@@ -108,20 +135,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom Sleek Scrollbars */
+/* Custom Sleek Scrollbars matching Luxury Dark Espresso */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #1A0F0A;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #4A2D1E;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #F25C05;
 }
 
 /* Hide scrollbars for horizontal tag sliders */
@@ -131,6 +158,15 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile Safe-Area Bottom Utility */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+}
+.pb-safe-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Micro-animations */
@@ -154,9 +190,11 @@
 .card-hover-lift {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.card-hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
+@media (hover: hover) and (pointer: fine) {
+  .card-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
+  }
 }
 
 /* Print Styles for Thermal Receipts */

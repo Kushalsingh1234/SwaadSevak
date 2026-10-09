@@ -2,7 +2,6 @@ import React from 'react';
 import { SITE_CONTENT } from '../../content/site';
 import {
   ArrowRight,
-  Play,
   CheckCircle2,
   Monitor,
   FileText,
@@ -10,11 +9,7 @@ import {
   Calendar,
   TrendingUp,
   Sparkles,
-  UtensilsCrossed,
-  ChefHat,
-  Smartphone,
   LogIn,
-  Globe,
 } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
@@ -26,7 +21,7 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedIn = false }) => {
   return (
     <section
-      className="relative min-h-screen xl:h-screen flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-20 sm:pt-24 pb-4 sm:pb-5 text-left"
+      className="relative min-h-[100dvh] xl:min-h-screen flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-24 sm:pt-28 pb-6 sm:pb-8 text-left"
       style={{ backgroundColor: '#1A0F0A', color: '#FFFFFF' }}
     >
       {/* Ambient Lighting & Luxury Glows */}
@@ -46,40 +41,31 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedI
       <div className="max-w-[1700px] mx-auto w-full relative z-10 flex-1 flex flex-col justify-between">
         
         {/* 2-Column Main Hero Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center flex-1 my-auto py-2 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center flex-1 my-auto py-2 sm:py-6">
           
           {/* Left Column: Copy & Actions (6.5 Cols on xl) */}
-          <div className="lg:col-span-6 xl:col-span-7 space-y-4 sm:space-y-5 xl:space-y-6 text-left">
-            
-            {/* Top Pill Label */}
-            <div
-              className="inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-xs font-bold shadow-soft"
-              style={{ backgroundColor: '#2B1A12', border: '1px solid #5A3A28', color: '#FAF4ED' }}
-            >
-              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              <span>Every order. Every table. Every rupee.</span>
-              <span style={{ color: '#D5BEAA' }}>•</span>
-              <span className="font-mono font-extrabold text-orange-400">One calm system for your whole food business</span>
-            </div>
+          <div className="lg:col-span-6 xl:col-span-7 space-y-4 sm:space-y-6 text-left">
 
             {/* Big Bold High-Impact Headline */}
             <h1
-              className="text-3xl sm:text-5xl lg:text-[3.25rem] xl:text-[3.85rem] 2xl:text-[4.35rem] font-black tracking-tight leading-[1.08]"
+              className="text-[2.15rem] sm:text-5xl lg:text-[3.25rem] xl:text-[3.85rem] 2xl:text-[4.35rem] font-black tracking-tight leading-[1.1]"
               style={{ color: '#FFFFFF' }}
             >
-              Run your Restaurant{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 inline-block drop-shadow-sm">
-                without the chaos.
+              Run Your Restaurant.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 inline-block drop-shadow-[0_2px_12px_rgba(242,92,5,0.3)]">
+                Grow It Smarter.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p
-              className="text-sm sm:text-base xl:text-lg leading-relaxed font-normal max-w-xl"
-              style={{ color: '#F5E9DD' }}
-            >
-              Customers scan, order and pay. Your kitchen sees every order live. You see every rupee. QR ordering, kitchen display, billing, Swiggy &amp; Zomato orders and reports, all in one simple system for cafés, restaurants, cloud kitchens and more.
-            </p>
+            <div className="space-y-2 text-sm sm:text-base xl:text-lg leading-relaxed font-normal max-w-xl text-stone-200/90">
+              <p>
+                Everything you need to run your restaurant — from ordering and billing to customer insights, automated campaigns and growth analytics.
+              </p>
+              <p className="text-xs sm:text-sm text-stone-400">
+                SwaadSevak brings your operations, customer data and growth tools into one simple platform, so you can spend less time managing numbers and more time growing your business.
+              </p>
+            </div>
 
             {/* CTA Button: Platform Login / Go to Dashboard */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
@@ -95,42 +81,43 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedI
                     window.location.hash = isLoggedIn ? 'dashboard' : 'login';
                   }
                 }}
-                className="btn-shine inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 py-3.5 sm:py-4 rounded-xl font-extrabold text-sm sm:text-base bg-gradient-to-r from-orange-500 to-amber-500 text-espresso shadow-glow-orange hover:from-orange-600 hover:to-amber-600 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-                style={{ color: '#1A0F0A' }}
+                className="group relative inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 rounded-2xl font-extrabold text-base bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 text-stone-950 shadow-[0_0_30px_rgba(242,92,5,0.4)] hover:shadow-[0_0_40px_rgba(242,92,5,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer overflow-hidden"
               >
-                <LogIn className="w-4 h-4 sm:w-5 sm:h-5 text-espresso shrink-0" />
-                <span>{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-espresso" />
+                <LogIn className="w-5 h-5 text-stone-950 shrink-0" />
+                <span className="tracking-wide">{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
+                <ArrowRight className="w-5 h-5 text-stone-950 shrink-0 transition-transform group-hover:translate-x-1" />
               </a>
             </div>
 
-            {/* 3 Trust Points Row */}
-            <div className="pt-1 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-semibold" style={{ color: '#FAF4ED' }}>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>Fast Delivery</span>
+            {/* 3 Trust Points Row as Glassmorphic Badges */}
+            <div className="pt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Live KOT &amp; Sound Alerts</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>Affordable Pricing</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Zero Hardware Lock-in</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>No Technical Skills Needed</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.09] backdrop-blur-md text-stone-200 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                <span>Instant 5-Min Setup</span>
               </div>
             </div>
 
           </div>
 
           {/* Right Column: Visual Showcase Characters Cutout (5.5 Cols on xl) */}
-          <div className="lg:col-span-6 xl:col-span-5 relative flex justify-center items-center">
+          <div className="lg:col-span-6 xl:col-span-5 relative flex justify-center items-center py-4 lg:py-0">
             {/* Ambient Warm Glow behind Characters */}
-            <div className="absolute inset-0 bg-orange-500/15 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-orange-500/25 via-amber-500/15 to-transparent rounded-full blur-3xl -z-10 pointer-events-none" />
+
+            {/* Character Illustration */}
             <div className="relative w-full flex items-center justify-center transition-transform hover:scale-[1.02] duration-500">
               <img
                 src="/brand/hero-characters-transparent.png"
                 alt="SwaadSevak Restaurant Team & Characters"
-                className="w-full max-h-[360px] sm:max-h-[420px] xl:max-h-[480px] 2xl:max-h-[540px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+                className="w-full max-h-[300px] sm:max-h-[420px] xl:max-h-[480px] 2xl:max-h-[540px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
               />
             </div>
           </div>
@@ -140,61 +127,61 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedI
         {/* Bottom 5-Card Feature Bar Across Full Width */}
         <div className="mt-4 pt-3 border-t border-walnut/50">
           <div
-            className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-2xl shadow-card"
-            style={{ backgroundColor: '#2B1A12', border: '1px solid #3D2519' }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl backdrop-blur-md"
+            style={{ backgroundColor: 'rgba(43, 26, 18, 0.85)', border: '1px solid rgba(242, 92, 5, 0.2)' }}
           >
             {/* Card 1 */}
-            <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-cocoa/70 transition-all border border-transparent hover:border-walnut/50">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20 shadow-inner">
-                <Monitor className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
+                <Monitor className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-white">Custom Website Design</h4>
-                <p className="text-[11px] text-sand-100 font-medium">Modern &amp; Mobile Friendly</p>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Custom Website</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">0% Commission Direct</p>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-cocoa/70 transition-all border border-transparent hover:border-walnut/50">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20 shadow-inner">
-                <FileText className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-white">Digital Menu</h4>
-                <p className="text-[11px] text-sand-100 font-medium">Beautiful Menu Showcase</p>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Digital QR Menu</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Table Scan &amp; Add-ons</p>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-cocoa/70 transition-all border border-transparent hover:border-walnut/50">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20 shadow-inner">
-                <ShoppingBag className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-white">Online Ordering</h4>
-                <p className="text-[11px] text-sand-100 font-medium">Swiggy / Zomato Integration</p>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">Aggregator Hub</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Swiggy &amp; Zomato Sync</p>
               </div>
             </div>
 
             {/* Card 4 */}
-            <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-cocoa/70 transition-all border border-transparent hover:border-walnut/50">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20 shadow-inner">
-                <Calendar className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-white">Table Booking</h4>
-                <p className="text-[11px] text-sand-100 font-medium">Let Customers Reserve</p>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">AI Growth &amp; CRM</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Coins &amp; WhatsApp Bot</p>
               </div>
             </div>
 
             {/* Card 5 */}
-            <div className="col-span-2 md:col-span-1 flex items-center gap-3 p-2 rounded-xl hover:bg-cocoa/70 transition-all border border-transparent hover:border-walnut/50">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20 shadow-inner">
-                <TrendingUp className="w-5 h-5" />
+            <div className="col-span-2 sm:col-span-1 flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/[0.06] transition-all border border-transparent hover:border-orange-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/25 shadow-inner">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-white">More Customers</h4>
-                <p className="text-[11px] text-sand-100 font-medium">Grow Your Business</p>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs sm:text-sm text-white truncate">POS &amp; 5% GST</h4>
+                <p className="text-[10.5px] sm:text-[11px] text-stone-300 font-medium truncate">Fast Thermal Invoices</p>
               </div>
             </div>
 
@@ -205,3 +192,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedI
     </section>
   );
 };
+

@@ -251,115 +251,117 @@ export const AiMenuModal: React.FC<AiMenuModalProps> = ({
             </div>
 
             {/* Scrollable Table */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                    <th className="py-2.5 px-3">Type</th>
-                    <th className="py-2.5 px-3">Dish Name</th>
-                    <th className="py-2.5 px-3">Category</th>
-                    <th className="py-2.5 px-3">Price (₹)</th>
-                    <th className="py-2.5 px-3">Portion</th>
-                    <th className="py-2.5 px-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {extractedItems.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Veg / Non-Veg Toggle */}
-                      <td className="py-2 px-3">
-                        <button
-                          type="button"
-                          onClick={() => handleItemChange(idx, 'isVeg', !item.isVeg)}
-                          className="hover:scale-110 transition-transform"
-                          title={item.isVeg ? 'Vegetarian (Click to change)' : 'Non-Vegetarian (Click to change)'}
-                        >
-                          <VegIcon isVeg={item.isVeg} size="md" />
-                        </button>
-                      </td>
-
-                      {/* Name & Description */}
-                      <td className="py-2 px-3">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
-                          className="w-full font-semibold text-slate-900 border border-transparent hover:border-slate-300 focus:border-orange-500 rounded px-2 py-1 text-xs outline-none bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={item.description}
-                          onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                          placeholder="Short description..."
-                          className="w-full text-slate-500 border border-transparent hover:border-slate-300 focus:border-orange-500 rounded px-2 py-0.5 text-[11px] outline-none bg-transparent"
-                        />
-                      </td>
-
-                      {/* Category */}
-                      <td className="py-2 px-3">
-                        <input
-                          type="text"
-                          value={item.category}
-                          onChange={(e) => handleItemChange(idx, 'category', e.target.value)}
-                          className="w-32 border border-slate-200 rounded px-2 py-1 text-xs focus:border-orange-500 outline-none"
-                        />
-                      </td>
-
-                      {/* Price */}
-                      <td className="py-2 px-3">
-                        <div className="flex items-center">
-                          <span className="text-slate-400 mr-1">₹</span>
-                          <input
-                            type="number"
-                            value={item.price}
-                            onChange={(e) => handleItemChange(idx, 'price', parseFloat(e.target.value) || 0)}
-                            className="w-20 border border-slate-200 rounded px-2 py-1 text-xs font-bold text-slate-800 focus:border-orange-500 outline-none"
-                          />
-                        </div>
-                      </td>
-
-                      {/* Portion */}
-                      <td className="py-2 px-3">
-                        <input
-                          type="text"
-                          value={item.portion || 'Standard'}
-                          onChange={(e) => handleItemChange(idx, 'portion', e.target.value)}
-                          className="w-24 border border-slate-200 rounded px-2 py-1 text-xs focus:border-orange-500 outline-none"
-                        />
-                      </td>
-
-                      {/* Delete */}
-                      <td className="py-2 px-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteItem(idx)}
-                          className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Remove dish"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left text-xs border-collapse min-w-[580px]">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3">Dish Name</th>
+                      <th className="py-2.5 px-3">Category</th>
+                      <th className="py-2.5 px-3">Price (₹)</th>
+                      <th className="py-2.5 px-3">Portion</th>
+                      <th className="py-2.5 px-3 text-right">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {extractedItems.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                        {/* Veg / Non-Veg Toggle */}
+                        <td className="py-2 px-3">
+                          <button
+                            type="button"
+                            onClick={() => handleItemChange(idx, 'isVeg', !item.isVeg)}
+                            className="hover:scale-110 transition-transform cursor-pointer"
+                            title={item.isVeg ? 'Vegetarian (Click to change)' : 'Non-Vegetarian (Click to change)'}
+                          >
+                            <VegIcon isVeg={item.isVeg} size="md" />
+                          </button>
+                        </td>
+
+                        {/* Name & Description */}
+                        <td className="py-2 px-3">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
+                            className="w-full font-semibold text-slate-900 border border-transparent hover:border-slate-300 focus:border-orange-500 rounded px-2 py-1 text-xs outline-none bg-transparent"
+                          />
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
+                            placeholder="Short description..."
+                            className="w-full text-slate-500 border border-transparent hover:border-slate-300 focus:border-orange-500 rounded px-2 py-0.5 text-[11px] outline-none bg-transparent"
+                          />
+                        </td>
+
+                        {/* Category */}
+                        <td className="py-2 px-3">
+                          <input
+                            type="text"
+                            value={item.category}
+                            onChange={(e) => handleItemChange(idx, 'category', e.target.value)}
+                            className="w-28 sm:w-32 border border-slate-200 rounded px-2 py-1 text-xs focus:border-orange-500 outline-none"
+                          />
+                        </td>
+
+                        {/* Price */}
+                        <td className="py-2 px-3">
+                          <div className="flex items-center">
+                            <span className="text-slate-400 mr-1">₹</span>
+                            <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) => handleItemChange(idx, 'price', parseFloat(e.target.value) || 0)}
+                              className="w-16 sm:w-20 border border-slate-200 rounded px-2 py-1 text-xs font-bold text-slate-800 focus:border-orange-500 outline-none"
+                            />
+                          </div>
+                        </td>
+
+                        {/* Portion */}
+                        <td className="py-2 px-3">
+                          <input
+                            type="text"
+                            value={item.portion || 'Standard'}
+                            onChange={(e) => handleItemChange(idx, 'portion', e.target.value)}
+                            className="w-20 sm:w-24 border border-slate-200 rounded px-2 py-1 text-xs focus:border-orange-500 outline-none"
+                          />
+                        </td>
+
+                        {/* Delete */}
+                        <td className="py-2 px-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(idx)}
+                            className="p-1.5 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Remove dish"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setStep('UPLOAD')}
-                className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer text-center sm:text-left"
               >
                 ← Upload Different PDF
               </button>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={resetModal}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -367,14 +369,14 @@ export const AiMenuModal: React.FC<AiMenuModalProps> = ({
                   type="button"
                   disabled={isSubmitting}
                   onClick={handleConfirmAndAddMenu}
-                  className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     'Saving Menu...'
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>Confirm & Publish Menu ({extractedItems.length} Dishes)</span>
+                      <span>Confirm &amp; Publish ({extractedItems.length} Dishes)</span>
                     </>
                   )}
                 </button>

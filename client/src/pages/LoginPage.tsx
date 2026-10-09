@@ -70,18 +70,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#1B120C] text-[#FFF7ED] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-[100dvh] bg-[#1B120C] text-[#FFF7ED] flex flex-col justify-center py-6 sm:py-12 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Logo variant="stacked" theme="dark" size={64} showTagline={false} />
+        <Logo variant="stacked" theme="dark" size={56} showTagline={false} />
         <p className="text-xs text-[#FF9E58] font-bold uppercase tracking-widest mt-3">
           Restaurant Manager Sign In
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#251A12] border border-white/[0.12] rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-[#251A12] border border-white/[0.12] rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-2xl backdrop-blur-xl">
           {errorMsg && (
-            <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2.5">
+            <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{errorMsg}</span>
             </div>
@@ -132,7 +132,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 active:scale-98 cursor-pointer"
               >
                 {isLoading ? (
                   <span>Signing In...</span>
@@ -154,7 +154,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </form>
 
           {/* Demo account quick login helper */}
-          <div className="mt-6 pt-6 border-t border-white/[0.08] text-center">
+          <div className="mt-5 pt-5 border-t border-white/[0.08] text-center">
             <p className="text-[11px] text-stone-400">
               Demo Manager Credentials pre-filled:
             </p>
@@ -166,13 +166,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs text-stone-400">
             <button
               onClick={onBackToLanding}
-              className="text-stone-400 hover:text-white"
+              className="text-stone-400 hover:text-white transition-colors"
             >
               ← Back to Home
             </button>
             <button
               onClick={onGoToRegister}
-              className="text-[#FF9E58] font-bold hover:underline"
+              className="text-[#FF9E58] font-bold hover:underline transition-colors"
             >
               Register New Restaurant
             </button>

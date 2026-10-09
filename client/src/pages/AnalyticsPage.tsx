@@ -198,40 +198,40 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
         {/* Date Selector & Export Actions */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Preset Buttons for Quick Switching */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar max-w-full">
             <button
               onClick={() => { setSelectedRange('today'); setIsCustomPickerOpen(false); }}
-              className={`px-3 py-1.5 rounded-lg transition-all ${selectedRange === 'today' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'today' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               Today
             </button>
             <button
               onClick={() => { setSelectedRange('yesterday'); setIsCustomPickerOpen(false); }}
-              className={`px-3 py-1.5 rounded-lg transition-all ${selectedRange === 'yesterday' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'yesterday' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               Yesterday
             </button>
             <button
               onClick={() => { setSelectedRange('last7days'); setIsCustomPickerOpen(false); }}
-              className={`px-3 py-1.5 rounded-lg transition-all ${selectedRange === 'last7days' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'last7days' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               Last 7 Days
             </button>
             <button
               onClick={() => { setSelectedRange('last30days'); setIsCustomPickerOpen(false); }}
-              className={`hidden sm:inline-block px-3 py-1.5 rounded-lg transition-all ${selectedRange === 'last30days' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'last30days' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               Last 30 Days
             </button>
             <button
               onClick={() => { setSelectedRange('thisMonth'); setIsCustomPickerOpen(false); }}
-              className={`hidden md:inline-block px-3 py-1.5 rounded-lg transition-all ${selectedRange === 'thisMonth' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'thisMonth' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               This Month
             </button>
             <button
               onClick={() => setIsCustomPickerOpen(!isCustomPickerOpen)}
-              className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-all ${selectedRange === 'custom' || isCustomPickerOpen ? 'bg-white text-brand-600 shadow-xs font-bold' : 'hover:text-slate-900'}`}
+              className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-all whitespace-nowrap shrink-0 cursor-pointer ${selectedRange === 'custom' || isCustomPickerOpen ? 'bg-white text-brand-600 shadow-xs font-bold' : 'hover:text-slate-900'}`}
             >
               <span>{selectedRange === 'custom' ? 'Custom' : 'More'}</span>
               <ChevronDown className="w-3.5 h-3.5" />

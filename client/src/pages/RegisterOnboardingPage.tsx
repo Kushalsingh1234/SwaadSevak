@@ -170,19 +170,19 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#1B120C] text-[#FFF7ED] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-[100dvh] bg-[#1B120C] text-[#FFF7ED] flex flex-col justify-center py-6 sm:py-12 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Logo variant="stacked" theme="dark" size={64} showTagline={false} />
+        <Logo variant="stacked" theme="dark" size={56} showTagline={false} />
         <p className="text-xs text-[#FF9E58] font-bold uppercase tracking-widest mt-3">
           Restaurant Registration & Setup
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-[#251A12] border border-white/[0.12] rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
+        <div className="bg-[#251A12] border border-white/[0.12] rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-2xl backdrop-blur-xl">
           {/* Step Progress Indicators */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="flex items-center justify-between">
               {[
                 { step: 1, label: 'Restaurant', icon: Utensils },
@@ -197,17 +197,17 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
                 return (
                   <div key={s.step} className="flex flex-col items-center">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                         isCurrent
-                          ? 'bg-brand-500 text-white shadow-glow scale-110'
+                          ? 'bg-brand-500 text-white shadow-glow scale-105 sm:scale-110'
                           : isPassed
                           ? 'bg-emerald-600 text-white'
                           : 'bg-white/[0.06] border border-white/[0.08] text-stone-400'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <span className={`text-[10px] mt-1.5 font-semibold hidden sm:block ${
+                    <span className={`text-[9px] sm:text-[10px] mt-1 font-semibold hidden sm:block ${
                       isCurrent ? 'text-[#FF9E58] font-bold' : isPassed ? 'text-emerald-400' : 'text-stone-400'
                     }`}>
                       {s.label}
@@ -217,7 +217,7 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
               })}
             </div>
             {/* Progress bar line */}
-            <div className="mt-4 h-1.5 bg-[#140D08] rounded-full overflow-hidden border border-white/[0.06]">
+            <div className="mt-3.5 sm:mt-4 h-1.5 bg-[#140D08] rounded-full overflow-hidden border border-white/[0.06]">
               <div
                 className="h-full bg-gradient-to-r from-brand-600 to-amber-500 transition-all duration-300"
                 style={{ width: `${(currentStep / 5) * 100}%` }}
@@ -227,7 +227,7 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2.5">
+            <div className="mb-5 sm:mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{errorMsg}</span>
             </div>
@@ -490,12 +490,12 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
 
           {/* Nav Buttons (Steps 1 to 4) */}
           {currentStep < 5 && (
-            <div className="mt-8 pt-6 border-t border-white/[0.08] flex items-center justify-between">
+            <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-white/[0.08] flex items-center justify-between gap-3">
               {currentStep > 1 ? (
                 <button
                   type="button"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-stone-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-semibold text-stone-400 hover:text-white hover:bg-white/[0.06] transition-all active:scale-95"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
@@ -504,7 +504,7 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
                 <button
                   type="button"
                   onClick={onBackToLanding}
-                  className="text-xs text-stone-400 hover:text-white font-semibold"
+                  className="text-xs text-stone-400 hover:text-white font-semibold transition-colors py-2"
                 >
                   ← Back to Home
                 </button>
@@ -514,7 +514,7 @@ export const RegisterOnboardingPage: React.FC<RegisterOnboardingPageProps> = ({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleNext}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-glow transition-all disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-glow transition-all disabled:opacity-50 active:scale-98 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span>Creating Account...</span>

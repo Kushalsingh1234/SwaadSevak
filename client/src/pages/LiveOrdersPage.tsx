@@ -326,15 +326,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   return (
     <div className="flex flex-col h-full space-y-3 flex-1 min-h-0 relative">
       {/* Top Bar: Stats Strip & Sound Alerts */}
-      <div className="shrink-0 bg-white p-3 sm:p-4 rounded-xl border border-[var(--line)] shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="shrink-0 bg-white p-3 sm:p-4 rounded-xl border border-[var(--line)] shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-between sm:justify-start">
           <div>
-            <h1 className="text-lg font-bold text-[var(--ink)] tracking-tight flex items-center gap-2">
+            <h1 className="text-base sm:text-lg font-bold text-[var(--ink)] tracking-tight flex items-center gap-2">
               <span>Live Kitchen Dispatch</span>
               <span className="w-2 h-2 rounded-full bg-cardamom animate-pulse" title="Socket Connected" />
             </h1>
-            <p className="text-xs text-[var(--muted)]">
-              {restaurant?.name || 'Restaurant'} • Real-Time Order Flow & Dining Floor
+            <p className="text-[11px] sm:text-xs text-[var(--muted)]">
+              {restaurant?.name || 'Restaurant'} • Real-Time Floor Flow
             </p>
           </div>
 
@@ -356,7 +356,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         </div>
 
         {/* Right Actions: Sound Banner & Settled Drawer Toggle */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
           <SoundBanner
             pendingCount={pendingOrders.length}
             pendingAdditionsCount={pendingAdditionsCount}
@@ -365,15 +365,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           {/* Collapsible Settled Drawer Toggle */}
           <button
             onClick={() => setIsSettledDrawerOpen(!isSettledDrawerOpen)}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 sm:gap-2 transition-all active:scale-95 ${
               isSettledDrawerOpen
                 ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                 : 'bg-white border-stone-200 text-slate-700 hover:bg-stone-50'
             }`}
           >
-            <Receipt className="w-3.5 h-3.5 text-slate-500" />
-            <span>Settled Today ({completedOrders.length})</span>
-            {isSettledDrawerOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+            <Receipt className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span className="whitespace-nowrap">Settled ({completedOrders.length})</span>
+            {isSettledDrawerOpen ? <PanelRightClose className="w-3.5 h-3.5 shrink-0" /> : <PanelRightOpen className="w-3.5 h-3.5 shrink-0" />}
           </button>
         </div>
       </div>
@@ -381,9 +381,9 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       {/* Filter and Search Bar */}
       <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
         {/* Source Channels: All, Dine-In, Swiggy, Zomato */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0">
           {[
-            { id: 'ALL', label: 'All Orders', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
+            { id: 'ALL', label: 'All', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
             { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
             { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
             { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
@@ -391,9 +391,9 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             <button
               key={tab.id}
               onClick={() => setFilterSource(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5 shrink-0 ${
                 filterSource === tab.id
-                  ? 'bg-brand-500 text-white font-semibold shadow-xs'
+                  ? 'bg-brand-500 text-white font-bold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-stone-100'
               }`}
             >
@@ -411,10 +411,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
         {/* Search Input */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search table, order #, or dish..."
+            placeholder="Search table, order #, dish..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:bg-white focus:border-brand-500 transition-colors"
@@ -428,15 +428,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           <button
             key={col.id}
             onClick={() => setMobileTab(col.id as any)}
-            className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1.5 border transition-all ${
+            className={`flex-1 min-w-[95px] px-2.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center justify-center gap-1.5 border transition-all active:scale-95 ${
               mobileTab === col.id
                 ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                 : 'bg-white border-stone-200 text-slate-700'
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
-            <span>{col.label}</span>
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+            <span className="truncate">{col.label}</span>
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold shrink-0 ${
               mobileTab === col.id ? 'bg-brand-500 text-white' : 'bg-stone-100 text-slate-700'
             }`}>
               {col.count}

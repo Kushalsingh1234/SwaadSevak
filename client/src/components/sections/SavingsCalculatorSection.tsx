@@ -52,7 +52,7 @@ export const SavingsCalculatorSection: React.FC = () => {
             Estimate Your Monthly Bottom-Line Savings
           </h2>
           <p className="text-xs sm:text-[13px] text-[#5A3A28] leading-relaxed">
-            See how much you recover by reducing aggregator commission cuts and tracking recipe-level ingredient pilferage.
+            See how much you recover by shifting delivery orders to direct 0% commission channels and preventing rush-hour billing errors.
           </p>
         </div>
 

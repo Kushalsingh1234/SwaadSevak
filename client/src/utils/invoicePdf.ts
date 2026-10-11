@@ -25,15 +25,30 @@ export async function downloadInvoicePdf(
   });
 
   const subtotal = order.subtotal || order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const gstTier = restaurant?.gstTier || '5%';
+  const isInclusive = gstTier === 'inclusive' || gstTier === '0%' || gstTier === '0';
   const hasGst = Boolean(restaurant?.gstNumber && restaurant.gstNumber.trim().length > 0);
-  const cgst = hasGst ? Math.round(subtotal * 0.025 * 100) / 100 : 0;
-  const sgst = hasGst ? Math.round(subtotal * 0.025 * 100) / 100 : 0;
-  const grandTotal = Math.round(subtotal + cgst + sgst);
+
+  const totalTax = isInclusive
+    ? 0
+    : (order.tax !== undefined && order.tax !== null
+        ? order.tax
+        : gstTier === '18%'
+        ? Math.round(subtotal * 0.18 * 100) / 100
+        : Math.round(subtotal * 0.05 * 100) / 100);
+
+  const cgstRateLabel = gstTier === '18%' ? 'CGST (9%)' : 'CGST (2.5%)';
+  const sgstRateLabel = gstTier === '18%' ? 'SGST (9%)' : 'SGST (2.5%)';
+  const cgst = Math.round((totalTax / 2) * 100) / 100;
+  const sgst = Math.round((totalTax - cgst) * 100) / 100;
+  const discount = bill?.discount ?? order.coinDiscount ?? 0;
+  const grandTotal = Math.round((bill?.grandTotal ?? order.total ?? (subtotal + totalTax - discount)) * 100) / 100;
+
   const paymentMode = bill?.paymentStatus
     ? bill.paymentStatus.replace('PAID_', 'PAID VIA ')
     : 'PAID VIA UPI';
 
-  const headingText = hasGst ? 'TAX INVOICE' : 'ORDER RECEIPT';
+  const headingText = hasGst || totalTax > 0 ? 'TAX INVOICE' : 'ORDER RECEIPT';
 
   // Build off-screen receipt DOM element
   const container = document.createElement('div');
@@ -147,15 +162,32 @@ export async function downloadInvoicePdf(
         <span style="font-weight: 700; color: #0f172a;">₹${subtotal.toFixed(2)}</span>
       </div>
       ${
-        hasGst
+        isInclusive
+          ? `
+        <div style="display: flex; justify-content: space-between; color: #475569; font-size: 10.5px; padding: 2px 0;">
+          <span>Taxes & GST</span>
+          <span style="font-weight: 600; color: #166534;">Included in item prices</span>
+        </div>
+      `
+          : totalTax > 0
           ? `
         <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; padding: 2px 0;">
-          <span>CGST (2.5%)</span>
+          <span>${cgstRateLabel}</span>
           <span>₹${cgst.toFixed(2)}</span>
         </div>
         <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 10.5px; padding: 2px 0;">
-          <span>SGST (2.5%)</span>
+          <span>${sgstRateLabel}</span>
           <span>₹${sgst.toFixed(2)}</span>
+        </div>
+      `
+          : ''
+      }
+      ${
+        discount > 0
+          ? `
+        <div style="display: flex; justify-content: space-between; color: #166534; font-size: 10.5px; padding: 2px 0;">
+          <span>Discount Applied</span>
+          <span>-₹${discount.toFixed(2)}</span>
         </div>
       `
           : ''

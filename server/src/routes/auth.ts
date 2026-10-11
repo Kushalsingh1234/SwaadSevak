@@ -177,6 +177,7 @@ router.post('/login', async (req, res) => {
                 state: dbMgr.restaurant.state,
                 restaurantType: dbMgr.restaurant.restaurantType,
                 gstNumber: dbMgr.restaurant.gstNumber || undefined,
+                gstTier: (dbMgr.restaurant as any).gstTier || '5%',
                 createdAt: dbMgr.restaurant.createdAt,
                 updatedAt: dbMgr.restaurant.updatedAt
               });
@@ -216,6 +217,7 @@ router.post('/login', async (req, res) => {
               state: r.state,
               restaurantType: r.restaurantType,
               gstNumber: r.gstNumber || undefined,
+              gstTier: (r as any).gstTier || '5%',
               createdAt: r.createdAt,
               updatedAt: r.updatedAt
             };
@@ -247,7 +249,9 @@ router.post('/login', async (req, res) => {
         id: restaurant.id,
         slug: restaurant.slug,
         name: restaurant.name,
-        ownerName: restaurant.ownerName
+        ownerName: restaurant.ownerName,
+        gstNumber: restaurant.gstNumber,
+        gstTier: restaurant.gstTier || '5%'
       },
       manager: {
         id: manager.id,
@@ -282,6 +286,7 @@ router.get('/me', requireAuth, async (req: AuthenticatedRequest, res: Response) 
             state: r.state,
             restaurantType: r.restaurantType,
             gstNumber: r.gstNumber || undefined,
+            gstTier: (r as any).gstTier || '5%',
             createdAt: r.createdAt,
             updatedAt: r.updatedAt
           };
@@ -314,9 +319,96 @@ router.get('/me', requireAuth, async (req: AuthenticatedRequest, res: Response) 
       city: restaurant.city,
       state: restaurant.state,
       restaurantType: restaurant.restaurantType,
-      gstNumber: restaurant.gstNumber
+      gstNumber: restaurant.gstNumber,
+      gstTier: restaurant.gstTier || '5%'
     }
   });
+});
+
+// Update restaurant profile & GST / Tax configuration
+router.patch('/restaurant', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const {
+      name,
+      ownerName,
+      phone,
+      email,
+      address,
+      city,
+      state,
+      restaurantType,
+      gstNumber,
+      gstTier
+    } = req.body;
+
+    const updated = await db.updateRestaurant(restaurantId, {
+      name,
+      ownerName,
+      phone,
+      email,
+      address,
+      city,
+      state,
+      restaurantType,
+      gstNumber,
+      gstTier
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Restaurant not found' });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Restaurant & GST settings updated successfully!',
+      restaurant: {
+        id: updated.id,
+        slug: updated.slug,
+        name: updated.name,
+        ownerName: updated.ownerName,
+        phone: updated.phone,
+        email: updated.email,
+        address: updated.address,
+        city: updated.city,
+        state: updated.state,
+        restaurantType: updated.restaurantType,
+        gstNumber: updated.gstNumber,
+        gstTier: updated.gstTier || '5%'
+      }
+    });
+  } catch (err: any) {
+    console.error('Error updating restaurant settings:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to update restaurant settings' });
+  }
+});
+
+router.put('/restaurant', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const updated = await db.updateRestaurant(restaurantId, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: 'Restaurant not found' });
+    return res.json({
+      success: true,
+      message: 'Restaurant & GST settings updated successfully!',
+      restaurant: {
+        id: updated.id,
+        slug: updated.slug,
+        name: updated.name,
+        ownerName: updated.ownerName,
+        phone: updated.phone,
+        email: updated.email,
+        address: updated.address,
+        city: updated.city,
+        state: updated.state,
+        restaurantType: updated.restaurantType,
+        gstNumber: updated.gstNumber,
+        gstTier: updated.gstTier || '5%'
+      }
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message || 'Failed to update' });
+  }
 });
 
 export default router;

@@ -21,7 +21,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
   if (!isOpen || !order) return null;
 
   const subtotal = order.subtotal || order.items.reduce((s, i) => s + (i.price * i.quantity), 0);
-  const tax = order.tax || Math.round(subtotal * 0.05 * 100) / 100;
+  const tax = order.tax !== undefined ? order.tax : 0;
   const grandTotal = order.total || (subtotal + tax);
 
   const handleSubmit = async () => {
@@ -75,10 +75,17 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
               <span>Subtotal:</span>
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>GST (5%):</span>
-              <span>₹{tax.toFixed(2)}</span>
-            </div>
+            {tax === 0 ? (
+              <div className="flex justify-between text-gray-600">
+                <span>Taxes & GST:</span>
+                <span className="text-emerald-700 font-medium">Included in prices</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-gray-600">
+                <span>GST:</span>
+                <span>₹{tax.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
               <span>Total Payable:</span>
               <span className="text-orange-600 text-base">₹{grandTotal.toFixed(2)}</span>

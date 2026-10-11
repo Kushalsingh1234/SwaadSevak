@@ -71,6 +71,11 @@ export const api = {
       })
     }),
   getMe: () => request<any>('/auth/me'),
+  updateRestaurant: (updates: Partial<import('../types').Restaurant>) =>
+    request<{ success: boolean; message: string; restaurant: import('../types').Restaurant }>('/auth/restaurant', {
+      method: 'PATCH',
+      body: JSON.stringify(updates)
+    }),
 
   // Menu
   getCategories: () => request<any>('/menu/categories'),

@@ -10,6 +10,7 @@ export interface Restaurant {
   state: string;
   restaurantType: string;
   gstNumber?: string;
+  gstTier?: string;
   createdAt: Date;
   updatedAt: Date;
 }

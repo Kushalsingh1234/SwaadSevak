@@ -51,6 +51,10 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
     .filter(b => b.paymentStatus.startsWith('PAID'))
     .reduce((sum, b) => sum + (b.tax || 0), 0);
 
+  const isInclusive = restaurant?.gstTier === 'inclusive';
+  const gstHeaderLabel = isInclusive ? 'GST (Incl.)' : restaurant?.gstTier === '18%' ? '18% GST' : '5% GST';
+  const gstSubtext = isInclusive ? 'Inclusive Taxes' : restaurant?.gstTier === '18%' ? '18% GST Ready' : '5% GST Ready';
+
   return (
     <div className="space-y-4">
       {/* Header Bar */}
@@ -65,7 +69,7 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            5% GST Ready • Total Settled: <span className="font-bold text-slate-900 tabular-nums">₹{totalCollected.toFixed(0)}</span> (GST: ₹{totalTax.toFixed(0)})
+            {gstSubtext} • Total Settled: <span className="font-bold text-slate-900 tabular-nums">₹{totalCollected.toFixed(0)}</span> {isInclusive ? '(Prices Inclusive of Taxes)' : `(GST: ₹${totalTax.toFixed(0)})`}
           </p>
         </div>
 
@@ -114,7 +118,7 @@ export const BillsManagementPage: React.FC<BillsManagementPageProps> = ({
                 <th className="py-3 px-4">Order #</th>
                 <th className="py-3 px-4">Date & Time</th>
                 <th className="py-3 px-4">Subtotal</th>
-                <th className="py-3 px-4">5% GST</th>
+                <th className="py-3 px-4">{gstHeaderLabel}</th>
                 <th className="py-3 px-4">Grand Total</th>
                 <th className="py-3 px-4">Payment Method</th>
                 <th className="py-3 px-4 text-right">Receipt</th>

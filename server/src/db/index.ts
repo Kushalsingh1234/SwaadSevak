@@ -122,6 +122,7 @@ class DatabaseStore {
         state: r.state,
         restaurantType: r.restaurantType,
         gstNumber: r.gstNumber || undefined,
+        gstTier: r.gstTier || '5%',
         createdAt: r.createdAt,
         updatedAt: r.updatedAt
       });
@@ -216,6 +217,7 @@ class DatabaseStore {
           state: 'Karnataka',
           restaurantType: 'Café & Bistro',
           gstNumber: '29ABCDE1234F1Z5',
+          gstTier: '5%',
           createdAt: new Date(),
           updatedAt: new Date()
         });
@@ -478,6 +480,7 @@ class DatabaseStore {
       state: 'Karnataka',
       restaurantType: 'Café & Bistro',
       gstNumber: '29ABCDE1234F1Z5',
+      gstTier: '5%',
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -1490,11 +1493,54 @@ class DatabaseStore {
             city: restaurant.city,
             state: restaurant.state,
             restaurantType: restaurant.restaurantType,
-            gstNumber: restaurant.gstNumber
+            gstNumber: restaurant.gstNumber,
+            gstTier: restaurant.gstTier || '5%'
           }
         });
       } catch (err) {
         console.error('Prisma createRestaurant error:', err);
+      }
+    }
+
+    return restaurant;
+  }
+
+  async updateRestaurant(id: string, updates: Partial<Restaurant>): Promise<Restaurant | null> {
+    const restaurant = this.restaurants.get(id);
+    if (!restaurant) return null;
+
+    if (updates.name !== undefined) restaurant.name = updates.name.trim();
+    if (updates.ownerName !== undefined) restaurant.ownerName = updates.ownerName.trim();
+    if (updates.phone !== undefined) restaurant.phone = updates.phone.trim();
+    if (updates.email !== undefined) restaurant.email = updates.email.trim();
+    if (updates.address !== undefined) restaurant.address = updates.address.trim();
+    if (updates.city !== undefined) restaurant.city = updates.city.trim();
+    if (updates.state !== undefined) restaurant.state = updates.state.trim();
+    if (updates.restaurantType !== undefined) restaurant.restaurantType = updates.restaurantType.trim();
+    if (updates.gstNumber !== undefined) restaurant.gstNumber = updates.gstNumber.trim() || undefined;
+    if (updates.gstTier !== undefined) restaurant.gstTier = updates.gstTier.trim();
+    restaurant.updatedAt = new Date();
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      try {
+        await prisma.restaurant.update({
+          where: { id },
+          data: {
+            name: restaurant.name,
+            ownerName: restaurant.ownerName,
+            phone: restaurant.phone,
+            email: restaurant.email,
+            address: restaurant.address,
+            city: restaurant.city,
+            state: restaurant.state,
+            restaurantType: restaurant.restaurantType,
+            gstNumber: restaurant.gstNumber || null,
+            gstTier: restaurant.gstTier || '5%'
+          }
+        });
+      } catch (err) {
+        console.error('Prisma updateRestaurant error:', err);
       }
     }
 

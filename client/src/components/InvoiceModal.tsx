@@ -129,10 +129,37 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
                 <span>Subtotal</span>
                 <span>₹{order.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>GST (5%)</span>
-                <span>₹{order.tax.toFixed(2)}</span>
-              </div>
+              {order.tax === 0 || restaurant?.gstTier === 'inclusive' ? (
+                <div className="flex justify-between text-gray-600">
+                  <span className="flex items-center gap-1.5">
+                    <span>Taxes & GST</span>
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-medium">Included</span>
+                  </span>
+                  <span className="text-emerald-700 font-semibold">Included in prices</span>
+                </div>
+              ) : restaurant?.gstTier === '18%' ? (
+                <>
+                  <div className="flex justify-between text-gray-600">
+                    <span>CGST (9%)</span>
+                    <span>₹{(order.tax / 2).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>SGST (9%)</span>
+                    <span>₹{(order.tax / 2).toFixed(2)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between text-gray-600">
+                    <span>CGST (2.5%)</span>
+                    <span>₹{(order.tax / 2).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>SGST (2.5%)</span>
+                    <span>₹{(order.tax / 2).toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               {bill?.discount ? (
                 <div className="flex justify-between text-emerald-600">
                   <span>Discount</span>

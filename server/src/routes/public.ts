@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import { emitNewOrder, emitBillRequested, emitOrderAddition, emitCustomerCoinsUpdated } from '../realtime/socket.js';
 import { OrderItem } from '../types/index.js';
+import { calculateGst } from '../utils/gst.js';
 
 const router = Router();
 
@@ -81,7 +82,9 @@ router.get('/menu/:restaurantSlug/:qrToken', (req: Request, res: Response) => {
       restaurantType: restaurant.restaurantType,
       city: restaurant.city,
       address: restaurant.address,
-      phone: restaurant.phone
+      phone: restaurant.phone,
+      gstNumber: restaurant.gstNumber,
+      gstTier: restaurant.gstTier || '5%'
     },
     table: {
       id: table.id,
@@ -178,21 +181,23 @@ router.post('/order', (req: Request, res: Response) => {
     }
   }
 
-  // 5% Restaurant GST on net food subtotal
+  // Dynamic GST calculation based on restaurant tier (inclusive, 5%, or 18%)
   const netSubtotal = Math.max(0, subtotal - coinDiscount);
-  const tax = Math.round(netSubtotal * 0.05 * 100) / 100;
-  const total = Math.round((netSubtotal + tax) * 100) / 100;
+  const gstCalc = calculateGst(netSubtotal, restaurant.gstTier);
+  const tax = gstCalc.tax;
+  const total = gstCalc.total;
 
   // Check if this table already has an active order in progress
   const activeOrder = db.getActiveOrderByTable(restaurant.id, table.id);
 
   if (activeOrder) {
     // Attach additional items directly to the existing order card
+    const additionGst = calculateGst(subtotal, restaurant.gstTier);
     const additionResult = db.addOrderAddition(restaurant.id, activeOrder.id, {
       customerNotes: customerNotes ? String(customerNotes).trim() : undefined,
       subtotal,
-      tax: Math.round(subtotal * 0.05 * 100) / 100,
-      total: Math.round((subtotal + (subtotal * 0.05)) * 100) / 100,
+      tax: additionGst.tax,
+      total: additionGst.total,
       items: verifiedItems
     });
 
@@ -604,7 +609,8 @@ router.get('/order/:orderId/invoice', (req: Request, res: Response) => {
         city: restaurant?.city,
         state: restaurant?.state,
         phone: restaurant?.phone,
-        gstNumber: restaurant?.gstNumber
+        gstNumber: restaurant?.gstNumber,
+        gstTier: restaurant?.gstTier || '5%'
       },
       orderNumber: matchedOrder.orderNumber,
       billNumber: bill?.billNumber || `INV-${matchedOrder.orderNumber.replace('#', '')}`,

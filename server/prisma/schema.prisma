@@ -23,6 +23,7 @@ model Restaurant {
   state          String
   restaurantType String         @default("Café")
   gstNumber      String?
+  gstTier        String?        @default("5%")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

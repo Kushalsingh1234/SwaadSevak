@@ -24,6 +24,7 @@ import { MenuManagementPage } from './pages/MenuManagementPage';
 import { TablesManagementPage } from './pages/TablesManagementPage';
 import { BillsManagementPage } from './pages/BillsManagementPage';
 import { PrinterSettingsPage } from './pages/PrinterSettingsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AggregatorHubPage } from './pages/AggregatorHubPage';
 import { GrowthEnginePage } from './pages/GrowthEnginePage';
@@ -516,6 +517,17 @@ export const App: React.FC = () => {
                 const res = await api.updatePrinterConfig(newConfig);
                 if (res.success) setPrinterConfig(res.config);
               }}
+            />
+          )}
+
+          {currentTab === 'settings' && (
+            <SettingsPage
+              restaurant={restaurant}
+              onUpdateRestaurant={(updated) => {
+                setRestaurant(updated);
+                localStorage.setItem('swaad_restaurant', JSON.stringify(updated));
+              }}
+              onNavigateTab={setCurrentTab}
             />
           )}
         </main>

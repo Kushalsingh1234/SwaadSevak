@@ -25,6 +25,7 @@ import { api } from '../services/api';
 import { getSocket, joinTableRoom, joinCustomerRoom } from '../services/socket';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
+import { calculateGst } from '../utils/gst';
 
 interface CustomerMenuPageProps {
   restaurantSlug: string;
@@ -395,12 +396,13 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
     }
   }, [cartTotal, identifiedCustomer, crmConfig]);
 
-  // Discount math
+  // Discount math & dynamic GST calculation
   const appliedDiscount = redeemCoins && coinDiscountCalc.eligible ? coinDiscountCalc.eligibleDiscount : 0;
   const appliedCoins = redeemCoins && coinDiscountCalc.eligible ? coinDiscountCalc.coinsToRedeem : 0;
   const netSubtotal = Math.max(0, cartTotal - appliedDiscount);
-  const cartTax = Math.round(netSubtotal * 0.05 * 100) / 100;
-  const cartGrandTotal = Math.round((netSubtotal + cartTax) * 100) / 100;
+  const gstCalc = calculateGst(netSubtotal, restaurant?.gstTier);
+  const cartTax = gstCalc.tax;
+  const cartGrandTotal = gstCalc.total;
 
   // Identification Handlers
   const handleCheckPhone = async () => {
@@ -1001,7 +1003,11 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
               </div>
               <div className="text-left min-w-0">
                 <span className="text-xs font-semibold block truncate">{table?.tableNumber} Cart</span>
-                <span className="text-[11px] text-gray-400 truncate">₹{cartTotal} (+ ₹{cartTax} GST)</span>
+                <span className="text-[11px] text-gray-400 truncate">
+                  {gstCalc.isInclusive
+                    ? `₹${cartGrandTotal} (Taxes included)`
+                    : `₹${cartTotal} (+ ₹${cartTax} GST)`}
+                </span>
               </div>
             </div>
 
@@ -1184,10 +1190,20 @@ export const CustomerMenuPage: React.FC<CustomerMenuPageProps> = ({
                   </div>
                 )}
 
-                <div className="flex justify-between text-gray-600">
-                  <span>GST (5%)</span>
-                  <span>₹{cartTax.toFixed(2)}</span>
-                </div>
+                {gstCalc.isInclusive ? (
+                  <div className="flex justify-between text-gray-600">
+                    <span className="flex items-center gap-1.5">
+                      <span>Taxes & GST</span>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-medium">Included</span>
+                    </span>
+                    <span className="text-emerald-700 font-semibold">Included in prices</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{gstCalc.label}</span>
+                    <span>₹{cartTax.toFixed(2)}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between text-sm font-black text-gray-900 pt-2 border-t border-gray-200">
                   <span>Grand Total</span>

@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Layers,
   Sparkles,
-  Coins
+  Coins,
+  Settings
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
@@ -95,6 +96,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       id: 'bills',
       label: 'Bills & Invoices',
       icon: Receipt
+    },
+    {
+      id: 'settings',
+      label: 'Settings & GST',
+      icon: Settings
     },
   ];
 

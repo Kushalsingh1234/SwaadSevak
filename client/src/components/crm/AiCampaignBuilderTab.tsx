@@ -210,24 +210,24 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     setParseError('');
     try {
       const res = await api.parseAiCampaign(textToParse.trim());
-      if (res.success && res.draft) {
-        const d = res.draft;
-        const assignedSegment = d.targetSegment || 'AT_RISK';
+      const d = res.draft || res.campaignDraft;
+      if (res.success && d) {
+        const assignedSegment = d.targetSegment || d.audienceSegment || 'AT_RISK';
         setName(d.name || name);
-        setCategory(d.category || category);
+        setCategory(d.category || (assignedSegment === 'AT_RISK' ? 'WIN_BACK' : assignedSegment === 'VIP' ? 'VIP_PROTECTION' : assignedSegment === 'NEW' ? 'NEW_CUSTOMERS' : 'WIN_BACK'));
         setChannel(d.channel || 'WHATSAPP');
         setTargetSegment(assignedSegment);
         const cohort = computeCohort(assignedSegment, customerList);
-        setTargetCount(cohort.count);
-        setAudienceFilterDesc(cohort.desc);
+        setTargetCount(cohort.count > 0 ? cohort.count : (d.targetCount || (res as any).matchedAudienceCount || 0));
+        setAudienceFilterDesc(cohort.count > 0 ? cohort.desc : (d.audienceConditions || (res as any).audienceReason || cohort.desc));
         setOfferType(d.offerType || 'DISCOUNT_COINS');
         setOfferValue(d.offerValue ?? 75);
         setValidityDays(d.validityDays || 7);
         setMinOrderValue(d.minOrderValue || 300);
-        setReasoning(d.reasoning || reasoning);
+        setReasoning(d.reasoning || d.objective || (res as any).explanation || reasoning);
         setTone(d.tone || 'FRIENDLY');
         setLanguage(d.language || 'HINGLISH');
-        setMessage(d.message || message);
+        setMessage(d.message || d.resolvedMessagePreview || d.messageTemplate || message);
         setAiOptimizedTime(d.aiOptimizedTime || 'Friday, 6:30 PM');
       } else {
         setParseError(res.message || 'AI was unable to structure the prompt. You can adjust the parameters manually.');

@@ -24,7 +24,8 @@ export class AiCrmService {
     const orders = db.getOrders(restaurantId);
     const settings = db.getCrmSettings(restaurantId);
     const menuItems = db.getItems(restaurantId);
-    return { customers, orders, settings, menuItems };
+    const restaurant = db.getRestaurant(restaurantId);
+    return { customers, orders, settings, menuItems, restaurant };
   }
 
   /**
@@ -568,14 +569,16 @@ export class AiCrmService {
   /**
    * Natural Language Campaign Builder ("Ask SwaadSevak")
    */
-  public static parseNaturalLanguageCampaign(restaurantId: string, promptText: string): {
-    campaignDraft: Partial<AiCampaign>;
+   public static async parseNaturalLanguageCampaign(restaurantId: string, promptText: string): Promise<{
+    campaignDraft: any;
+    draft: any;
     explanation: string;
     matchedAudienceCount: number;
     estimatedCost: number;
     audienceReason: string;
-  } {
-    const { customers, settings } = this.getData(restaurantId);
+  }> {
+    const { customers, settings, restaurant } = this.getData(restaurantId);
+    const restName = restaurant?.name || 'The Chai & Chaat Co.';
     const p = promptText.toLowerCase().trim();
 
     let name = 'Custom AI Customer Campaign';
@@ -636,9 +639,9 @@ export class AiCrmService {
       priority = 'MEDIUM';
       tone = 'FRIENDLY';
       audienceReason = `${matchedCustomers.length} regular loyal diners who already visit frequently`;
-    } else if (p.includes('pizza') || p.includes('burger') || p.includes('chai') || p.includes('dish') || p.includes('item')) {
+    } else if (p.includes('pizza') || p.includes('burger') || p.includes('chai') || p.includes('dish') || p.includes('item') || p.includes('combo')) {
       name = 'Specialty Lovers Promotion';
-      objective = 'Promote signature specialty dishes to past buyers';
+      objective = 'Promote signature specialty dishes and combos to past buyers';
       audienceSegment = 'SPECIALTY_LOVERS';
       audienceConditions = 'Ordered signature specialties in past 60 days';
       matchedCustomers = customers.slice(0, Math.max(2, Math.round(customers.length * 0.6)));
@@ -695,10 +698,26 @@ export class AiCrmService {
         : `नमस्ते {{customer_name}}! {{restaurant_name}} का हिस्सा बनने के लिए आपका हार्दिक धन्यवाद। आपका स्वागत हमेशा रहेगा!`
     };
 
-    const campaignDraft: Partial<AiCampaign> = {
+    const category = audienceSegment === 'AT_RISK'
+      ? 'WIN_BACK'
+      : audienceSegment === 'VIP'
+      ? 'VIP_PROTECTION'
+      : audienceSegment === 'NEW'
+      ? 'NEW_CUSTOMERS'
+      : offerType === 'NO_DISCOUNT'
+      ? 'NO_DISCOUNT'
+      : 'PRODUCT_BASED';
+
+    let explanation = `I converted your request into a targeted campaign for ${matchedCount} customers. Recommended ${
+      offerType === 'NO_DISCOUNT' ? 'a heartfelt appreciation message with 0 discount' : `₹${offerValue} Discount Coins`
+    }. Estimated maximum reward liability is ₹${estimatedCost.toLocaleString('en-IN')}, fully compliant with your restaurant loyalty configuration.`;
+
+    const campaignDraft: any = {
       name,
       objective,
+      category,
       audienceSegment,
+      targetSegment: audienceSegment,
       audienceConditions,
       targetCount: matchedCount,
       channel,
@@ -710,11 +729,15 @@ export class AiCrmService {
       offerType,
       offerValue,
       validityDays,
+      minOrderValue: settings?.minOrderValue || 300,
+      reasoning: explanation,
+      message: templates.HINGLISH,
       messageTemplate: templates.HINGLISH,
       resolvedMessagePreview: templates.HINGLISH
         .replace('{{customer_name}}', matchedCustomers[0]?.name || 'Rahul')
-        .replace('{{restaurant_name}}', 'The Chai & Chaat Co.')
+        .replace('{{restaurant_name}}', restName)
         .replace('{{coin_reward}}', String(offerValue)),
+      aiOptimizedTime: 'Friday, 6:30 PM',
       maxRewardCost: estimatedCost,
       requiresApproval: true,
       frequencyGuard: {
@@ -723,12 +746,86 @@ export class AiCrmService {
       }
     };
 
-    const explanation = `I converted your request into a targeted campaign for ${matchedCount} customers. Recommended ${
-      offerType === 'NO_DISCOUNT' ? 'a heartfelt appreciation message with 0 discount' : `₹${offerValue} Discount Coins`
-    }. Estimated maximum reward liability is ₹${estimatedCost.toLocaleString('en-IN')}, fully compliant with your restaurant loyalty configuration.`;
+    // Attempt Groq LLM refinement if API key exists
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey && groqKey.trim()) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey.trim()}`,
+            'Content-Type': 'application/json'
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert restaurant CRM AI for Swaad Sevak.
+The restaurant name is "${restName}".
+Convert the owner's campaign goal into structured marketing parameters.
+Return ONLY valid JSON matching this schema:
+{
+  "name": "Short punchy campaign title (e.g. Win Back Inactive Diners)",
+  "objective": "Clear 1-sentence goal",
+  "category": "WIN_BACK" | "VIP_PROTECTION" | "NEW_CUSTOMERS" | "PRODUCT_BASED" | "NO_DISCOUNT",
+  "targetSegment": "AT_RISK" | "VIP" | "NEW_CUSTOMERS" | "WEEKEND_REGULARS" | "DEAL_SEEKERS" | "ALL",
+  "offerType": "DISCOUNT_COINS" | "NO_DISCOUNT" | "DISCOUNT_PERCENT",
+  "offerValue": 75,
+  "validityDays": 7,
+  "minOrderValue": 300,
+  "tone": "FRIENDLY" | "PREMIUM" | "CASUAL" | "URGENT" | "FESTIVE",
+  "language": "HINGLISH",
+  "message": "Appealing WhatsApp text with {{customer_name}}, {{restaurant_name}}, {{coin_reward}}",
+  "reasoning": "2 sentences explaining why this campaign will drive high ROI and repeat orders"
+}`
+              },
+              { role: 'user', content: promptText }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.2,
+            max_tokens: 600
+          })
+        });
+        clearTimeout(timeoutId);
+        if (groqResp.ok) {
+          const gJson = await groqResp.json();
+          const parsed = JSON.parse(gJson.choices?.[0]?.message?.content || '{}');
+          if (parsed && parsed.name && parsed.message) {
+            const seg = parsed.targetSegment || audienceSegment;
+            campaignDraft.name = parsed.name;
+            campaignDraft.objective = parsed.objective || campaignDraft.objective;
+            campaignDraft.category = parsed.category || campaignDraft.category;
+            campaignDraft.targetSegment = seg;
+            campaignDraft.audienceSegment = seg;
+            campaignDraft.offerType = parsed.offerType || campaignDraft.offerType;
+            if (typeof parsed.offerValue === 'number') campaignDraft.offerValue = parsed.offerValue;
+            if (typeof parsed.validityDays === 'number') campaignDraft.validityDays = parsed.validityDays;
+            if (typeof parsed.minOrderValue === 'number') campaignDraft.minOrderValue = parsed.minOrderValue;
+            campaignDraft.tone = parsed.tone || campaignDraft.tone;
+            campaignDraft.message = parsed.message;
+            campaignDraft.messageTemplate = parsed.message;
+            campaignDraft.resolvedMessagePreview = parsed.message
+              .replace('{{customer_name}}', matchedCustomers[0]?.name || 'Rahul')
+              .replace('{{restaurant_name}}', restName)
+              .replace('{{coin_reward}}', String(campaignDraft.offerValue));
+            if (parsed.reasoning) {
+              campaignDraft.reasoning = parsed.reasoning;
+              explanation = parsed.reasoning;
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn('Groq CRM AI parse fell back to rule-based engine:', err?.message || err);
+      }
+    }
 
     return {
       campaignDraft,
+      draft: campaignDraft,
       explanation,
       matchedAudienceCount: matchedCount,
       estimatedCost,

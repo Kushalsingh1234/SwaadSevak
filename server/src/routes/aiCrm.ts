@@ -31,19 +31,26 @@ router.get('/segments', (req: AuthenticatedRequest, res: Response) => {
 });
 
 // 4. Natural Language Campaign Builder (Phase 5, 6, 8, 9)
-router.post('/builder/parse', (req: AuthenticatedRequest, res: Response) => {
-  const restaurantId = req.manager!.restaurantId;
-  const { prompt } = req.body;
+router.post('/builder/parse', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const { prompt } = req.body;
 
-  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ success: false, message: 'Please provide a valid prompt or campaign goal.' });
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid prompt or campaign goal.' });
+    }
+
+    const result = await AiCrmService.parseNaturalLanguageCampaign(restaurantId, prompt.trim());
+    return res.json({
+      success: true,
+      draft: result.campaignDraft,
+      campaignDraft: result.campaignDraft,
+      ...result
+    });
+  } catch (err: any) {
+    console.error('Error in /builder/parse:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to parse AI campaign' });
   }
-
-  const result = AiCrmService.parseNaturalLanguageCampaign(restaurantId, prompt.trim());
-  return res.json({
-    success: true,
-    ...result
-  });
 });
 
 // 5. Campaigns List (Phase 33)

@@ -1642,7 +1642,7 @@ export const CrmPage: React.FC<CrmPageProps> = ({ restaurant, manager, onNavigat
                         onClick={() => {
                           setDirectMessageCoins(c);
                           if (c > 0 && !directMessageText.includes('Coins')) {
-                            setDirectMessageText(prev => `${prev} Plus ₹${c} Discount Coins on us!`);
+                            setDirectMessageText(prev => `${prev} Plus ${c} Discount Coins on us!`);
                           }
                         }}
                         className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${

@@ -282,7 +282,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-500 uppercase text-[10px] w-14 shrink-0">Action:</span>
                     <span className="font-semibold text-orange-700">
-                      🪙 Give ₹{auto.action.rewardCoins} Discount Coins (valid {auto.action.validityDays}d)
+                      🪙 Give {auto.action.rewardCoins} Discount Coins (valid {auto.action.validityDays}d)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -370,13 +370,13 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                     rows={3}
                     value={describeInput}
                     onChange={(e) => setDescribeInput(e.target.value)}
-                    placeholder="e.g. Every time someone hasn't visited for 45 days, give them ₹75 Discount Coins and a warm invite."
+                    placeholder="e.g. Every time someone hasn't visited for 45 days, give them 75 Discount Coins and a warm invite."
                     className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-900 outline-none focus:border-orange-500"
                   />
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setDescribeInput('Win back customers who have been inactive for 30 days with ₹75 coins.')}
+                      onClick={() => setDescribeInput('Win back customers who have been inactive for 30 days with 75 coins.')}
                       className="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-700 cursor-pointer"
                     >
                       30-Day Win Back

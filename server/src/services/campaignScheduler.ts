@@ -289,6 +289,8 @@ export class CampaignScheduler {
       .replace(/\{{1,2}\s*(customer_?name|name|client_?name)\s*\}{1,2}/gi, custName)
       .replace(/\{{1,2}\s*(restaurant_?name|restaurant|cafe_?name)\s*\}{1,2}/gi, restName)
       .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(offerValue))
+      .replace(/\{{1,2}\s*(discount_?percent|percent|discount_?percentage)\s*\}{1,2}/gi, `${offerValue}%`)
+      .replace(/\{{1,2}\s*(offer_?perk|free_?item|perk|complimentary_?item)\s*\}{1,2}/gi, campaign.offerPerkText || 'Complimentary Treat')
       .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
       .replace(/\{{1,2}\s*(validity_?days?|validity|expiry_?days?)\s*\}{1,2}/gi, String(validityDays))
       .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, `${validityDays} days`)
@@ -300,11 +302,11 @@ export class CampaignScheduler {
     let offerBadge = '';
     const offerType = campaign.offerType || 'DISCOUNT_COINS';
     if (offerType === 'DISCOUNT_COINS' && offerValue > 0) {
-      offerBadge = `🪙 *Reward:* ₹${offerValue} Coins Activated (Valid for ${validityDays} days)`;
+      offerBadge = `🪙 *Reward:* ${offerValue} Discount Coins Activated (Valid for ${validityDays} days)`;
     } else if (offerType === 'DISCOUNT_PERCENT' && offerValue > 0) {
       offerBadge = `🏷️ *Special Offer:* ${offerValue}% Discount Activated (Valid for ${validityDays} days)`;
     } else if (offerType === 'FREE_ITEM') {
-      offerBadge = `🍟 *Complimentary Perk:* Free Appetizer/Beverage on your table (Valid for ${validityDays} days)`;
+      offerBadge = `🍟 *Complimentary Perk:* ${campaign.offerPerkText || 'Free Appetizer/Beverage'} on your table (Valid for ${validityDays} days)`;
     }
 
     const coinBalanceBadge = `💰 *Your Coin Balance:* ${currentBalance} Coins`;

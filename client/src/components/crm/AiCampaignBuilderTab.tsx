@@ -123,17 +123,18 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   // Offer
   const [offerType, setOfferType] = useState<'DISCOUNT_COINS' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT'>('DISCOUNT_COINS');
   const [offerValue, setOfferValue] = useState<number>(75);
+  const [offerPerkText, setOfferPerkText] = useState<string>('Free Cold Coffee');
   const [validityDays, setValidityDays] = useState<number>(7);
   const [minOrderValue, setMinOrderValue] = useState<number>(300);
   const [reasoning, setReasoning] = useState<string>(
-    'These customers normally return every 18–25 days but haven\'t ordered in 30+ days. A ₹75 reward (~12% of their AOV) brings them back while preserving profitability.'
+    'These customers normally return every 18–25 days but haven\'t ordered in 30+ days. A 75 Discount Coins reward brings them back while preserving profitability.'
   );
 
   // Message & Tone
   const [tone, setTone] = useState<'FRIENDLY' | 'PREMIUM' | 'CASUAL' | 'URGENT' | 'FESTIVE' | 'PROFESSIONAL'>('FRIENDLY');
   const [language, setLanguage] = useState<'EN' | 'HI' | 'HINGLISH'>('HINGLISH');
   const [message, setMessage] = useState<string>(
-    'Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne ₹{{coin_reward}} SwaadSevak Coins add kiye hain. Table book karein ya visit karein: {{restaurant_name}}!'
+    'Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne {{coin_reward}} SwaadSevak Coins add kiye hain. Table book karein ya visit karein: {{restaurant_name}}!'
   );
 
   // Execution & Schedule
@@ -185,8 +186,11 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
       setReasoning(initialRecommendation.explanation);
       if (offerCoins === 0) {
         setOfferType('NO_DISCOUNT');
+        generateMultiLangMessage(initialRecommendation.category, 'NO_DISCOUNT', 0, offerPerkText, tone, language);
+      } else {
+        setOfferType('DISCOUNT_COINS');
+        generateMultiLangMessage(initialRecommendation.category, 'DISCOUNT_COINS', offerCoins, offerPerkText, tone, language);
       }
-      generateMultiLangMessage(initialRecommendation.category, offerCoins, tone, language);
     } else if (initialSegment) {
       setName(`Special Offer for ${initialSegment.name}`);
       setCategory('INCREASE_AOV');
@@ -195,7 +199,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
       setAudienceFilterDesc(cohort.count > 0 ? cohort.desc : `Members of ${initialSegment.name} (${initialSegment.characteristics.join(', ')})`);
       setOfferValue(50);
       setReasoning(`Targeting ${initialSegment.name} whose AOV is ₹${initialSegment.avgOrderValue || initialSegment.averageOrder || 500}. An incentive stimulates extra frequency.`);
-      generateMultiLangMessage('INCREASE_AOV', 50, tone, language);
+      generateMultiLangMessage('INCREASE_AOV', 'DISCOUNT_COINS', 50, offerPerkText, tone, language);
     } else if (initialPrompt) {
       handleParsePrompt(initialPrompt);
     }
@@ -220,8 +224,13 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         const cohort = computeCohort(assignedSegment, customerList);
         setTargetCount(cohort.count > 0 ? cohort.count : (d.targetCount || (res as any).matchedAudienceCount || 0));
         setAudienceFilterDesc(cohort.count > 0 ? cohort.desc : (d.audienceConditions || (res as any).audienceReason || cohort.desc));
-        setOfferType(d.offerType || 'DISCOUNT_COINS');
-        setOfferValue(d.offerValue ?? 75);
+        const resolvedOfferType = d.offerType || 'DISCOUNT_COINS';
+        setOfferType(resolvedOfferType);
+        const resolvedOfferValue = d.offerValue ?? (resolvedOfferType === 'DISCOUNT_PERCENT' ? 15 : 75);
+        setOfferValue(resolvedOfferValue);
+        if (d.offerPerkText) {
+          setOfferPerkText(d.offerPerkText);
+        }
         setValidityDays(d.validityDays || 7);
         setMinOrderValue(d.minOrderValue || 300);
         setReasoning(d.reasoning || d.objective || (res as any).explanation || reasoning);
@@ -239,37 +248,87 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     }
   };
 
-  // Helper for multi-language message generation
-  const generateMultiLangMessage = (cat: string, coins: number, t: string, lang: 'EN' | 'HI' | 'HINGLISH') => {
+  // Helper for multi-language message generation across all offer types
+  const generateMultiLangMessage = (
+    cat: string = category,
+    type: 'DISCOUNT_COINS' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT' = offerType,
+    val: number = offerValue,
+    perk: string = offerPerkText,
+    t: string = tone,
+    lang: 'EN' | 'HI' | 'HINGLISH' = language
+  ) => {
     let msg = '';
+    const cleanPerk = perk.trim() || 'Complimentary Treat';
+
     if (lang === 'HINGLISH') {
-      if (cat === 'WIN_BACK') {
-        msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye humne ₹${coins} Discount Coins add kiye hain. Table book karein ya visit karein: {{restaurant_name}}!`;
-      } else if (cat === 'VIP_PROTECTION') {
-        msg = `Namaste {{customer_name}}! 👑 You are one of our most valued guests at {{restaurant_name}}. Enjoy an exclusive ₹${coins} loyalty perk on your table this weekend!`;
-      } else if (cat === 'PRODUCT_BASED') {
-        msg = `Craving your favourites? 🍕 {{customer_name}}, {{restaurant_name}} par aapka favourite menu ready hai. Use ₹${coins} Coins on your next order!`;
-      } else if (cat === 'NO_DISCOUNT') {
-        msg = `Hey {{customer_name}}! We are serving freshly handcrafted specials today at {{restaurant_name}}. We'd love to host you again! ❤️`;
+      if (type === 'DISCOUNT_COINS') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye humne ${val} Discount Coins add kiye hain. Table book karein ya visit karein: {{restaurant_name}}!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Namaste {{customer_name}}! 👑 You are one of our most valued guests at {{restaurant_name}}. Enjoy an exclusive ${val} Discount Coins loyalty perk on your table this weekend!`;
+        } else if (cat === 'PRODUCT_BASED') {
+          msg = `Craving your favourites? 🍕 {{customer_name}}, {{restaurant_name}} par aapka favourite menu ready hai. Use ${val} Discount Coins on your next order!`;
+        } else {
+          msg = `Hey {{customer_name}}! Special reward: Enjoy ${val} Discount Coins on your next order at {{restaurant_name}}. Valid for ${validityDays} days!`;
+        }
+      } else if (type === 'DISCOUNT_PERCENT') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne flat ${val}% OFF ready rakha hai at {{restaurant_name}}. Table book karein ya visit karein!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Namaste {{customer_name}}! 👑 As one of our most valued guests at {{restaurant_name}}, enjoy an exclusive flat ${val}% OFF on your bill this weekend!`;
+        } else {
+          msg = `Hey {{customer_name}}! Special treat: Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}. Valid for ${validityDays} days!`;
+        }
+      } else if (type === 'FREE_ITEM') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye ek special treat rakhi hai: ${cleanPerk} on your next order at {{restaurant_name}}! Jaldi visit karein!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Namaste {{customer_name}}! 👑 As our VIP guest at {{restaurant_name}}, enjoy a complimentary ${cleanPerk} on the house on your next dining visit!`;
+        } else {
+          msg = `Hey {{customer_name}}! Special perk for you: Enjoy a ${cleanPerk} on your next visit to {{restaurant_name}}. Valid for ${validityDays} days!`;
+        }
       } else {
-        msg = `Hey {{customer_name}}! Special reward: Enjoy ₹${coins} Discount Coins on your next order at {{restaurant_name}}. Valid for 7 days!`;
+        // NO_DISCOUNT
+        msg = `Hey {{customer_name}}! We are serving freshly handcrafted specials today at {{restaurant_name}}. We'd love to host you again! ❤️`;
       }
     } else if (lang === 'HI') {
-      if (coins > 0) {
-        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ₹${coins} डिस्काउंट कॉइन्स का उपहार तैयार है। जल्द पधारें!`;
+      if (type === 'DISCOUNT_COINS') {
+        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val} डिस्काउंट कॉइन्स का उपहार तैयार है। जल्द पधारें!`;
+      } else if (type === 'DISCOUNT_PERCENT') {
+        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val}% की विशेष छूट तैयार है। जल्द पधारें!`;
+      } else if (type === 'FREE_ITEM') {
+        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} का खास उपहार तैयार है। जल्द पधारें!`;
       } else {
         msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आज खास शेफ स्पेशल तैयार हैं। आपका स्वागत है!`;
       }
     } else {
       // English
-      if (cat === 'WIN_BACK') {
-        msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Here's ₹${coins} in Discount Coins for your next visit at {{restaurant_name}}. We'd love to welcome you back!`;
-      } else if (cat === 'VIP_PROTECTION') {
-        msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. An exclusive ₹${coins} reward has been credited to your loyalty balance.`;
-      } else if (cat === 'NO_DISCOUNT') {
-        msg = `Hey {{customer_name}}! Our chefs have freshly prepared seasonal specials today. Come dine with us at {{restaurant_name}}!`;
+      if (type === 'DISCOUNT_COINS') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Here are ${val} Discount Coins for your next visit at {{restaurant_name}}. We'd love to welcome you back!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. An exclusive ${val} Discount Coins reward has been credited to your loyalty balance.`;
+        } else {
+          msg = `Hey {{customer_name}}! Treat yourself at {{restaurant_name}} with ${val} Discount Coins on your next visit. Valid for ${validityDays} days!`;
+        }
+      } else if (type === 'DISCOUNT_PERCENT') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Enjoy flat ${val}% OFF on your next visit to {{restaurant_name}}. We'd love to welcome you back!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. Enjoy an exclusive ${val}% discount on your next reservation.`;
+        } else {
+          msg = `Hey {{customer_name}}! Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}. Valid for ${validityDays} days!`;
+        }
+      } else if (type === 'FREE_ITEM') {
+        if (cat === 'WIN_BACK') {
+          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Come visit {{restaurant_name}} and enjoy a ${cleanPerk} on the house!`;
+        } else if (cat === 'VIP_PROTECTION') {
+          msg = `Dear {{customer_name}}, thank you for being a valued VIP at {{restaurant_name}}. Enjoy a ${cleanPerk} on the house during your next visit.`;
+        } else {
+          msg = `Hey {{customer_name}}! Treat yourself to a ${cleanPerk} on your next order at {{restaurant_name}}. Valid for ${validityDays} days!`;
+        }
       } else {
-        msg = `Hey {{customer_name}}! Treat yourself at {{restaurant_name}} with ₹${coins} Discount Coins on your next visit. Valid for ${validityDays} days!`;
+        msg = `Hey {{customer_name}}! Our chefs have freshly prepared seasonal specials today. Come dine with us at {{restaurant_name}}! ❤️`;
       }
     }
     setMessage(msg);
@@ -277,12 +336,25 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
 
   const handleLanguageChange = (newLang: 'EN' | 'HI' | 'HINGLISH') => {
     setLanguage(newLang);
-    generateMultiLangMessage(category, offerValue, tone, newLang);
+    generateMultiLangMessage(category, offerType, offerValue, offerPerkText, tone, newLang);
   };
 
   const handleToneChange = (newTone: any) => {
     setTone(newTone);
-    generateMultiLangMessage(category, offerValue, newTone, language);
+    generateMultiLangMessage(category, offerType, offerValue, offerPerkText, newTone, language);
+  };
+
+  const handleOfferTypeChange = (newType: 'DISCOUNT_COINS' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT') => {
+    setOfferType(newType);
+    let newVal = offerValue;
+    if (newType === 'DISCOUNT_PERCENT') {
+      newVal = offerValue > 0 && offerValue <= 100 ? offerValue : 15;
+      setOfferValue(newVal);
+    } else if (newType === 'DISCOUNT_COINS') {
+      newVal = offerValue >= 10 ? offerValue : 75;
+      setOfferValue(newVal);
+    }
+    generateMultiLangMessage(category, newType, newVal, offerPerkText, tone, language);
   };
 
   const handleTargetSegmentChange = (newSegment: string) => {
@@ -301,6 +373,9 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     .replace(/\{\{\s*discount_value\s*\}\}/gi, offerValue.toString())
     .replace(/\{\{\s*offer_value\s*\}\}/gi, offerValue.toString())
     .replace(/\{\{\s*coins\s*\}\}/gi, offerValue.toString())
+    .replace(/\{\{\s*discount_percent\s*\}\}/gi, `${offerValue}%`)
+    .replace(/\{\{\s*percent\s*\}\}/gi, `${offerValue}%`)
+    .replace(/\{\{\s*(offer_perk|free_item|perk|complimentary_item)\s*\}\}/gi, offerPerkText || 'Free Cold Coffee')
     .replace(/\{\{\s*coin_balance\s*\}\}/gi, '125')
     .replace(/\{\{\s*validity_days\s*\}\}/gi, validityDays.toString())
     .replace(/\{\{\s*discount_expiry\s*\}\}/gi, `${validityDays} days`)
@@ -309,7 +384,14 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     .replace(/\{\{\s*restaurant_address\s*\}\}/gi, restaurant?.address || 'Indiranagar, Bangalore');
 
   // Cost Liability Calculation
-  const estimatedCostLiability = offerType === 'DISCOUNT_COINS' ? targetCount * offerValue : 0;
+  const estimatedCostLiability =
+    offerType === 'DISCOUNT_COINS'
+      ? Math.round(targetCount * (offerValue * 0.1)) // 10:1 coin redemption ratio (100 coins = Rs 10)
+      : offerType === 'DISCOUNT_PERCENT'
+      ? Math.round(targetCount * (minOrderValue || 350) * (offerValue / 100))
+      : offerType === 'FREE_ITEM'
+      ? targetCount * 45 // Estimated typical food cost of appetizer/beverage
+      : 0;
   const isHighCost = estimatedCostLiability > 5000;
 
   // Handle Save / Schedule / Launch
@@ -370,6 +452,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         targetCount: Number(targetCount) || 0,
         offerType,
         offerValue: Number(offerValue) || 0,
+        offerPerkText: offerType === 'FREE_ITEM' ? (offerPerkText || 'Free Cold Coffee') : undefined,
         validityDays: Number(validityDays) || 7,
         minOrderValue: Number(minOrderValue) || 0,
         tone,
@@ -452,7 +535,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
             rows={2}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g. Bring back customers who haven't visited in a month with a ₹75 reward, or create a weekend pizza boost..."
+            placeholder="e.g. Bring back customers who haven't visited in a month with 75 Discount Coins, or offer free cold coffee on their next order..."
             className="w-full p-3.5 rounded-xl bg-stone-800/90 border border-stone-700 text-white text-xs sm:text-sm placeholder-stone-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
@@ -461,10 +544,10 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="text-[10px] uppercase font-bold text-stone-400">Quick ideas:</span>
           {[
-            'Win back 30-day inactive regulars with ₹75 coins',
-            'Reward VIP customers without discounting margins',
-            'Encourage second visit for new customers who joined this month',
-            'Boost Friday dinner orders with high-margin combos'
+            'Win back 30-day inactive regulars with 75 Discount Coins',
+            'Offer free cold coffee on next order to inactive diners',
+            'Give flat 15% discount on orders above ₹400 for weekend regulars',
+            'Reward VIP customers without discounting margins'
           ].map((suggestion, idx) => (
             <button
               key={idx}
@@ -582,33 +665,147 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
               <span>2. Incentive & Guardrails (Phases 8, 20)</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">Reward Type</label>
                 <select
                   value={offerType}
-                  onChange={(e: any) => setOfferType(e.target.value)}
+                  onChange={(e: any) => handleOfferTypeChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white font-medium focus:border-orange-500 outline-none"
                 >
                   <option value="DISCOUNT_COINS">🪙 Discount Coins (Recommended)</option>
-                  <option value="NO_DISCOUNT">❤️ Appreciation Only (No Discount)</option>
-                  <option value="FREE_ITEM">🍟 Complimentary Appetizer/Beverage</option>
                   <option value="DISCOUNT_PERCENT">🏷️ Direct Percentage Discount</option>
+                  <option value="FREE_ITEM">🍟 Complimentary Appetizer/Beverage</option>
+                  <option value="NO_DISCOUNT">❤️ Appreciation Only (No Discount)</option>
                 </select>
               </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">
-                  {offerType === 'DISCOUNT_COINS' ? 'Coin Value (₹)' : 'Incentive Value'}
-                </label>
-                <input
-                  type="number"
-                  disabled={offerType === 'NO_DISCOUNT'}
-                  value={offerValue}
-                  onChange={(e) => setOfferValue(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:border-orange-500 outline-none disabled:bg-slate-100"
-                />
-              </div>
+              {/* Dynamic Incentive Input */}
+              {offerType === 'DISCOUNT_COINS' && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">
+                    Coins Awarded (Loyalty Coins)
+                  </label>
+                  <input
+                    type="number"
+                    min={5}
+                    step={5}
+                    value={offerValue}
+                    onChange={(e) => {
+                      const val = Math.max(0, parseInt(e.target.value) || 0);
+                      setOfferValue(val);
+                      generateMultiLangMessage(category, 'DISCOUNT_COINS', val, offerPerkText, tone, language);
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:border-orange-500 outline-none"
+                  />
+                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                    {[50, 75, 100, 150].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setOfferValue(c);
+                          generateMultiLangMessage(category, 'DISCOUNT_COINS', c, offerPerkText, tone, language);
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold transition-all cursor-pointer ${
+                          offerValue === c
+                            ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {c} Coins
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {offerType === 'DISCOUNT_PERCENT' && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">
+                    Discount Percentage (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={offerValue}
+                      onChange={(e) => {
+                        const val = Math.min(100, Math.max(1, parseInt(e.target.value) || 1));
+                        setOfferValue(val);
+                        generateMultiLangMessage(category, 'DISCOUNT_PERCENT', val, offerPerkText, tone, language);
+                      }}
+                      className="w-full px-3 py-2 pr-7 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:border-orange-500 outline-none"
+                    />
+                    <span className="absolute right-3 top-2 text-xs font-bold text-slate-400">%</span>
+                  </div>
+                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                    {[10, 15, 20, 25].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => {
+                          setOfferValue(pct);
+                          generateMultiLangMessage(category, 'DISCOUNT_PERCENT', pct, offerPerkText, tone, language);
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold transition-all cursor-pointer ${
+                          offerValue === pct
+                            ? 'bg-orange-100 border-orange-400 text-orange-900 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {pct}% OFF
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {offerType === 'FREE_ITEM' && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block mb-1">
+                    Complimentary Item / Perk Name
+                  </label>
+                  <input
+                    type="text"
+                    value={offerPerkText}
+                    placeholder="e.g. Free Cold Coffee, Complimentary Brownie"
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      setOfferPerkText(text);
+                      generateMultiLangMessage(category, 'FREE_ITEM', offerValue, text, tone, language);
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:border-orange-500 outline-none"
+                  />
+                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                    {['Free Cold Coffee', 'Complimentary Dessert', 'Free Appetizer', 'Complimentary Mocktail'].map((perk) => (
+                      <button
+                        key={perk}
+                        type="button"
+                        onClick={() => {
+                          setOfferPerkText(perk);
+                          generateMultiLangMessage(category, 'FREE_ITEM', offerValue, perk, tone, language);
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold transition-all cursor-pointer ${
+                          offerPerkText === perk
+                            ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {perk}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {offerType === 'NO_DISCOUNT' && (
+                <div className="flex flex-col justify-center p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-700 block">No Discount Applied</span>
+                  <span className="text-[10px] text-slate-500 mt-0.5">Focuses purely on guest appreciation and appetizing specials.</span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -643,7 +840,10 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                     <span>Maximum Possible Reward Liability: ₹{estimatedCostLiability.toLocaleString('en-IN')}</span>
                   </span>
                   <p className="text-[11px] text-slate-500">
-                    {targetCount} targeted customers × ₹{offerValue} max reward. Redeemed only upon completed dining transactions.
+                    {offerType === 'DISCOUNT_COINS' && `${targetCount} targeted customers × ${offerValue} Discount Coins (est. ₹${(offerValue * 0.1).toFixed(1)} redemption value/customer). Redeemed only on completed orders.`}
+                    {offerType === 'DISCOUNT_PERCENT' && `${targetCount} targeted customers × ${offerValue}% off on orders above ₹${minOrderValue}. Redeemed only on completed dining orders.`}
+                    {offerType === 'FREE_ITEM' && `${targetCount} targeted customers × 1 ${offerPerkText || 'complimentary item'} (est. ₹45 food cost). Claimed when customer visits.`}
+                    {offerType === 'NO_DISCOUNT' && `Zero financial cost liability. Pure appreciation and customer engagement messaging.`}
                   </p>
                 </div>
                 <span className="font-mono font-bold text-xs bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
@@ -833,6 +1033,8 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{customer_name}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{restaurant_name}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_reward}}'}</span>
+                <span className="bg-slate-100 px-1 rounded font-mono">{'{{discount_percent}}'}</span>
+                <span className="bg-slate-100 px-1 rounded font-mono">{'{{offer_perk}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_balance}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{favourite_item}}'}</span>
                 <span className="bg-slate-100 px-1 rounded font-mono">{'{{discount_expiry}}'}</span>
@@ -876,11 +1078,11 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                           </span>
                           <span>
                             {offerType === 'DISCOUNT_COINS'
-                              ? `₹${offerValue} Coins Activated`
+                              ? `${offerValue} Discount Coins Activated`
                               : offerType === 'DISCOUNT_PERCENT'
                               ? `${offerValue}% Discount Activated`
                               : offerType === 'FREE_ITEM'
-                              ? 'Complimentary Appetizer/Beverage'
+                              ? `${offerPerkText || 'Complimentary Treat'} on table`
                               : 'Loyalty Appreciation'}
                           </span>
                         </span>

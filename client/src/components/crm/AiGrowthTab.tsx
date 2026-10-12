@@ -197,7 +197,7 @@ export const AiGrowthTab: React.FC<AiGrowthTabProps> = ({
 
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
             <button
-              onClick={() => onOpenCampaignBuilder('Win back inactive customers with ₹75 coins')}
+              onClick={() => onOpenCampaignBuilder('Win back inactive customers with 75 Discount Coins')}
               className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1 cursor-pointer"
             >
               <span>Win Back</span>

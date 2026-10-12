@@ -368,7 +368,7 @@ export class AiCrmService {
         category: 'WIN_BACK',
         title: `🔥 Win back ${atRiskCount} inactive customers`,
         explanation: `These customers normally return every 18–25 days but haven't ordered in 30+ days. Their historical average order is ₹620.`,
-        recommendedAction: 'Send a ₹75 Discount Coin reward valid for 7 days via WhatsApp.',
+        recommendedAction: 'Send a 75 Discount Coin reward valid for 7 days via WhatsApp.',
         expectedObjective: 'Re-activate dormant diners and capture repeat revenue before permanent churn.',
         targetAudienceLabel: 'Inactive customers (30+ days without order)',
         targetAudienceCount: atRiskCount,
@@ -378,7 +378,7 @@ export class AiCrmService {
         validityDays: 7,
         badge: '🔥 High opportunity',
         priority: 'HIGH',
-        suggestedTemplate: 'Hey {{customer_name}}! We haven\'t seen you in a while. Here is ₹{{coin_reward}} in SwaadSevak Coins for your next order. We\'d love to have you back! ❤️',
+        suggestedTemplate: 'Hey {{customer_name}}! We haven\'t seen you in a while. Here is {{coin_reward}} SwaadSevak Coins for your next order. We\'d love to have you back! ❤️',
         actionPayload: {
           audienceFilter: 'AT_RISK',
           coinsReward: 75,
@@ -393,7 +393,7 @@ export class AiCrmService {
         category: 'NEW_RETENTION',
         title: `🌱 Convert ${newCount} first-time diners into regulars`,
         explanation: `${newCount} customers made their first purchase in the last 30 days but haven't returned yet. The first 14 days decide 1-year loyalty.`,
-        recommendedAction: 'Send a personalized ₹50 second-visit incentive on their favourite dishes.',
+        recommendedAction: 'Send a personalized 50 bonus coins second-visit incentive on their favourite dishes.',
         expectedObjective: 'Lock in the critical second visit to triple long-term customer lifetime value.',
         targetAudienceLabel: 'First-time buyers with no second visit',
         targetAudienceCount: newCount,
@@ -403,7 +403,7 @@ export class AiCrmService {
         validityDays: 10,
         badge: '💡 High impact',
         priority: 'HIGH',
-        suggestedTemplate: 'Hey {{customer_name}}! Thank you for dining with us recently. Here is ₹{{coin_reward}} in Coins to enjoy on your second visit. See you soon!',
+        suggestedTemplate: 'Hey {{customer_name}}! Thank you for dining with us recently. Here is {{coin_reward}} Coins to enjoy on your second visit. See you soon!',
         actionPayload: {
           audienceFilter: 'NEW',
           coinsReward: 50,
@@ -478,7 +478,7 @@ export class AiCrmService {
         validityDays: 5,
         badge: '🔥 Best seller',
         priority: 'MEDIUM',
-        suggestedTemplate: 'Pizza night, {{customer_name}}? 🍕 Your favourite is waiting at {{restaurant_name}}. Enjoy ₹50 Discount Coins when you dine with us this weekend!',
+        suggestedTemplate: 'Pizza night, {{customer_name}}? 🍕 Your favourite is waiting at {{restaurant_name}}. Enjoy 50 Discount Coins when you dine with us this weekend!',
         actionPayload: {
           audienceFilter: 'ALL',
           coinsReward: 50,
@@ -671,30 +671,80 @@ export class AiCrmService {
       audienceReason = `${matchedCustomers.length} customers celebrating birthdays or milestones`;
     }
 
-    // Extract explicit coins if requested (e.g. "give 50 coins" or "give 100 discount")
-    const coinMatch = p.match(/(\d+)\s*(coins?|rs|rupees?|discount)/);
-    if (coinMatch && !p.includes('no discount')) {
-      const parsedVal = parseInt(coinMatch[1], 10);
-      if (!isNaN(parsedVal) && parsedVal > 0 && parsedVal <= (settings?.maxDiscountPerOrder || 100) * 10) {
-        offerValue = parsedVal;
+    // Extract offer type and value from intent
+    let offerPerkText: string | undefined = undefined;
+    if (p.includes('free') || p.includes('complimentary') || p.includes('on the house') || p.includes('appetizer') || p.includes('beverage') || p.includes('cold coffee')) {
+      offerType = 'FREE_ITEM';
+      const freeItemMatch = promptText.match(/(?:free|complimentary|on the house)\s+([a-zA-Z\s]{3,25})/i);
+      if (freeItemMatch && freeItemMatch[1]) {
+        const item = freeItemMatch[1].trim();
+        offerPerkText = item.toLowerCase().startsWith('free') ? item : `Free ${item}`;
+      } else {
+        offerPerkText = 'Free Cold Coffee';
+      }
+      offerValue = 0;
+    } else if (p.includes('%') || p.includes('percent') || p.includes('percentage') || p.match(/\b\d+\s*%\s*off\b/)) {
+      offerType = 'DISCOUNT_PERCENT';
+      const percentMatch = p.match(/(\d+)\s*(?:%|percent|percentage|\s*%\s*off)/);
+      if (percentMatch) {
+        const parsedPct = parseInt(percentMatch[1], 10);
+        offerValue = !isNaN(parsedPct) && parsedPct > 0 && parsedPct <= 100 ? parsedPct : 15;
+      } else {
+        offerValue = 15;
+      }
+    } else if (p.includes('no discount') || p.includes('without discount') || p.includes('zero discount') || p.includes('margin')) {
+      offerType = 'NO_DISCOUNT';
+      offerValue = 0;
+    } else {
+      offerType = 'DISCOUNT_COINS';
+      // Extract explicit coins if requested (e.g. "give 50 coins" or "75 coins")
+      const coinMatch = p.match(/(\d+)\s*(?:coins?|discount\s*coins?|discount)/);
+      if (coinMatch) {
+        const parsedVal = parseInt(coinMatch[1], 10);
+        if (!isNaN(parsedVal) && parsedVal > 0 && parsedVal <= (settings?.maxDiscountPerOrder || 100) * 10) {
+          offerValue = parsedVal;
+        }
       }
     }
 
     const matchedCount = matchedCustomers.length;
-    // Calculate cost liability based on redemption unit (e.g. 100 coins = Rs 10)
-    const coinValueInRupees = (offerValue / (settings?.redemptionCoinsUnit || 100)) * (settings?.redemptionDiscountUnit || 10);
-    const estimatedCost = Math.round(matchedCount * coinValueInRupees);
+    // Calculate cost liability based on offer type
+    let estimatedCost = 0;
+    if (offerType === 'DISCOUNT_COINS') {
+      const coinValueInRupees = (offerValue / (settings?.redemptionCoinsUnit || 100)) * (settings?.redemptionDiscountUnit || 10);
+      estimatedCost = Math.round(matchedCount * coinValueInRupees);
+    } else if (offerType === 'DISCOUNT_PERCENT') {
+      estimatedCost = Math.round(matchedCount * 350 * (offerValue / 100));
+    } else if (offerType === 'FREE_ITEM') {
+      estimatedCost = matchedCount * 45;
+    } else {
+      estimatedCost = 0;
+    }
 
-    // Multi-language templates
+    const cleanPerk = offerPerkText || 'Free Cold Coffee';
+
+    // Multi-language templates (Zero Rupee symbol prefix before coin rewards!)
     const templates = {
-      ENGLISH: offerValue > 0
-        ? `Hey {{customer_name}}! We haven't seen you in a while at {{restaurant_name}}. Here's ₹${offerValue} in Discount Coins for your next order. We'd love to have you back! ❤️`
+      ENGLISH: offerType === 'DISCOUNT_COINS'
+        ? `Hey {{customer_name}}! We haven't seen you in a while at {{restaurant_name}}. Here are ${offerValue} Discount Coins for your next order. We'd love to have you back! ❤️`
+        : offerType === 'DISCOUNT_PERCENT'
+        ? `Hey {{customer_name}}! We haven't seen you in a while at {{restaurant_name}}. Enjoy flat ${offerValue}% OFF on your next order! Valid for ${validityDays} days. ❤️`
+        : offerType === 'FREE_ITEM'
+        ? `Hey {{customer_name}}! We'd love to welcome you back at {{restaurant_name}}. Enjoy a ${cleanPerk} on the house with your next order! ❤️`
         : `Hey {{customer_name}}! Just a quick hello from {{restaurant_name}} to say thank you for being such a wonderful guest. Your table is always waiting for you! ❤️`,
-      HINGLISH: offerValue > 0
-        ? `Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit ke liye ₹${offerValue} Discount Coins ready hain. Jaldi aao!`
+      HINGLISH: offerType === 'DISCOUNT_COINS'
+        ? `Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit ke liye ${offerValue} Discount Coins ready hain. Jaldi aao!`
+        : offerType === 'DISCOUNT_PERCENT'
+        ? `Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit par payein flat ${offerValue}% OFF! Jaldi visit karein!`
+        : offerType === 'FREE_ITEM'
+        ? `Hey {{customer_name}}! Kaafi time ho gaya aapse mile hue at {{restaurant_name}} ❤️ Aapke next visit ke liye humne ek special treat rakhi hai: ${cleanPerk}! Jaldi aao!`
         : `Hey {{customer_name}}! {{restaurant_name}} ki taraf se aapko bohot bohot shukriya. Aapka favourite table humesha ready hai! ❤️`,
-      HINDI: offerValue > 0
-        ? `नमस्ते {{customer_name}}! {{restaurant_name}} में आपकी याद आ रही है। आपके अगले ऑर्डर के लिए ₹${offerValue} डिस्काउंट कॉइन्स वॉलेट में जोड़ दिए गए हैं। जल्द पधारें!`
+      HINDI: offerType === 'DISCOUNT_COINS'
+        ? `नमस्ते {{customer_name}}! {{restaurant_name}} में आपकी याद आ रही है। आपके अगले ऑर्डर के लिए ${offerValue} डिस्काउंट कॉइन्स वॉलेट में जोड़ दिए गए हैं। जल्द पधारें!`
+        : offerType === 'DISCOUNT_PERCENT'
+        ? `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${offerValue}% की विशेष छूट तैयार है। जल्द पधारें!`
+        : offerType === 'FREE_ITEM'
+        ? `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} का खास उपहार तैयार है। जल्द पधारें!`
         : `नमस्ते {{customer_name}}! {{restaurant_name}} का हिस्सा बनने के लिए आपका हार्दिक धन्यवाद। आपका स्वागत हमेशा रहेगा!`
     };
 
@@ -709,7 +759,13 @@ export class AiCrmService {
       : 'PRODUCT_BASED';
 
     let explanation = `I converted your request into a targeted campaign for ${matchedCount} customers. Recommended ${
-      offerType === 'NO_DISCOUNT' ? 'a heartfelt appreciation message with 0 discount' : `₹${offerValue} Discount Coins`
+      offerType === 'NO_DISCOUNT'
+        ? 'a heartfelt appreciation message with 0 discount'
+        : offerType === 'DISCOUNT_PERCENT'
+        ? `a flat ${offerValue}% discount`
+        : offerType === 'FREE_ITEM'
+        ? `a complimentary treat (${cleanPerk})`
+        : `${offerValue} Discount Coins`
     }. Estimated maximum reward liability is ₹${estimatedCost.toLocaleString('en-IN')}, fully compliant with your restaurant loyalty configuration.`;
 
     const campaignDraft: any = {
@@ -728,6 +784,7 @@ export class AiCrmService {
       language: 'HINGLISH',
       offerType,
       offerValue,
+      offerPerkText: offerType === 'FREE_ITEM' ? cleanPerk : undefined,
       validityDays,
       minOrderValue: settings?.minOrderValue || 300,
       reasoning: explanation,
@@ -736,7 +793,9 @@ export class AiCrmService {
       resolvedMessagePreview: templates.HINGLISH
         .replace('{{customer_name}}', matchedCustomers[0]?.name || 'Rahul')
         .replace('{{restaurant_name}}', restName)
-        .replace('{{coin_reward}}', String(offerValue)),
+        .replace('{{coin_reward}}', String(offerValue))
+        .replace('{{discount_percent}}', `${offerValue}%`)
+        .replace('{{offer_perk}}', cleanPerk),
       aiOptimizedTime: 'Friday, 6:30 PM',
       maxRewardCost: estimatedCost,
       requiresApproval: true,
@@ -773,13 +832,14 @@ Return ONLY valid JSON matching this schema:
   "objective": "Clear 1-sentence goal",
   "category": "WIN_BACK" | "VIP_PROTECTION" | "NEW_CUSTOMERS" | "PRODUCT_BASED" | "NO_DISCOUNT",
   "targetSegment": "AT_RISK" | "VIP" | "NEW_CUSTOMERS" | "WEEKEND_REGULARS" | "DEAL_SEEKERS" | "ALL",
-  "offerType": "DISCOUNT_COINS" | "NO_DISCOUNT" | "DISCOUNT_PERCENT",
+  "offerType": "DISCOUNT_COINS" | "NO_DISCOUNT" | "DISCOUNT_PERCENT" | "FREE_ITEM",
   "offerValue": 75,
+  "offerPerkText": "e.g. Free Cold Coffee, Complimentary Brownie (only if offerType is FREE_ITEM)",
   "validityDays": 7,
   "minOrderValue": 300,
   "tone": "FRIENDLY" | "PREMIUM" | "CASUAL" | "URGENT" | "FESTIVE",
   "language": "HINGLISH",
-  "message": "Appealing WhatsApp text with {{customer_name}}, {{restaurant_name}}, {{coin_reward}}",
+  "message": "Appealing WhatsApp text. For DISCOUNT_COINS, NEVER prepend ₹ to coins (say '75 Discount Coins', NEVER '₹75 Discount Coins'). For FREE_ITEM, mention the free item. For DISCOUNT_PERCENT, mention X% OFF.",
   "reasoning": "2 sentences explaining why this campaign will drive high ROI and repeat orders"
 }`
               },
@@ -803,6 +863,7 @@ Return ONLY valid JSON matching this schema:
             campaignDraft.audienceSegment = seg;
             campaignDraft.offerType = parsed.offerType || campaignDraft.offerType;
             if (typeof parsed.offerValue === 'number') campaignDraft.offerValue = parsed.offerValue;
+            if (parsed.offerPerkText) campaignDraft.offerPerkText = parsed.offerPerkText;
             if (typeof parsed.validityDays === 'number') campaignDraft.validityDays = parsed.validityDays;
             if (typeof parsed.minOrderValue === 'number') campaignDraft.minOrderValue = parsed.minOrderValue;
             campaignDraft.tone = parsed.tone || campaignDraft.tone;
@@ -811,7 +872,9 @@ Return ONLY valid JSON matching this schema:
             campaignDraft.resolvedMessagePreview = parsed.message
               .replace('{{customer_name}}', matchedCustomers[0]?.name || 'Rahul')
               .replace('{{restaurant_name}}', restName)
-              .replace('{{coin_reward}}', String(campaignDraft.offerValue));
+              .replace('{{coin_reward}}', String(campaignDraft.offerValue))
+              .replace('{{discount_percent}}', `${campaignDraft.offerValue}%`)
+              .replace('{{offer_perk}}', campaignDraft.offerPerkText || 'Complimentary Treat');
             if (parsed.reasoning) {
               campaignDraft.reasoning = parsed.reasoning;
               explanation = parsed.reasoning;
@@ -841,7 +904,8 @@ Return ONLY valid JSON matching this schema:
     customer: Customer,
     restaurantName: string,
     coinReward: number,
-    favouriteItem?: string
+    favouriteItem?: string,
+    perkText?: string
   ): string {
     const custName = customer.name || 'Friend';
     const restName = restaurantName || 'SwaadSevak';
@@ -852,6 +916,8 @@ Return ONLY valid JSON matching this schema:
       .replace(/\{{1,2}\s*(customer_?name|name|client_?name)\s*\}{1,2}/gi, custName)
       .replace(/\{{1,2}\s*(restaurant_?name|restaurant|cafe_?name)\s*\}{1,2}/gi, restName)
       .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(rewardVal))
+      .replace(/\{{1,2}\s*(discount_?percent|percent|discount_?percentage)\s*\}{1,2}/gi, `${rewardVal}%`)
+      .replace(/\{{1,2}\s*(offer_?perk|free_?item|perk|complimentary_?item)\s*\}{1,2}/gi, perkText || 'Complimentary Treat')
       .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
       .replace(/\{{1,2}\s*(favourite_?item|favorite_?item|fav_?dish|favorite_?dish)\s*\}{1,2}/gi, favouriteItem || (customer as any).favoriteDish || 'your favourites')
       .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, '7 days');

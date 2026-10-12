@@ -304,6 +304,23 @@ export class CampaignScheduler {
       .replace(/\{{1,2}\s*(restaurant_?address|address)\s*\}{1,2}/gi, restaurant?.address || '')
       .replace(/\{{1,2}\s*(order_?link|link|menu_?link)\s*\}{1,2}/gi, orderLink);
 
+    // If min order value is configured but wasn't in template text, guarantee it is clearly stated in the message
+    if (minOrderVal > 0) {
+      const lowerBody = body.toLowerCase();
+      const alreadyHasMin =
+        body.includes(`₹${minOrderVal}`) ||
+        (body.includes(String(minOrderVal)) && (lowerBody.includes('min') || lowerBody.includes('order') || lowerBody.includes('bill'))) ||
+        lowerBody.includes('min order') ||
+        lowerBody.includes('min bill') ||
+        lowerBody.includes('minimum order') ||
+        lowerBody.includes('orders above') ||
+        body.includes('अधिक के आर्डर');
+
+      if (!alreadyHasMin) {
+        body = `${body.trim()} (min order ₹${minOrderVal})`;
+      }
+    }
+
     // Format the bottom card showing offer awarded and customer coin balance
     let offerBadge = '';
     const offerType = campaign.offerType || 'DISCOUNT_COINS';

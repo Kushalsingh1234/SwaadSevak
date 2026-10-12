@@ -889,16 +889,19 @@ Return ONLY valid JSON matching this schema:
             if (typeof parsed.validityDays === 'number') campaignDraft.validityDays = parsed.validityDays;
             if (typeof parsed.minOrderValue === 'number' && parsed.minOrderValue >= 0) campaignDraft.minOrderValue = parsed.minOrderValue;
             campaignDraft.tone = parsed.tone || campaignDraft.tone;
-            campaignDraft.message = parsed.message;
-            campaignDraft.messageTemplate = parsed.message;
-            campaignDraft.resolvedMessagePreview = parsed.message
+
+            const resolvedMin = Number(campaignDraft.minOrderValue) || 0;
+            const finalParsedMsg = this.ensureMinOrderInMessage(parsed.message, resolvedMin, parsed.language || campaignDraft.language);
+            campaignDraft.message = finalParsedMsg;
+            campaignDraft.messageTemplate = finalParsedMsg;
+            campaignDraft.resolvedMessagePreview = finalParsedMsg
               .replace('{{customer_name}}', matchedCustomers[0]?.name || 'Rahul')
               .replace('{{restaurant_name}}', restName)
               .replace('{{coin_reward}}', String(campaignDraft.offerValue))
               .replace('{{discount_percent}}', `${campaignDraft.offerValue}%`)
               .replace('{{offer_perk}}', campaignDraft.offerPerkText || 'Complimentary Treat')
-              .replace('{{min_order_value}}', (campaignDraft.minOrderValue || 0) > 0 ? `₹${campaignDraft.minOrderValue}` : '')
-              .replace('{{min_order}}', (campaignDraft.minOrderValue || 0) > 0 ? `₹${campaignDraft.minOrderValue}` : '');
+              .replace('{{min_order_value}}', resolvedMin > 0 ? `₹${resolvedMin}` : '')
+              .replace('{{min_order}}', resolvedMin > 0 ? `₹${resolvedMin}` : '');
             if (parsed.reasoning) {
               campaignDraft.reasoning = parsed.reasoning;
               explanation = parsed.reasoning;
@@ -921,6 +924,34 @@ Return ONLY valid JSON matching this schema:
   }
 
   /**
+   * Helper to ensure min order requirement is clearly reflected in promotional messages
+   */
+  public static ensureMinOrderInMessage(message: string, minOrderValue: number, language: string = 'HINGLISH'): string {
+    if (!message || minOrderValue <= 0) return message || '';
+
+    const normalized = message.toLowerCase();
+    const hasMinMention =
+      message.includes(`₹${minOrderValue}`) ||
+      (message.includes(String(minOrderValue)) && (normalized.includes('min') || normalized.includes('order') || normalized.includes('bill'))) ||
+      normalized.includes('min order') ||
+      normalized.includes('min bill') ||
+      normalized.includes('minimum order') ||
+      normalized.includes('orders above') ||
+      message.includes('अधिक के आर्डर');
+
+    if (hasMinMention) return message;
+
+    const lang = (language || 'HINGLISH').toUpperCase();
+    if (lang === 'HI') {
+      return `${message.trim()} (₹${minOrderValue} से अधिक के आर्डर पर)`;
+    } else if (lang === 'EN' || lang === 'ENGLISH') {
+      return `${message.trim()} (Min order ₹${minOrderValue})`;
+    } else {
+      return `${message.trim()} (min order ₹${minOrderValue})`;
+    }
+  }
+
+  /**
    * Interpolate customer variables into a message
    */
   public static interpolateMessage(
@@ -938,7 +969,7 @@ Return ONLY valid JSON matching this schema:
     const rewardVal = Number(coinReward) || 0;
     const minVal = Number(minOrderValue) || 0;
 
-    return (template || '')
+    let res = (template || '')
       .replace(/\{{1,2}\s*(customer_?name|name|client_?name)\s*\}{1,2}/gi, custName)
       .replace(/\{{1,2}\s*(restaurant_?name|restaurant|cafe_?name)\s*\}{1,2}/gi, restName)
       .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(rewardVal))
@@ -948,6 +979,8 @@ Return ONLY valid JSON matching this schema:
       .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
       .replace(/\{{1,2}\s*(favourite_?item|favorite_?item|fav_?dish|favorite_?dish)\s*\}{1,2}/gi, favouriteItem || (customer as any).favoriteDish || 'your favourites')
       .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, '7 days');
+
+    return this.ensureMinOrderInMessage(res, minVal);
   }
 
   /**

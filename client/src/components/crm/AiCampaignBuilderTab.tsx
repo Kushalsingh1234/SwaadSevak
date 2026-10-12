@@ -134,7 +134,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   const [tone, setTone] = useState<'FRIENDLY' | 'PREMIUM' | 'CASUAL' | 'URGENT' | 'FESTIVE' | 'PROFESSIONAL'>('FRIENDLY');
   const [language, setLanguage] = useState<'EN' | 'HI' | 'HINGLISH'>('HINGLISH');
   const [message, setMessage] = useState<string>(
-    'Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne {{coin_reward}} SwaadSevak Coins add kiye hain. Table book karein ya visit karein: {{restaurant_name}}!'
+    'Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye humne 75 Discount Coins add kiye hain (min order ₹300). Table book karein ya visit karein: {{restaurant_name}}!'
   );
 
   // Execution & Schedule
@@ -142,6 +142,31 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   const [aiOptimizedTime, setAiOptimizedTime] = useState<string>('Friday, 6:30 PM (Peak ordering window for this cohort)');
   const [scheduledAt, setScheduledAt] = useState<string>('');
   const [requiresApproval, setRequiresApproval] = useState<boolean>(true);
+
+  // Helper to ensure minimum order is reflected in any message copy
+  const ensureMinOrderInMessage = (msg: string, minOrder: number, lang: string = 'HINGLISH'): string => {
+    if (!msg || minOrder <= 0) return msg || '';
+    const lower = msg.toLowerCase();
+    const alreadyHas =
+      msg.includes(`₹${minOrder}`) ||
+      (msg.includes(String(minOrder)) && (lower.includes('min') || lower.includes('order') || lower.includes('bill'))) ||
+      lower.includes('min order') ||
+      lower.includes('min bill') ||
+      lower.includes('minimum order') ||
+      lower.includes('orders above') ||
+      msg.includes('अधिक के आर्डर');
+
+    if (alreadyHas) return msg;
+
+    const l = (lang || 'HINGLISH').toUpperCase();
+    if (l === 'HI') {
+      return `${msg.trim()} (₹${minOrder} से अधिक के आर्डर पर)`;
+    } else if (l === 'EN') {
+      return `${msg.trim()} (Min order ₹${minOrder})`;
+    } else {
+      return `${msg.trim()} (min order ₹${minOrder})`;
+    }
+  };
 
   // Submission State
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -240,8 +265,10 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         setMinOrderValue(resolvedMinOrder);
         setReasoning(d.reasoning || d.objective || (res as any).explanation || reasoning);
         setTone(d.tone || 'FRIENDLY');
-        setLanguage(d.language || 'HINGLISH');
-        setMessage(d.message || d.resolvedMessagePreview || d.messageTemplate || message);
+        const resolvedLang = d.language || 'HINGLISH';
+        setLanguage(resolvedLang);
+        const rawMsg = d.message || d.resolvedMessagePreview || d.messageTemplate || message;
+        setMessage(ensureMinOrderInMessage(rawMsg, resolvedMinOrder, resolvedLang));
         setAiOptimizedTime(d.aiOptimizedTime || 'Friday, 6:30 PM');
       } else {
         setParseError(res.message || 'AI was unable to structure the prompt. You can adjust the parameters manually.');
@@ -374,7 +401,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
   };
 
   // Preview Message Interpolation (Replaces all variable placeholders)
-  const previewText = message
+  const rawPreview = message
     .replace(/\{\{\s*customer_name\s*\}\}/gi, 'Rahul Sharma')
     .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant?.name || 'SwaadSevak')
     .replace(/\{\{\s*coin_reward\s*\}\}/gi, offerValue.toString())
@@ -392,6 +419,8 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     .replace(/\{\{\s*favourite_item\s*\}\}/gi, 'Paneer Tikka Roll')
     .replace(/\{\{\s*order_link\s*\}\}/gi, restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app')
     .replace(/\{\{\s*restaurant_address\s*\}\}/gi, restaurant?.address || 'Indiranagar, Bangalore');
+
+  const previewText = ensureMinOrderInMessage(rawPreview, minOrderValue, language);
 
   // Cost Liability Calculation
   const estimatedCostLiability =
@@ -467,8 +496,8 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
         minOrderValue: Number(minOrderValue) || 0,
         tone,
         language,
-        messageTemplate: message,
-        message,
+        messageTemplate: ensureMinOrderInMessage(message, Number(minOrderValue) || 0, language),
+        message: ensureMinOrderInMessage(message, Number(minOrderValue) || 0, language),
         resolvedMessagePreview: previewText,
         scheduleType: isFuture ? 'SCHEDULED' : scheduleType,
         aiOptimizedTime,
@@ -1054,26 +1083,31 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
 
             {/* Editable Template Textarea */}
             <div>
-              <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                Editable Message Template
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] uppercase font-bold text-slate-400 block">
+                  Editable Message Template
+                </label>
+                {minOrderValue > 0 && (
+                  <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                    Min order requirement: ₹{minOrderValue}
+                  </span>
+                )}
+              </div>
               <textarea
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-900 font-mono outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
               />
-              <div className="flex flex-wrap gap-1 mt-1 text-[10px] text-slate-500">
-                <span className="font-semibold text-slate-600">Available Tags:</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{customer_name}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{restaurant_name}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_reward}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{discount_percent}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{offer_perk}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{min_order_value}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{coin_balance}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{favourite_item}}'}</span>
-                <span className="bg-slate-100 px-1 rounded font-mono">{'{{discount_expiry}}'}</span>
+              <div className="flex flex-wrap items-center gap-1 mt-1.5 text-[10px] text-slate-500">
+                <span className="font-semibold text-slate-600 mr-0.5">Click tag to insert:</span>
+                <button type="button" onClick={() => setMessage(m => m + ' {{customer_name}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{customer_name}}'}</button>
+                <button type="button" onClick={() => setMessage(m => m + ' {{restaurant_name}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{restaurant_name}}'}</button>
+                <button type="button" onClick={() => setMessage(m => m + ' {{coin_reward}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{coin_reward}}'}</button>
+                <button type="button" onClick={() => setMessage(m => m + ' {{discount_percent}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{discount_percent}}'}</button>
+                <button type="button" onClick={() => setMessage(m => m + ' {{offer_perk}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{offer_perk}}'}</button>
+                <button type="button" onClick={() => setMessage(m => m + (minOrderValue > 0 ? ` (min order ₹${minOrderValue})` : ' {{min_order_value}}'))} className="bg-orange-100 hover:bg-orange-200 text-orange-800 font-bold px-1.5 py-0.5 rounded font-mono cursor-pointer border border-orange-200">{`{{min_order_value}} (₹${minOrderValue})`}</button>
+                <button type="button" onClick={() => setMessage(m => m + ' {{discount_expiry}}')} className="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded font-mono cursor-pointer">{'{{discount_expiry}}'}</button>
               </div>
             </div>
 

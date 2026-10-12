@@ -372,7 +372,25 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
                 </div>
                 <div className="bg-white p-3.5 rounded-lg border border-slate-200/90 shadow-2xs">
                   <p className="text-xs text-slate-800 leading-relaxed font-sans whitespace-pre-line">
-                    {camp.messageTemplate || (camp as any).message || camp.resolvedMessagePreview || 'No message configured'}
+                    {(() => {
+                      const rawMsg = camp.messageTemplate || (camp as any).message || camp.resolvedMessagePreview || 'No message configured';
+                      const minVal = Number(camp.minOrderValue) || 0;
+                      if (minVal > 0) {
+                        const lower = rawMsg.toLowerCase();
+                        const alreadyHasMin =
+                          rawMsg.includes(`₹${minVal}`) ||
+                          (rawMsg.includes(String(minVal)) && (lower.includes('min') || lower.includes('order') || lower.includes('bill'))) ||
+                          lower.includes('min order') ||
+                          lower.includes('min bill') ||
+                          lower.includes('minimum order') ||
+                          lower.includes('orders above') ||
+                          rawMsg.includes('अधिक के आर्डर');
+                        if (!alreadyHasMin) {
+                          return `${rawMsg.trim()} (min order ₹${minVal})`;
+                        }
+                      }
+                      return rawMsg;
+                    })()}
                   </p>
                 </div>
               </div>

@@ -129,8 +129,16 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
     offerPerkText: payload.offerPerkText || '',
     validityDays: Number(payload.validityDays) || 7,
     minOrderValue: Number(payload.minOrderValue) >= 0 ? Number(payload.minOrderValue) : 0,
-    messageTemplate: payload.messageTemplate || payload.message || '',
-    resolvedMessagePreview: payload.resolvedMessagePreview || payload.message || payload.messageTemplate || '',
+    messageTemplate: AiCrmService.ensureMinOrderInMessage(
+      payload.messageTemplate || payload.message || '',
+      Number(payload.minOrderValue) >= 0 ? Number(payload.minOrderValue) : 0,
+      payload.language
+    ),
+    resolvedMessagePreview: AiCrmService.ensureMinOrderInMessage(
+      payload.resolvedMessagePreview || payload.message || payload.messageTemplate || '',
+      Number(payload.minOrderValue) >= 0 ? Number(payload.minOrderValue) : 0,
+      payload.language
+    ),
     scheduledFor: scheduledFor || undefined,
     maxRewardCost: Number(payload.maxRewardCost || payload.estimatedCost) || 0,
     requiresApproval,

@@ -5,6 +5,7 @@ import { emitOrderStatus, emitCustomerCoinsUpdated } from '../realtime/socket.js
 import { PrinterService } from '../printing/printerService.js';
 import { OrderStatus } from '../types/index.js';
 import { aggregatorManager } from '../aggregators/aggregatorManager.js';
+import { CampaignScheduler } from '../services/campaignScheduler.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -63,11 +64,17 @@ router.patch('/:id/status', (req: AuthenticatedRequest, res: Response) => {
   emitOrderStatus(restaurantId, updatedOrder.tableId, updatedOrder);
 
   // If order was completed and associated with a customer, broadcast updated coin balance
-  if (status === 'COMPLETED' && updatedOrder.customerId) {
-    const cust = db.getCustomerById(restaurantId, updatedOrder.customerId);
-    if (cust) {
-      emitCustomerCoinsUpdated(restaurantId, cust);
+  if (status === 'COMPLETED') {
+    if (updatedOrder.customerId) {
+      const cust = db.getCustomerById(restaurantId, updatedOrder.customerId);
+      if (cust) {
+        emitCustomerCoinsUpdated(restaurantId, cust);
+      }
     }
+    // Asynchronously trigger automation tick
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Scheduler] Error processing automations on order completion:', err);
+    });
   }
 
   // Aggregator notification if order came from Swiggy or Zomato

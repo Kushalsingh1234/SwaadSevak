@@ -47,6 +47,7 @@ class DatabaseStore {
   // AI CRM Maps
   aiCampaigns: Map<string, AiCampaign> = new Map();
   aiAutomations: Map<string, AiAutomation> = new Map();
+  automationDispatches: Map<string, { sentAt: Date; recipient: string; status: 'SUCCESS' | 'FAILED' }> = new Map();
   marketingChannels: Map<string, { whatsapp: boolean; sms: boolean; email: boolean }> = new Map();
   customerMarketingPreferences: Map<string, { sms: boolean; whatsapp: boolean; email: boolean }> = new Map();
 
@@ -2389,6 +2390,9 @@ class DatabaseStore {
     }
 
     if (status === 'COMPLETED' || status === 'DELIVERED') {
+      if (!order.completedAt) {
+        order.completedAt = new Date();
+      }
       const table = this.tables.get(order.tableId);
       if (table) {
         table.status = 'AVAILABLE';
@@ -2545,6 +2549,9 @@ class DatabaseStore {
     const order = this.orders.get(bill.orderId);
     if (order) {
       order.status = 'COMPLETED';
+      if (!order.completedAt) {
+        order.completedAt = new Date();
+      }
       const table = this.tables.get(order.tableId);
       if (table) table.status = 'AVAILABLE';
       // Automatically finalize coins: deduct redeemed coins safely and award newly earned coins
@@ -3331,9 +3338,346 @@ class DatabaseStore {
   }
 
   getAiAutomations(restaurantId: string): AiAutomation[] {
-    return Array.from(this.aiAutomations.values())
-      .filter(a => a.restaurantId === restaurantId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    let list = Array.from(this.aiAutomations.values())
+      .filter(a => a.restaurantId === restaurantId);
+    if (list.length === 0) {
+      this.seedInitialAutomationsForRestaurant(restaurantId);
+      list = Array.from(this.aiAutomations.values())
+        .filter(a => a.restaurantId === restaurantId);
+    }
+    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  seedInitialAutomationsForRestaurant(restaurantId: string): void {
+    const existing = Array.from(this.aiAutomations.values()).some(a => a.restaurantId === restaurantId);
+    if (existing) return;
+
+    const initialAutomations: AiAutomation[] = [
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_winback`,
+        restaurantId,
+        name: 'Win Back Inactive Customers',
+        description: 'Encourage guests to return after not visiting for 15 days with a warm invite and special offer.',
+        category: 'RETENTION',
+        goal: 'Bring back inactive customers',
+        trigger: 'No recorded visit or order for 15 days',
+        conditions: 'Previous orders >= 1, inactive >= 15 days',
+        action: '75 Discount Coins + personalized greeting',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 30,
+        status: 'ACTIVE',
+        lastRun: new Date(Date.now() - 86400000).toISOString(),
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'INACTIVITY_DAYS',
+          value: 15,
+          unit: 'days',
+          description: 'No recorded visit or order for 15 days'
+        },
+        audienceConfig: {
+          segment: 'INACTIVE',
+          minOrders: 1,
+          maxInactiveDays: 15
+        },
+        actionConfig: {
+          type: 'SEND_MESSAGE_WITH_OFFER',
+          messageTemplate: 'Hi {{customer_name}}, we miss seeing you at {{restaurant_name}}! Visit us again this week and enjoy {{offer_details}}. We look forward to serving you!',
+          offerType: 'DISCOUNT_COINS',
+          offerValue: 75,
+          minOrderValue: 299,
+          validityDays: 7
+        },
+        timingConfig: {
+          delayMinutes: 0,
+          quietHoursEnabled: true,
+          quietHoursStart: '10:00',
+          quietHoursEnd: '21:30',
+          cooldownDays: 30
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-1`,
+            event: 'Automation activated',
+            timestamp: new Date().toISOString(),
+            details: 'Initial activation with 30-day anti-spam cooldown window',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_post_visit_feedback`,
+        restaurantId,
+        name: 'Post-Visit Feedback',
+        description: 'Collect honest feedback and 5-star ratings 30 minutes after a dine-in visit or completed order.',
+        category: 'FEEDBACK',
+        goal: 'Collect customer feedback',
+        trigger: '30 minutes after completed order or recorded visit',
+        conditions: 'Order status == COMPLETED, bill paid',
+        action: 'Send friendly feedback link via WhatsApp',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 7,
+        status: 'ACTIVE',
+        lastRun: new Date().toISOString(),
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'ORDER_COMPLETED',
+          value: 30,
+          unit: 'minutes',
+          description: '30 minutes after completed dine-in or takeaway order'
+        },
+        audienceConfig: {
+          segment: 'ALL',
+          minOrders: 1
+        },
+        actionConfig: {
+          type: 'REQUEST_FEEDBACK',
+          messageTemplate: 'Hi {{customer_name}}, thank you for dining at {{restaurant_name}} today! How was your experience with Order #{{order_number}}? Tap here to let us know: {{feedback_link}}',
+          feedbackUrl: 'https://swaadsevak.com/feedback'
+        },
+        timingConfig: {
+          delayMinutes: 30,
+          quietHoursEnabled: true,
+          quietHoursStart: '10:00',
+          quietHoursEnd: '22:00',
+          cooldownDays: 7
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-2`,
+            event: 'Feedback automation activated',
+            timestamp: new Date().toISOString(),
+            details: 'Listening for completed orders with 30-minute delay',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_birthday`,
+        restaurantId,
+        name: 'Birthday Rewards',
+        description: 'Send diners a warm birthday greeting and celebration treat on their special day.',
+        category: 'SPECIAL_OCCASIONS',
+        goal: 'Send birthday offers',
+        trigger: 'Customer birthday matching today',
+        conditions: 'Valid birthday recorded in CRM profile',
+        action: 'Complimentary dessert & 100 Birthday Coins',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 365,
+        status: 'ACTIVE',
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'BIRTHDAY',
+          value: 0,
+          unit: 'days',
+          description: 'On customer birthday at 10:00 AM'
+        },
+        audienceConfig: {
+          segment: 'ALL'
+        },
+        actionConfig: {
+          type: 'SEND_MESSAGE_WITH_OFFER',
+          messageTemplate: 'Happy Birthday, {{customer_name}}! 🎉 Celebrate your special day at {{restaurant_name}}. We have credited {{offer_details}} to your account. Dine with us and celebrate in style!',
+          offerType: 'DISCOUNT_COINS',
+          offerValue: 100,
+          minOrderValue: 499,
+          validityDays: 14
+        },
+        timingConfig: {
+          quietHoursEnabled: true,
+          quietHoursStart: '10:00',
+          quietHoursEnd: '20:00',
+          cooldownDays: 365
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-3`,
+            event: 'Birthday greeting engine activated',
+            timestamp: new Date().toISOString(),
+            details: 'Active',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date()
+      },
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_thank_you`,
+        restaurantId,
+        name: 'Thank Customers After an Order',
+        description: 'Send a heartfelt thank-you and bonus coins right after their first completed order.',
+        category: 'REPEAT_ORDERS',
+        goal: 'Increase repeat orders',
+        trigger: 'Immediately after first order completed',
+        conditions: 'Total orders == 1',
+        action: '50 Welcome Coins + heartfelt thank-you',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 90,
+        status: 'ACTIVE',
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'FIRST_ORDER',
+          value: 0,
+          unit: 'minutes',
+          description: 'Immediately after 1st order completed'
+        },
+        audienceConfig: {
+          segment: 'NEW',
+          minOrders: 1
+        },
+        actionConfig: {
+          type: 'SEND_MESSAGE_WITH_OFFER',
+          messageTemplate: 'Thank you for choosing {{restaurant_name}}, {{customer_name}}! We loved serving you today. As a welcome gift, here are {{offer_details}} for your next visit.',
+          offerType: 'DISCOUNT_COINS',
+          offerValue: 50,
+          minOrderValue: 250,
+          validityDays: 14
+        },
+        timingConfig: {
+          delayMinutes: 15,
+          quietHoursEnabled: true,
+          quietHoursStart: '10:00',
+          quietHoursEnd: '22:00',
+          cooldownDays: 90
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-4`,
+            event: 'First-order follow-up enabled',
+            timestamp: new Date().toISOString(),
+            details: 'Active',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date()
+      },
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_loyal`,
+        restaurantId,
+        name: 'Reward Loyal Customers',
+        description: 'Reward repeat patrons when they complete 5 visits with special VIP Discount Coins.',
+        category: 'LOYALTY',
+        goal: 'Reward loyal customers',
+        trigger: 'Customer completes 5 visits or orders',
+        conditions: 'Total completed orders >= 5',
+        action: '100 Loyalty Coins + VIP appreciation message',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 60,
+        status: 'ACTIVE',
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'VISIT_MILESTONE',
+          value: 5,
+          unit: 'visits',
+          description: '5th completed visit milestone'
+        },
+        audienceConfig: {
+          segment: 'LOYAL',
+          minOrders: 5
+        },
+        actionConfig: {
+          type: 'SEND_MESSAGE_WITH_OFFER',
+          messageTemplate: 'You are one of our favorite regulars, {{customer_name}}! ⭐ To celebrate your 5th visit at {{restaurant_name}}, we added {{offer_details}} to your rewards balance. See you soon!',
+          offerType: 'DISCOUNT_COINS',
+          offerValue: 100,
+          minOrderValue: 399,
+          validityDays: 21
+        },
+        timingConfig: {
+          delayMinutes: 30,
+          quietHoursEnabled: true,
+          quietHoursStart: '10:00',
+          quietHoursEnd: '21:30',
+          cooldownDays: 60
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-5`,
+            event: 'Loyalty milestone activated',
+            timestamp: new Date().toISOString(),
+            details: 'Active',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date()
+      },
+      {
+        id: `auto_${restaurantId.substring(0, 6)}_vip_winback`,
+        restaurantId,
+        name: 'Win Back High-Value Customers',
+        description: 'Proactively re-engage high-spending VIP customers who have not visited in 25 days.',
+        category: 'RETENTION',
+        goal: 'Bring back inactive customers',
+        trigger: 'VIP guest (₹3,000+ total spend) inactive for 25 days',
+        conditions: 'Lifetime spend >= ₹3,000, days since last order >= 25',
+        action: 'Chef Tasting Invitation + 150 VIP Coins',
+        channel: 'WHATSAPP',
+        frequencyLimitDays: 30,
+        status: 'PAUSED',
+        customersReached: 0,
+        messagesSent: 0,
+        messagesFailed: 0,
+        revenueAttributed: 0,
+        triggerConfig: {
+          type: 'INACTIVITY_DAYS',
+          value: 25,
+          unit: 'days',
+          description: 'VIP inactive for 25 days'
+        },
+        audienceConfig: {
+          segment: 'VIP',
+          minSpend: 3000,
+          maxInactiveDays: 25,
+          vipOnly: true
+        },
+        actionConfig: {
+          type: 'SEND_MESSAGE_WITH_OFFER',
+          messageTemplate: 'Dear {{customer_name}}, the team at {{restaurant_name}} truly values having you as a patron. Our chef would love to welcome you back with {{offer_details}} on your next reservation.',
+          offerType: 'DISCOUNT_COINS',
+          offerValue: 150,
+          minOrderValue: 699,
+          validityDays: 14
+        },
+        timingConfig: {
+          delayMinutes: 0,
+          quietHoursEnabled: true,
+          quietHoursStart: '12:00',
+          quietHoursEnd: '20:30',
+          cooldownDays: 30
+        },
+        activityLog: [
+          {
+            id: `log-${Date.now()}-6`,
+            event: 'VIP Win-Back loaded',
+            timestamp: new Date().toISOString(),
+            details: 'Saved as paused',
+            type: 'INFO'
+          }
+        ],
+        createdAt: new Date()
+      }
+    ];
+
+    for (const a of initialAutomations) {
+      this.aiAutomations.set(a.id, a);
+    }
   }
 
   getAiAutomationById(restaurantId: string, automationId: string): AiAutomation | undefined {
@@ -3409,6 +3753,32 @@ class DatabaseStore {
       ...current,
       ...prefs
     });
+  }
+
+  recordAutomationDispatch(automationId: string, entityType: string, entityId: string, recipient: string, status: 'SUCCESS' | 'FAILED') {
+    const key = `${automationId}::${entityType}::${entityId}`;
+    this.automationDispatches.set(key, {
+      sentAt: new Date(),
+      recipient,
+      status
+    });
+  }
+
+  isAutomationDispatched(automationId: string, entityType: string, entityId: string): boolean {
+    const key = `${automationId}::${entityType}::${entityId}`;
+    return this.automationDispatches.has(key);
+  }
+
+  getAutomationLastDispatchedToRecipient(automationId: string, recipient: string): Date | null {
+    let latest: Date | null = null;
+    for (const [key, val] of this.automationDispatches.entries()) {
+      if (key.startsWith(`${automationId}::`) && val.recipient === recipient) {
+        if (!latest || val.sentAt.getTime() > latest.getTime()) {
+          latest = val.sentAt;
+        }
+      }
+    }
+    return latest;
   }
 }
 

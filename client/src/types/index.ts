@@ -101,6 +101,7 @@ export interface Order {
   coinDiscount?: number;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
   items: OrderItem[];
 }
 

@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
 import { emitBillGenerated, emitOrderStatus, emitCustomerCoinsUpdated } from '../realtime/socket.js';
+import { CampaignScheduler } from '../services/campaignScheduler.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -56,6 +57,9 @@ router.patch('/:id/settle', (req: AuthenticatedRequest, res: Response) => {
         emitCustomerCoinsUpdated(restaurantId, cust);
       }
     }
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Scheduler] Error processing automations on bill settlement:', err);
+    });
   }
 
   return res.json({

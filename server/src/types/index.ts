@@ -110,6 +110,7 @@ export interface Order {
   coinDiscount?: number;
   createdAt: Date;
   updatedAt: Date;
+  completedAt?: Date;
   items: OrderItem[];
 }
 

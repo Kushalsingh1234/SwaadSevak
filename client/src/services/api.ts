@@ -313,17 +313,61 @@ export const api = {
     }),
   deleteAiCampaign: (id: string) =>
     request<{ success: boolean; message: string }>(`/crm/ai/campaigns/${id}`, { method: 'DELETE' }),
-  getAiAutomations: () =>
-    request<{ success: boolean; automations: import('../types').AiAutomation[] }>('/crm/ai/automations'),
+  getAiAutomations: (period?: string) =>
+    request<{
+      success: boolean;
+      automations: import('../types').AiAutomation[];
+      metrics?: {
+        activeAutomations: number;
+        messagesSent: number;
+        customersReached: number;
+        revenueAttributed: number;
+      };
+      isWhatsAppConnected?: boolean;
+      whatsAppPhoneNumber?: string | null;
+    }>(`/crm/ai/automations${period ? `?period=${period}` : ''}`),
   createAiAutomation: (payload: Partial<import('../types').AiAutomation>) =>
     request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>('/crm/ai/automations', {
       method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  updateAiAutomation: (id: string, payload: Partial<import('../types').AiAutomation>) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>(`/crm/ai/automations/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(payload)
     }),
   toggleAiAutomation: (id: string, status?: string) =>
     request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>(`/crm/ai/automations/${id}/toggle`, {
       method: 'PUT',
       body: JSON.stringify({ status })
+    }),
+  duplicateAiAutomation: (id: string) =>
+    request<{ success: boolean; message: string; automation: import('../types').AiAutomation }>(`/crm/ai/automations/${id}/duplicate`, {
+      method: 'POST'
+    }),
+  testAiAutomation: (id: string) =>
+    request<{
+      success: boolean;
+      message: string;
+      preview: {
+        recipientName: string;
+        recipientPhone: string;
+        channel: string;
+        isChannelReady: boolean;
+        renderedMessage: string;
+      };
+    }>(`/crm/ai/automations/${id}/test`, {
+      method: 'POST'
+    }),
+  estimateAutomationAudience: (payload: { triggerConfig?: any; audienceConfig?: any }) =>
+    request<{
+      success: boolean;
+      totalAudience: number;
+      eligibleCount: number;
+      sampleCustomers: Array<{ name: string; orders: number; spent: number; lastVisit?: string }>;
+    }>('/crm/ai/automations/estimate-audience', {
+      method: 'POST',
+      body: JSON.stringify(payload)
     }),
   deleteAiAutomation: (id: string) =>
     request<{ success: boolean; message: string }>(`/crm/ai/automations/${id}`, { method: 'DELETE' }),

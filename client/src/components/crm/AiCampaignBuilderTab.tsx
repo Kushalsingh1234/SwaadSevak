@@ -280,7 +280,7 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     }
   };
 
-  // Helper for multi-language message generation across all offer types
+  // Helper for multi-language and multi-tone message generation across all offer types
   const generateMultiLangMessage = (
     cat: string = category,
     type: 'DISCOUNT_COINS' | 'DISCOUNT_PERCENT' | 'FREE_ITEM' | 'NO_DISCOUNT' = offerType,
@@ -295,76 +295,235 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
     const minOrderTextEn = minOrder > 0 ? ` on orders above ₹${minOrder}` : '';
     const minOrderTextHinglish = minOrder > 0 ? ` (min order ₹${minOrder})` : '';
     const minOrderTextHi = minOrder > 0 ? ` (₹${minOrder} से अधिक के आर्डर पर)` : '';
+    const selectedTone = (t || 'FRIENDLY').toUpperCase();
 
     if (lang === 'HINGLISH') {
-      if (type === 'DISCOUNT_COINS') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye humne ${val} Discount Coins add kiye hain${minOrderTextHinglish}. Table book karein ya visit karein: {{restaurant_name}}!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Namaste {{customer_name}}! 👑 You are one of our most valued guests at {{restaurant_name}}. Enjoy an exclusive ${val} Discount Coins loyalty perk${minOrderTextHinglish} on your table this weekend!`;
-        } else if (cat === 'PRODUCT_BASED') {
-          msg = `Craving your favourites? 🍕 {{customer_name}}, {{restaurant_name}} par aapka favourite menu ready hai. Use ${val} Discount Coins on your next order${minOrderTextHinglish}!`;
+      if (selectedTone === 'PREMIUM') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Namaste {{customer_name}}! 👑 As an esteemed patron of {{restaurant_name}}, enjoy an exclusive VIP privilege of ${val} Discount Coins${minOrderTextHinglish} on your table this weekend.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Namaste {{customer_name}}! 👑 An exclusive privilege awaits you at {{restaurant_name}}. Enjoy an elite flat ${val}% OFF on your bill${minOrderTextHinglish} on your upcoming reservation.`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Namaste {{customer_name}}! 👑 As an esteemed VIP at {{restaurant_name}}, please accept a complimentary chef-crafted ${cleanPerk}${minOrderTextHinglish} on your next visit.`;
         } else {
-          msg = `Hey {{customer_name}}! Special reward: Enjoy ${val} Discount Coins on your next order at {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          msg = `Namaste {{customer_name}}! 👑 An exceptional culinary experience awaits you at {{restaurant_name}}. We look forward to extending our finest hospitality.`;
         }
-      } else if (type === 'DISCOUNT_PERCENT') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne flat ${val}% OFF ready rakha hai at {{restaurant_name}}${minOrderTextHinglish}. Table book karein ya visit karein!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Namaste {{customer_name}}! 👑 As one of our most valued guests at {{restaurant_name}}, enjoy an exclusive flat ${val}% OFF on your bill${minOrderTextHinglish} this weekend!`;
+      } else if (selectedTone === 'CASUAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Yo {{customer_name}}! 🍕 Hungry? Drop by {{restaurant_name}} and grab ${val} Discount Coins on your next bite${minOrderTextHinglish}! Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Yo {{customer_name}}! 🍕 Craving your favourites? Score flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextHinglish}. See you soon!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Yo {{customer_name}}! 🍕 Good vibes and great food! Grab a free ${cleanPerk} on the house at {{restaurant_name}}${minOrderTextHinglish}. Don't miss it!`;
         } else {
-          msg = `Hey {{customer_name}}! Special treat: Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          msg = `Yo {{customer_name}}! 🍕 Fresh bites and great vibes are ready at {{restaurant_name}}. Come hang out with us today!`;
         }
-      } else if (type === 'FREE_ITEM') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye ek special treat rakhi hai: ${cleanPerk} on your next order at {{restaurant_name}}${minOrderTextHinglish}! Jaldi visit karein!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Namaste {{customer_name}}! 👑 As our VIP guest at {{restaurant_name}}, enjoy a complimentary ${cleanPerk} on the house on your next dining visit${minOrderTextHinglish}!`;
+      } else if (selectedTone === 'URGENT') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `⚡ Quick reminder, {{customer_name}}! Your special ${val} Discount Coins at {{restaurant_name}} expire in ${validityDays} days${minOrderTextHinglish}. Visit now before they're gone!`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `⚡ Flash Deal, {{customer_name}}! Grab flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextHinglish}. Valid strictly for the next ${validityDays} days — don't miss out!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `⚡ Hurry {{customer_name}}! Your complimentary ${cleanPerk} at {{restaurant_name}}${minOrderTextHinglish} expires in ${validityDays} days. Claim yours before time runs out!`;
         } else {
-          msg = `Hey {{customer_name}}! Special perk for you: Enjoy a ${cleanPerk} on your next visit to {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          msg = `⚡ Table alert, {{customer_name}}! Our chef specials are going fast today at {{restaurant_name}}. Reserve your table before spots fill up!`;
+        }
+      } else if (selectedTone === 'FESTIVE') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Happy Celebrations, {{customer_name}}! 🥳 Treat yourself and your loved ones at {{restaurant_name}} with ${val} Celebration Discount Coins${minOrderTextHinglish}! Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Celebration vibes at {{restaurant_name}}! 🎉 Enjoy flat ${val}% festive OFF on your next feast${minOrderTextHinglish}. Let's make this visit unforgettable!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Let's celebrate, {{customer_name}}! 🎂 Enjoy a complimentary ${cleanPerk} on the house with your next feast at {{restaurant_name}}${minOrderTextHinglish}. Come join the party!`;
+        } else {
+          msg = `Celebrate special moments with delicious memories at {{restaurant_name}}! 🎉 Festive seasonal specials are ready for you and your family.`;
+        }
+      } else if (selectedTone === 'PROFESSIONAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Dear {{customer_name}}, {{restaurant_name}} values your patronage. We are pleased to credit ${val} Discount Coins to your loyalty balance${minOrderTextHinglish}. Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Dear {{customer_name}}, thank you for dining with {{restaurant_name}}. Please enjoy a courtesy ${val}% discount on your next reservation${minOrderTextHinglish}.`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Dear {{customer_name}}, as a gesture of appreciation from {{restaurant_name}}, enjoy a complimentary ${cleanPerk} with your next order${minOrderTextHinglish}.`;
+        } else {
+          msg = `Dear {{customer_name}}, the team at {{restaurant_name}} extends warm greetings. We look forward to delivering an outstanding dining experience on your next visit.`;
         }
       } else {
-        // NO_DISCOUNT
-        msg = `Hey {{customer_name}}! We are serving freshly handcrafted specials today at {{restaurant_name}}. We'd love to host you again! ❤️`;
+        // FRIENDLY (Default)
+        if (type === 'DISCOUNT_COINS') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye humne ${val} Discount Coins add kiye hain${minOrderTextHinglish}. Table book karein ya visit karein: {{restaurant_name}}!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Namaste {{customer_name}}! 👑 You are one of our most valued guests at {{restaurant_name}}. Enjoy ${val} Discount Coins loyalty perk${minOrderTextHinglish} on your table this weekend!`;
+          } else if (cat === 'PRODUCT_BASED') {
+            msg = `Craving your favourites? 🍕 {{customer_name}}, {{restaurant_name}} par aapka favourite menu ready hai. Use ${val} Discount Coins on your next order${minOrderTextHinglish}!`;
+          } else {
+            msg = `Hey {{customer_name}}! Special reward: Enjoy ${val} Discount Coins on your next order at {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          }
+        } else if (type === 'DISCOUNT_PERCENT') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next order ke liye humne flat ${val}% OFF ready rakha hai at {{restaurant_name}}${minOrderTextHinglish}. Table book karein ya visit karein!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Namaste {{customer_name}}! 👑 As one of our most valued guests at {{restaurant_name}}, enjoy an exclusive flat ${val}% OFF on your bill${minOrderTextHinglish} this weekend!`;
+          } else {
+            msg = `Hey {{customer_name}}! Special treat: Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          }
+        } else if (type === 'FREE_ITEM') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! Kaafi time ho gaya mile huye ❤️ Aapke next visit ke liye ek special treat rakhi hai: ${cleanPerk} on your next order at {{restaurant_name}}${minOrderTextHinglish}! Jaldi visit karein!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Namaste {{customer_name}}! 👑 As our VIP guest at {{restaurant_name}}, enjoy a complimentary ${cleanPerk} on the house on your next dining visit${minOrderTextHinglish}!`;
+          } else {
+            msg = `Hey {{customer_name}}! Special perk for you: Enjoy a ${cleanPerk} on your next visit to {{restaurant_name}}${minOrderTextHinglish}. Valid for ${validityDays} days!`;
+          }
+        } else {
+          msg = `Hey {{customer_name}}! We are serving freshly handcrafted specials today at {{restaurant_name}}. We'd love to host you again! ❤️`;
+        }
       }
     } else if (lang === 'HI') {
-      if (type === 'DISCOUNT_COINS') {
-        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val} डिस्काउंट कॉइन्स का उपहार तैयार है${minOrderTextHi}। जल्द पधारें!`;
-      } else if (type === 'DISCOUNT_PERCENT') {
-        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val}% की विशेष छूट तैयार है${minOrderTextHi}। जल्द पधारें!`;
-      } else if (type === 'FREE_ITEM') {
-        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} का खास उपहार तैयार है${minOrderTextHi}। जल्द पधारें!`;
+      if (selectedTone === 'PREMIUM') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `प्रणाम {{customer_name}}! 👑 {{restaurant_name}} के सम्मानित अतिथि के रूप में, आपके अगले आर्डर पर ${val} डिस्काउंट कॉइन्स का विशेष उपहार तैयार है${minOrderTextHi}।`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `प्रणाम {{customer_name}}! 👑 {{restaurant_name}} में आपके अगले आर्डर पर विशेष ${val}% की वीआईपी छूट उपलब्ध है${minOrderTextHi}।`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `प्रणाम {{customer_name}}! 👑 {{restaurant_name}} की ओर से आपके लिए मुफ़्त ${cleanPerk} का विशेष शेफ उपहार तैयार है${minOrderTextHi}।`;
+        } else {
+          msg = `प्रणाम {{customer_name}}! 👑 {{restaurant_name}} में आपकी सेवा के लिए हम सदैव तत्पर हैं। आपका स्वागत है।`;
+        }
+      } else if (selectedTone === 'CASUAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `अरे {{customer_name}}! 🍕 भूख लगी है? {{restaurant_name}} पधारें और पाएं ${val} डिस्काउंट कॉइन्स${minOrderTextHi}! वैध: ${validityDays} दिन।`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `अरे {{customer_name}}! 🍕 स्वादिष्ट भोजन का आनंद लें और {{restaurant_name}} में पाएं सीधे ${val}% की छूट${minOrderTextHi}। जल्दी मिलें!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `अरे {{customer_name}}! 🍕 {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} तैयार है${minOrderTextHi}। आनंद लें!`;
+        } else {
+          msg = `अरे {{customer_name}}! 🍕 {{restaurant_name}} में आज ताज़ा और लज़ीज़ व्यंजन तैयार हैं। ज़रूर पधारें!`;
+        }
+      } else if (selectedTone === 'URGENT') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `⚡ तुरंत ध्यान दें {{customer_name}}! {{restaurant_name}} में आपके ${val} डिस्काउंट कॉइन्स ${validityDays} दिनों में समाप्त हो जाएंगे${minOrderTextHi}। आज ही लाभ उठाएं!`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `⚡ सीमित समय का ऑफर {{customer_name}}! {{restaurant_name}} में फ्लैट ${val}% की छूट केवल अगले ${validityDays} दिनों के लिए मान्य है${minOrderTextHi}!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `⚡ अवसर न चूकें {{customer_name}}! {{restaurant_name}} में आपका मुफ़्त ${cleanPerk} ऑफर ${validityDays} दिनों में समाप्त हो जाएगा${minOrderTextHi}।`;
+        } else {
+          msg = `⚡ टेबल अलर्ट {{customer_name}}! {{restaurant_name}} में आज सीटें तेज़ी से भर रही हैं। अपनी टेबल अभी आरक्षित करें!`;
+        }
+      } else if (selectedTone === 'FESTIVE') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `उत्सव की बधाई {{customer_name}}! 🎉 {{restaurant_name}} में उत्सव मनाएं और पाएं ${val} फेस्टिवल डिस्काउंट कॉइन्स${minOrderTextHi}! वैध: ${validityDays} दिन।`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `उत्सव का माहौल {{restaurant_name}} में! 🥳 अपने अगले भोजन पर पाएं विशेष ${val}% की छूट${minOrderTextHi}। खुशियां बांटें!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `खुशियां मनाएं {{customer_name}}! 🎂 {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} का उत्सव उपहार तैयार है${minOrderTextHi}!`;
+        } else {
+          msg = `हर पल को यादगार बनाएं {{restaurant_name}} के साथ! 🎉 खास मौकों के लिए हमारे शेफ स्पेशल व्यंजन तैयार हैं।`;
+        }
+      } else if (selectedTone === 'PROFESSIONAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `आदरणीय {{customer_name}}, {{restaurant_name}} आपके जुड़ाव की सराहना करता है। आपके खाते में ${val} डिस्काउंट कॉइन्स जोड़े गए हैं${minOrderTextHi}। वैध: ${validityDays} दिन।`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `आदरणीय {{customer_name}}, {{restaurant_name}} को चुनने के लिए धन्यवाद। कृपया अपने अगले आर्डर पर ${val}% की सम्मान छूट स्वीकार करें${minOrderTextHi}।`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `आदरणीय {{customer_name}}, {{restaurant_name}} की ओर से आभार स्वरूप एक मुफ़्त ${cleanPerk} का उपहार प्रस्तुत है${minOrderTextHi}।`;
+        } else {
+          msg = `आदरणीय {{customer_name}}, {{restaurant_name}} प्रबंधन की ओर से सादर अभिवादन। हम आपकी सेवा के लिए तत्पर हैं।`;
+        }
       } else {
-        msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आज खास शेफ स्पेशल तैयार हैं। आपका स्वागत है!`;
+        // FRIENDLY (Default)
+        if (type === 'DISCOUNT_COINS') {
+          msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val} डिस्काउंट कॉइन्स का उपहार तैयार है${minOrderTextHi}। जल्द पधारें!`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर ${val}% की विशेष छूट तैयार है${minOrderTextHi}। जल्द पधारें!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आपके अगले आर्डर पर मुफ़्त ${cleanPerk} का खास उपहार तैयार है${minOrderTextHi}। जल्द पधारें!`;
+        } else {
+          msg = `नमस्ते {{customer_name}}! {{restaurant_name}} में आज खास शेफ स्पेशल तैयार हैं। आपका स्वागत है!`;
+        }
       }
     } else {
-      // English
-      if (type === 'DISCOUNT_COINS') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Here are ${val} Discount Coins for your next visit at {{restaurant_name}}${minOrderTextEn}. We'd love to welcome you back!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. An exclusive ${val} Discount Coins reward${minOrderTextEn} has been credited to your loyalty balance.`;
+      // English (EN)
+      if (selectedTone === 'PREMIUM') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Dear {{customer_name}}, 👑 an exclusive culinary privilege awaits you at {{restaurant_name}}. We have credited ${val} Discount Coins${minOrderTextEn} to your VIP balance.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Dear {{customer_name}}, 👑 as a cherished VIP guest at {{restaurant_name}}, enjoy an elite ${val}% discount on your upcoming reservation${minOrderTextEn}.`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Dear {{customer_name}}, 👑 we are delighted to offer you a complimentary chef-crafted ${cleanPerk}${minOrderTextEn} on your next visit to {{restaurant_name}}.`;
         } else {
-          msg = `Hey {{customer_name}}! Treat yourself at {{restaurant_name}} with ${val} Discount Coins on your next visit${minOrderTextEn}. Valid for ${validityDays} days!`;
+          msg = `Dear {{customer_name}}, 👑 an exceptional dining experience awaits you at {{restaurant_name}}. We look forward to presenting our finest hospitality.`;
         }
-      } else if (type === 'DISCOUNT_PERCENT') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Enjoy flat ${val}% OFF on your next visit to {{restaurant_name}}${minOrderTextEn}. We'd love to welcome you back!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. Enjoy an exclusive ${val}% discount on your next reservation${minOrderTextEn}.`;
+      } else if (selectedTone === 'CASUAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Hey {{customer_name}}! 🍕 Hungry? Grab ${val} Discount Coins on your next bite at {{restaurant_name}}${minOrderTextEn}! Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Hey {{customer_name}}! 🍕 Craving something delicious? Score flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextEn}. See you soon!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Hey {{customer_name}}! 🍕 Good food and great times await. Enjoy a free ${cleanPerk} on the house at {{restaurant_name}}${minOrderTextEn}!`;
         } else {
-          msg = `Hey {{customer_name}}! Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextEn}. Valid for ${validityDays} days!`;
+          msg = `Hey {{customer_name}}! 🍕 Fresh bites and warm vibes are ready at {{restaurant_name}}. Drop by today!`;
         }
-      } else if (type === 'FREE_ITEM') {
-        if (cat === 'WIN_BACK') {
-          msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Come visit {{restaurant_name}} and enjoy a ${cleanPerk} on the house${minOrderTextEn}!`;
-        } else if (cat === 'VIP_PROTECTION') {
-          msg = `Dear {{customer_name}}, thank you for being a valued VIP at {{restaurant_name}}. Enjoy a ${cleanPerk} on the house during your next visit${minOrderTextEn}.`;
+      } else if (selectedTone === 'URGENT') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `⚡ Limited Time Alert, {{customer_name}}! Your ${val} Discount Coins at {{restaurant_name}} expire in ${validityDays} days${minOrderTextEn}. Claim them before they're gone!`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `⚡ Flash Offer, {{customer_name}}! Enjoy flat ${val}% OFF at {{restaurant_name}}${minOrderTextEn}. Valid strictly for ${validityDays} days — reserve your table now!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `⚡ Don't miss out, {{customer_name}}! Your complimentary ${cleanPerk} at {{restaurant_name}}${minOrderTextEn} expires in ${validityDays} days. Visit today!`;
         } else {
-          msg = `Hey {{customer_name}}! Treat yourself to a ${cleanPerk} on your next order at {{restaurant_name}}${minOrderTextEn}. Valid for ${validityDays} days!`;
+          msg = `⚡ Table Alert, {{customer_name}}! Tables are filling fast at {{restaurant_name}} today. Reserve your spot now!`;
+        }
+      } else if (selectedTone === 'FESTIVE') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Happy Celebrations, {{customer_name}}! 🎉 Treat yourself and your loved ones at {{restaurant_name}} with ${val} Celebration Discount Coins${minOrderTextEn}! Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Time to celebrate, {{customer_name}}! 🥳 Enjoy flat ${val}% festive savings on your next feast at {{restaurant_name}}${minOrderTextEn}. Make it special!`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Let's celebrate, {{customer_name}}! 🎂 Enjoy a complimentary ${cleanPerk} on the house during your next visit to {{restaurant_name}}${minOrderTextEn}!`;
+        } else {
+          msg = `Celebrate special moments with delicious memories at {{restaurant_name}}! 🎉 Seasonal culinary specials are ready for you and your family.`;
+        }
+      } else if (selectedTone === 'PROFESSIONAL') {
+        if (type === 'DISCOUNT_COINS') {
+          msg = `Dear {{customer_name}}, {{restaurant_name}} values your patronage. We have credited ${val} Discount Coins to your loyalty balance${minOrderTextEn}. Valid for ${validityDays} days.`;
+        } else if (type === 'DISCOUNT_PERCENT') {
+          msg = `Dear {{customer_name}}, thank you for dining with {{restaurant_name}}. Please enjoy a courtesy ${val}% discount on your next reservation${minOrderTextEn}.`;
+        } else if (type === 'FREE_ITEM') {
+          msg = `Dear {{customer_name}}, as a gesture of appreciation, {{restaurant_name}} invites you to enjoy a complimentary ${cleanPerk}${minOrderTextEn} on your next visit.`;
+        } else {
+          msg = `Dear {{customer_name}}, the management at {{restaurant_name}} extends warm greetings. We look forward to delivering an outstanding dining experience on your next visit.`;
         }
       } else {
-        msg = `Hey {{customer_name}}! Our chefs have freshly prepared seasonal specials today. Come dine with us at {{restaurant_name}}! ❤️`;
+        // FRIENDLY (Default)
+        if (type === 'DISCOUNT_COINS') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Here are ${val} Discount Coins for your next visit at {{restaurant_name}}${minOrderTextEn}. We'd love to welcome you back!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. An exclusive ${val} Discount Coins reward${minOrderTextEn} has been credited to your loyalty balance.`;
+          } else {
+            msg = `Hey {{customer_name}}! Treat yourself at {{restaurant_name}} with ${val} Discount Coins on your next visit${minOrderTextEn}. Valid for ${validityDays} days!`;
+          }
+        } else if (type === 'DISCOUNT_PERCENT') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Enjoy flat ${val}% OFF on your next visit to {{restaurant_name}}${minOrderTextEn}. We'd love to welcome you back!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Dear {{customer_name}}, thank you for being a cherished VIP at {{restaurant_name}}. Enjoy an exclusive ${val}% discount on your next reservation${minOrderTextEn}.`;
+          } else {
+            msg = `Hey {{customer_name}}! Enjoy flat ${val}% OFF on your next order at {{restaurant_name}}${minOrderTextEn}. Valid for ${validityDays} days!`;
+          }
+        } else if (type === 'FREE_ITEM') {
+          if (cat === 'WIN_BACK') {
+            msg = `Hey {{customer_name}}! 👋 We haven't seen you in a while. Come visit {{restaurant_name}} and enjoy a ${cleanPerk} on the house${minOrderTextEn}!`;
+          } else if (cat === 'VIP_PROTECTION') {
+            msg = `Dear {{customer_name}}, thank you for being a valued VIP at {{restaurant_name}}. Enjoy a ${cleanPerk} on the house during your next visit${minOrderTextEn}.`;
+          } else {
+            msg = `Hey {{customer_name}}! Treat yourself to a ${cleanPerk} on your next order at {{restaurant_name}}${minOrderTextEn}. Valid for ${validityDays} days!`;
+          }
+        } else {
+          msg = `Hey {{customer_name}}! Our chefs have freshly prepared seasonal specials today. Come dine with us at {{restaurant_name}}! ❤️`;
+        }
       }
     }
     setMessage(msg);
@@ -1079,6 +1238,31 @@ export const AiCampaignBuilderTab: React.FC<AiCampaignBuilderTabProps> = ({
                   <option value="PROFESSIONAL">Professional 👔</option>
                 </select>
               </div>
+            </div>
+
+            {/* Quick Tone Switcher Buttons */}
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { key: 'FRIENDLY', label: '😊 Friendly' },
+                { key: 'PREMIUM', label: '👑 Premium' },
+                { key: 'CASUAL', label: '🍕 Casual' },
+                { key: 'URGENT', label: '⚡ Urgent' },
+                { key: 'FESTIVE', label: '🎉 Festive' },
+                { key: 'PROFESSIONAL', label: '👔 Professional' }
+              ].map(item => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => handleToneChange(item.key)}
+                  className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold transition-all cursor-pointer ${
+                    tone === item.key
+                      ? 'bg-orange-500 border-orange-500 text-white font-bold shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
 
             {/* Editable Template Textarea */}

@@ -710,20 +710,68 @@ export interface AiCampaign {
   updatedAt: Date;
 }
 
+export type AiAutomationStatus = 'ACTIVE' | 'PAUSED' | 'DRAFT' | 'NEEDS_ATTENTION' | 'FAILED' | 'ARCHIVED';
+
+export interface AiAutomationActivityLog {
+  id: string;
+  event: string;
+  timestamp: string;
+  details?: string;
+  type: 'SUCCESS' | 'WARNING' | 'ERROR' | 'INFO';
+}
+
 export interface AiAutomation {
   id: string;
   restaurantId: string;
   name: string;
+  description?: string;
+  category?: string;
+  goal?: string;
   trigger: string;
   conditions: string;
   action: string;
   channel: CampaignChannel;
   frequencyLimitDays: number;
-  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  status: AiAutomationStatus;
+  statusReason?: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   lastRun?: string;
   customersReached: number;
+  messagesSent?: number;
+  messagesFailed?: number;
   revenueAttributed: number;
+  triggerConfig?: {
+    type: string;
+    value?: number;
+    unit?: string;
+    description?: string;
+  };
+  audienceConfig?: {
+    segment?: string;
+    minOrders?: number;
+    minSpend?: number;
+    maxInactiveDays?: number;
+    vipOnly?: boolean;
+  };
+  actionConfig?: {
+    type?: string;
+    messageTemplate: string;
+    offerType?: string;
+    offerValue?: number;
+    minOrderValue?: number;
+    validityDays?: number;
+    feedbackUrl?: string;
+  };
+  timingConfig?: {
+    delayMinutes?: number;
+    quietHoursEnabled?: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+    cooldownDays?: number;
+  };
+  activityLog?: AiAutomationActivityLog[];
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface CustomerAiSummary {

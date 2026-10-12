@@ -685,6 +685,7 @@ export interface AiRecommendation {
     audienceFilter: string;
     coinsReward: number;
     validityDays: number;
+    minOrderValue?: number;
     channel: CampaignChannel;
     defaultTone: CampaignTone;
     defaultLanguage: CampaignLanguage;
@@ -733,6 +734,8 @@ export interface CampaignStats {
   discountCost: number;
   netRevenue: number;
   averageOrderValue?: number;
+  targetedCustomersCount?: number;
+  redeemedCustomersCount?: number;
   controlGroup?: {
     groupSize?: number;
     campaignGroupSize?: number;
@@ -757,6 +760,7 @@ export interface AiCampaign {
   audienceConditions?: string;
   audienceFilterDesc?: string;
   targetCount: number;
+  targetedCustomerIds?: string[];
   channel: CampaignChannel;
   mode?: CampaignMode;
   priority?: CampaignPriority;

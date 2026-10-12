@@ -56,7 +56,18 @@ router.post('/builder/parse', async (req: AuthenticatedRequest, res: Response) =
 // 5. Campaigns List (Phase 33)
 router.get('/campaigns', (req: AuthenticatedRequest, res: Response) => {
   const restaurantId = req.manager!.restaurantId;
-  const campaigns = db.getAiCampaigns(restaurantId);
+  const rawCampaigns = db.getAiCampaigns(restaurantId);
+  const campaigns = rawCampaigns.map(c => {
+    if (c.status === 'COMPLETED' || c.status === 'RUNNING' || c.sentAt || c.stats) {
+      const perf = AiCrmService.calculateCampaignPerformance(restaurantId, c);
+      return {
+        ...c,
+        stats: perf,
+        performance: perf
+      };
+    }
+    return c;
+  });
   return res.json({ success: true, campaigns });
 });
 
@@ -117,6 +128,7 @@ router.post('/campaigns', (req: AuthenticatedRequest, res: Response) => {
     offerValue: Number(payload.offerValue) || 0,
     offerPerkText: payload.offerPerkText || '',
     validityDays: Number(payload.validityDays) || 7,
+    minOrderValue: Number(payload.minOrderValue) >= 0 ? Number(payload.minOrderValue) : 0,
     messageTemplate: payload.messageTemplate || payload.message || '',
     resolvedMessagePreview: payload.resolvedMessagePreview || payload.message || payload.messageTemplate || '',
     scheduledFor: scheduledFor || undefined,

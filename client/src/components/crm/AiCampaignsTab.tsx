@@ -234,8 +234,17 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
       {/* Campaigns List */}
       <div className="space-y-4">
         {filteredCampaigns.map((camp) => {
-          const stats = camp.performance;
-          const hasPerformance = stats && stats.sent > 0;
+          const stats = camp.performance || camp.stats;
+          const hasPerformance = Boolean(
+            stats && (
+              (stats.sent && stats.sent > 0) ||
+              (stats.redeemed && stats.redeemed > 0) ||
+              (stats.revenueGenerated && stats.revenueGenerated > 0) ||
+              camp.status === 'COMPLETED' ||
+              camp.status === 'RUNNING' ||
+              Boolean(camp.sentAt)
+            )
+          );
 
           return (
             <div
@@ -285,13 +294,14 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
                     <span>Trigger Now</span>
                   </button>
 
-                  {hasPerformance && (
+                  {(hasPerformance || camp.status === 'COMPLETED' || camp.status === 'RUNNING' || Boolean(camp.sentAt)) && (
                     <button
                       onClick={() => setSelectedCampaignForAnalytics(camp)}
                       className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      title="View campaign ROI, redemption rate, and performance breakdown"
                     >
                       <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
-                      <span>View ROI & Lift</span>
+                      <span>View ROI & Performance</span>
                     </button>
                   )}
 
@@ -331,16 +341,16 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
                 {(camp.offerType === 'DISCOUNT_COINS' || (!camp.offerType && (camp.offerValue || 0) > 0)) && (camp.offerValue || 0) > 0 ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 font-bold">
                     <Coins className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Reward: ₹{camp.offerValue} Bonus Coins ({camp.validityDays || 7}d validity)</span>
+                    <span>Reward: {camp.offerValue} Discount Coins ({camp.validityDays || 7}d validity{camp.minOrderValue && camp.minOrderValue > 0 ? `, Min order ₹${camp.minOrderValue}` : ''})</span>
                   </div>
                 ) : camp.offerType === 'DISCOUNT_PERCENT' && (camp.offerValue || 0) > 0 ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-900 border border-blue-200 font-bold">
                     <Percent className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Reward: {camp.offerValue}% Discount ({camp.validityDays || 7}d validity)</span>
+                    <span>Reward: {camp.offerValue}% Discount ({camp.validityDays || 7}d validity{camp.minOrderValue && camp.minOrderValue > 0 ? `, Min order ₹${camp.minOrderValue}` : ''})</span>
                   </div>
                 ) : camp.offerType === 'FREE_ITEM' ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold">
-                    <span>🍟 Complimentary Perk ({camp.validityDays || 7}d validity)</span>
+                    <span>🍟 Complimentary Perk ({camp.validityDays || 7}d validity{camp.minOrderValue && camp.minOrderValue > 0 ? `, Min order ₹${camp.minOrderValue}` : ''})</span>
                   </div>
                 ) : (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-medium">
@@ -349,7 +359,7 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
                 )}
               </div>
 
-              {/* 3. Campaign Message Body (AI Strategic Reasoning removed per user request) */}
+              {/* 3. Campaign Message Body */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 uppercase tracking-wide">
                   <span className="flex items-center gap-1.5 text-slate-800">
@@ -367,28 +377,87 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
                 </div>
               </div>
 
-              {/* Quick Performance Metrics Bar (if executed) */}
+              {/* Quick Performance & ROI Metrics Bar (if executed or completed) */}
               {hasPerformance && stats && (
-                <div className="pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
-                  <div className="p-2 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block uppercase">Sent / Delivered</span>
-                    <span className="font-black text-slate-800 text-sm mt-0.5">{stats.sent} / {stats.delivered}</span>
+                <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <span className="flex items-center gap-1.5 text-slate-900 font-bold">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Campaign Performance & ROI</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Offer validity: <strong className="text-slate-700">{camp.validityDays || 7} days</strong>
+                    </span>
                   </div>
-                  <div className="p-2 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block uppercase">Redeemed</span>
-                    <span className="font-black text-purple-700 text-sm mt-0.5">{stats.redeemed} orders</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block uppercase">Conversion Rate</span>
-                    <span className="font-black text-emerald-700 text-sm mt-0.5">{stats.conversionRate}%</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block uppercase">Revenue Generated</span>
-                    <span className="font-black text-slate-900 text-sm mt-0.5">{formatCurrency(stats.revenueGenerated)}</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
-                    <span className="text-[10px] text-emerald-700 font-bold block uppercase">Net Profit Lift</span>
-                    <span className="font-black text-emerald-900 text-sm mt-0.5">{formatCurrency(stats.netRevenue)}</span>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    {/* 1. Targeted Customers */}
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wide">
+                        Targeted Customers
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="font-black text-slate-900 text-base">
+                          {stats.sent || camp.targetCount}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">diners sent</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Delivered: {stats.delivered || stats.sent || camp.targetCount}
+                      </span>
+                    </div>
+
+                    {/* 2. Came & Redeemed */}
+                    <div className="p-2.5 rounded-xl bg-purple-50/80 border border-purple-200">
+                      <span className="text-[10px] text-purple-700 block uppercase font-bold tracking-wide">
+                        Came & Redeemed
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="font-black text-purple-900 text-base">
+                          {stats.redeemed || 0}
+                        </span>
+                        <span className="text-[10px] text-purple-700 font-semibold">
+                          of {stats.sent || camp.targetCount} ({stats.conversionRate || 0}%)
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-purple-600 font-medium block mt-0.5">
+                        Diners returned & redeemed
+                      </span>
+                    </div>
+
+                    {/* 3. Campaign ROI (Revenue Made) */}
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-emerald-800 block uppercase font-bold tracking-wide">
+                          Campaign ROI
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-200/80 text-emerald-900">
+                          Revenue
+                        </span>
+                      </div>
+                      <div className="font-black text-emerald-950 text-base mt-0.5">
+                        {formatCurrency(stats.revenueGenerated || 0)}
+                      </div>
+                      <span className="text-[10px] text-emerald-700 block mt-0.5 font-medium">
+                        Sales from targeted diners in validity
+                      </span>
+                    </div>
+
+                    {/* 4. Avg Spend / Diner */}
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wide">
+                        Avg Spend / Diner
+                      </span>
+                      <div className="font-black text-slate-800 text-base mt-0.5">
+                        {formatCurrency(
+                          stats.averageOrderValue ||
+                          (stats.redeemed && stats.redeemed > 0 ? Math.round((stats.revenueGenerated || 0) / stats.redeemed) : 0)
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        Net Profit: <strong className="text-emerald-700">{formatCurrency(stats.netRevenue || 0)}</strong>
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -405,170 +474,200 @@ export const AiCampaignsTab: React.FC<AiCampaignsTabProps> = ({
         )}
       </div>
 
-      {/* PHASE 21, 22, 23: DETAILED CAMPAIGN ANALYTICS & INCREMENTAL LIFT MODAL */}
-      {selectedCampaignForAnalytics && createPortal(
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200 p-6 space-y-6">
-            {/* Modal Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-200">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                    {selectedCampaignForAnalytics.channel}
-                  </span>
-                  <h3 className="font-black text-lg text-slate-900">
-                    {selectedCampaignForAnalytics.name}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Performance audit, redemption tracking & control group lift analysis
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedCampaignForAnalytics(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* DETAILED CAMPAIGN ANALYTICS & ROI PERFORMANCE MODAL */}
+      {selectedCampaignForAnalytics && (() => {
+        const modalStats = selectedCampaignForAnalytics.performance || selectedCampaignForAnalytics.stats;
+        const offerLabel = selectedCampaignForAnalytics.offerType === 'DISCOUNT_PERCENT'
+          ? `${selectedCampaignForAnalytics.offerValue}% discount`
+          : selectedCampaignForAnalytics.offerType === 'FREE_ITEM'
+          ? 'complimentary perk'
+          : `${selectedCampaignForAnalytics.offerValue || 0} Discount Coins`;
 
-            {/* Campaign Performance Spec Grid (Phase 21) */}
-            {selectedCampaignForAnalytics.performance && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
-                  Core Delivery & Conversion Funnel
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Sent</span>
-                    <span className="text-xl font-black text-slate-900 block mt-0.5">
-                      {selectedCampaignForAnalytics.performance.sent}
+        return createPortal(
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200 p-6 space-y-6">
+              {/* Modal Header */}
+              <div className="flex items-start justify-between pb-3 border-b border-slate-200">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                      {selectedCampaignForAnalytics.channel}
                     </span>
-                    <span className="text-[10px] text-slate-500">Delivered: {selectedCampaignForAnalytics.performance.delivered}</span>
+                    <h3 className="font-black text-lg text-slate-900">
+                      {selectedCampaignForAnalytics.name}
+                    </h3>
                   </div>
-
-                  <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                    <span className="text-[10px] uppercase font-bold text-purple-700 block">Redeemed</span>
-                    <span className="text-xl font-black text-purple-900 block mt-0.5">
-                      {selectedCampaignForAnalytics.performance.redeemed}
-                    </span>
-                    <span className="text-[10px] text-purple-700">Orders completed</span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                    <span className="text-[10px] uppercase font-bold text-emerald-700 block">Conversion Rate</span>
-                    <span className="text-xl font-black text-emerald-900 block mt-0.5">
-                      {selectedCampaignForAnalytics.performance.conversionRate}%
-                    </span>
-                    <span className="text-[10px] text-emerald-700">Target response</span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Average Order</span>
-                    <span className="text-xl font-black text-slate-900 block mt-0.5">
-                      {formatCurrency(selectedCampaignForAnalytics.performance.averageOrderValue || 0)}
-                    </span>
-                    <span className="text-[10px] text-slate-500">Per returning diner</span>
-                  </div>
-                </div>
-
-                {/* Financial Ledger Comparison */}
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-slate-600">
-                    <span>Gross Revenue Generated:</span>
-                    <strong className="text-slate-900">{formatCurrency(selectedCampaignForAnalytics.performance.revenueGenerated)}</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-rose-600">
-                    <span>Discount Coin Liability Cost:</span>
-                    <strong>- {formatCurrency(selectedCampaignForAnalytics.performance.discountCost)}</strong>
-                  </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between items-center font-bold text-sm text-emerald-800">
-                    <span>Net Margin Generated:</span>
-                    <span className="text-base text-emerald-900 font-black">
-                      {formatCurrency(selectedCampaignForAnalytics.performance.netRevenue)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* PHASE 23: INCREMENTAL REVENUE & CONTROL GROUP LIFT */}
-                {selectedCampaignForAnalytics.performance.controlGroup && (
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-indigo-950 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Phase 23: True Incremental Revenue vs Control Group</span>
-                      </span>
-                      <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded">
-                        Scientifically Measured Lift
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-indigo-900 leading-relaxed">
-                      SwaadSevak holds back a randomized 10% control group to distinguish diners who would have returned organically from those prompted by this campaign.
-                    </p>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                      <div className="p-2 bg-white rounded-lg border border-indigo-100">
-                        <span className="text-[10px] text-slate-400 block uppercase">Campaign Group</span>
-                        <span className="font-black text-slate-800 text-sm mt-0.5">
-                          {selectedCampaignForAnalytics.performance.controlGroup.campaignGroupReturns} / {selectedCampaignForAnalytics.performance.controlGroup.campaignGroupSize}
-                        </span>
-                        <span className="text-[9px] text-slate-500">Returned</span>
-                      </div>
-
-                      <div className="p-2 bg-white rounded-lg border border-indigo-100">
-                        <span className="text-[10px] text-slate-400 block uppercase">Holdout Control</span>
-                        <span className="font-black text-slate-800 text-sm mt-0.5">
-                          {selectedCampaignForAnalytics.performance.controlGroup.controlGroupReturns} / {selectedCampaignForAnalytics.performance.controlGroup.controlGroupSize}
-                        </span>
-                        <span className="text-[9px] text-slate-500">Organic return</span>
-                      </div>
-
-                      <div className="p-2 bg-white rounded-lg border border-indigo-100">
-                        <span className="text-[10px] text-indigo-600 font-bold block uppercase">Incremental Visits</span>
-                        <span className="font-black text-indigo-900 text-sm mt-0.5">
-                          +{selectedCampaignForAnalytics.performance.controlGroup.incrementalVisits}
-                        </span>
-                        <span className="text-[9px] text-indigo-700">Pure campaign lift</span>
-                      </div>
-
-                      <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
-                        <span className="text-[10px] text-emerald-700 font-bold block uppercase">Attributable Lift</span>
-                        <span className="font-black text-emerald-900 text-sm mt-0.5">
-                          +{formatCurrency(selectedCampaignForAnalytics.performance.controlGroup.incrementalRevenue)}
-                        </span>
-                        <span className="text-[9px] text-emerald-700">True new revenue</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* PHASE 22: AI LEARNING INSIGHT */}
-                <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-xs text-orange-950">
-                  <span className="font-bold uppercase tracking-wider text-orange-800 text-[10px] block mb-1">
-                    🧠 Phase 22: AI Machine Learning Takeaway
-                  </span>
-                  <p className="leading-relaxed">
-                    "This ₹{selectedCampaignForAnalytics.offerValue} reward achieved a {selectedCampaignForAnalytics.performance.conversionRate}% conversion rate with positive net lift. The AI CRM will automatically use this conversion elasticity to recommend similar incentives for the {selectedCampaignForAnalytics.targetSegment} cohort in the future."
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Live performance audit, targeted redemption tracking & revenue ROI calculation
                   </p>
                 </div>
+                <button
+                  onClick={() => setSelectedCampaignForAnalytics(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            )}
 
-            {/* Modal Footer */}
-            <div className="flex justify-end pt-2 border-t border-slate-100">
-              <button
-                onClick={() => setSelectedCampaignForAnalytics(null)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
-              >
-                Close Analytics
-              </button>
+              {/* Explainer: How ROI is Calculated */}
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-md bg-emerald-600 text-white text-xs">📈</span>
+                    <h4 className="font-black text-xs text-emerald-950 uppercase tracking-wider">
+                      Campaign ROI & Redemption Tracking
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    {selectedCampaignForAnalytics.validityDays || 7}-Day Validity Period
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-900 leading-relaxed">
+                  <strong>How ROI is calculated:</strong> In this campaign, <strong>{modalStats?.sent || selectedCampaignForAnalytics.targetCount}</strong> customers were targeted and sent offers. During the {selectedCampaignForAnalytics.validityDays || 7}-day validity period, <strong>{modalStats?.redeemed || 0}</strong> of those targeted customers came back to the restaurant and redeemed the offer. The total money made from those customers on their orders is <strong>{formatCurrency(modalStats?.revenueGenerated || 0)}</strong>, which is the direct <strong>Campaign ROI</strong>.
+                </p>
+              </div>
+
+              {/* Campaign Performance Spec Grid */}
+              {modalStats && (
+                <div className="space-y-4">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                    Redemption & Revenue Breakdown
+                  </h4>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Targeted Customers</span>
+                      <span className="text-xl font-black text-slate-900 block mt-0.5">
+                        {modalStats.sent}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Delivered: {modalStats.delivered}</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
+                      <span className="text-[10px] uppercase font-bold text-purple-700 block">Came & Redeemed</span>
+                      <span className="text-xl font-black text-purple-900 block mt-0.5">
+                        {modalStats.redeemed}
+                      </span>
+                      <span className="text-[10px] text-purple-700 font-semibold">{modalStats.conversionRate}% redemption rate</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 block">Campaign ROI</span>
+                      <span className="text-xl font-black text-emerald-900 block mt-0.5">
+                        {formatCurrency(modalStats.revenueGenerated)}
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-medium">Revenue in validity</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Average Order</span>
+                      <span className="text-xl font-black text-slate-900 block mt-0.5">
+                        {formatCurrency(
+                          modalStats.averageOrderValue ||
+                          (modalStats.redeemed > 0 ? Math.round(modalStats.revenueGenerated / modalStats.redeemed) : 0)
+                        )}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Per returning diner</span>
+                    </div>
+                  </div>
+
+                  {/* Financial Ledger Comparison */}
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>Total Revenue Made from Targeted Diners (Campaign ROI):</span>
+                      <strong className="text-slate-900 text-sm">{formatCurrency(modalStats.revenueGenerated)}</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-rose-600">
+                      <span>Offer Incentive Cost:</span>
+                      <strong>- {formatCurrency(modalStats.discountCost)}</strong>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200 flex justify-between items-center font-bold text-sm text-emerald-800">
+                      <span>Net Profit Generated:</span>
+                      <span className="text-base text-emerald-900 font-black">
+                        {formatCurrency(modalStats.netRevenue)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* INCREMENTAL REVENUE & CONTROL GROUP LIFT */}
+                  {modalStats.controlGroup && (
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-indigo-950 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Incremental Revenue vs Control Group</span>
+                        </span>
+                        <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded">
+                          Control Holdout
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-indigo-900 leading-relaxed">
+                        SwaadSevak holds back a randomized 10% control group to distinguish diners who would have returned organically from those prompted by this campaign.
+                      </p>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                        <div className="p-2 bg-white rounded-lg border border-indigo-100">
+                          <span className="text-[10px] text-slate-400 block uppercase">Campaign Group</span>
+                          <span className="font-black text-slate-800 text-sm mt-0.5">
+                            {modalStats.controlGroup.campaignGroupReturns} / {modalStats.controlGroup.campaignGroupSize}
+                          </span>
+                          <span className="text-[9px] text-slate-500">Returned</span>
+                        </div>
+
+                        <div className="p-2 bg-white rounded-lg border border-indigo-100">
+                          <span className="text-[10px] text-slate-400 block uppercase">Holdout Control</span>
+                          <span className="font-black text-slate-800 text-sm mt-0.5">
+                            {modalStats.controlGroup.controlGroupReturns} / {modalStats.controlGroup.controlGroupSize}
+                          </span>
+                          <span className="text-[9px] text-slate-500">Organic return</span>
+                        </div>
+
+                        <div className="p-2 bg-white rounded-lg border border-indigo-100">
+                          <span className="text-[10px] text-indigo-600 font-bold block uppercase">Incremental Visits</span>
+                          <span className="font-black text-indigo-900 text-sm mt-0.5">
+                            +{modalStats.controlGroup.incrementalVisits}
+                          </span>
+                          <span className="text-[9px] text-indigo-700">Attributable lift</span>
+                        </div>
+
+                        <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                          <span className="text-[10px] text-emerald-700 font-bold block uppercase">Attributable Lift</span>
+                          <span className="font-black text-emerald-900 text-sm mt-0.5">
+                            +{formatCurrency(modalStats.controlGroup.incrementalRevenue)}
+                          </span>
+                          <span className="text-[9px] text-emerald-700">True new revenue</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI LEARNING INSIGHT */}
+                  <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-xs text-orange-950">
+                    <span className="font-bold uppercase tracking-wider text-orange-800 text-[10px] block mb-1">
+                      🧠 AI CRM Performance Takeaway
+                    </span>
+                    <p className="leading-relaxed">
+                      "This campaign targeted {modalStats.sent} customers with a {offerLabel} offer, achieving a {modalStats.conversionRate}% redemption rate ({modalStats.redeemed} returning diners) and generating {formatCurrency(modalStats.revenueGenerated)} in campaign ROI. The AI CRM will automatically use this response elasticity to recommend similar incentives for the {selectedCampaignForAnalytics.targetSegment || 'customer'} cohort in the future."
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Footer */}
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => setSelectedCampaignForAnalytics(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                  Close Analytics
+                </button>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 };

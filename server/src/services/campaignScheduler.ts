@@ -249,14 +249,18 @@ export class CampaignScheduler {
 
     const newSent = currentStats.sent + sentCount;
     const newDelivered = currentStats.delivered + Math.round(sentCount * 0.96);
+    const targetedCustomerIds = batch.map(c => c.id);
 
     db.updateAiCampaign(restaurantId, campaign.id, {
       status: 'COMPLETED',
       sentAt: new Date().toISOString(),
+      targetedCustomerIds,
+      targetCount: newSent,
       stats: {
         ...currentStats,
         sent: newSent,
-        delivered: newDelivered
+        delivered: newDelivered,
+        targetedCustomersCount: newSent
       }
     });
 
@@ -274,6 +278,7 @@ export class CampaignScheduler {
   ): string {
     const offerValue = Number(campaign.offerValue) || 0;
     const validityDays = Number((campaign as any).validityDays) || 7;
+    const minOrderVal = Number((campaign as any).minOrderValue) || 0;
     const orderLink = restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app';
     const restName = restaurant?.name || 'SwaadSevak';
     const custName = customer.name || 'Friend';
@@ -291,6 +296,7 @@ export class CampaignScheduler {
       .replace(/\{{1,2}\s*(coin_?reward|coins?_?reward|reward_?coins?|discount_?coins?|discount_?value|offer_?value|coins?)\s*\}{1,2}/gi, String(offerValue))
       .replace(/\{{1,2}\s*(discount_?percent|percent|discount_?percentage)\s*\}{1,2}/gi, `${offerValue}%`)
       .replace(/\{{1,2}\s*(offer_?perk|free_?item|perk|complimentary_?item)\s*\}{1,2}/gi, campaign.offerPerkText || 'Complimentary Treat')
+      .replace(/\{{1,2}\s*(min_?order_?value|min_?order|min_?bill)\s*\}{1,2}/gi, minOrderVal > 0 ? `₹${minOrderVal}` : '')
       .replace(/\{{1,2}\s*(coin_?balance|coins?_?balance|balance|wallet_?balance)\s*\}{1,2}/gi, String(currentBalance))
       .replace(/\{{1,2}\s*(validity_?days?|validity|expiry_?days?)\s*\}{1,2}/gi, String(validityDays))
       .replace(/\{{1,2}\s*(discount_?expiry|offer_?expiry)\s*\}{1,2}/gi, `${validityDays} days`)
@@ -301,12 +307,13 @@ export class CampaignScheduler {
     // Format the bottom card showing offer awarded and customer coin balance
     let offerBadge = '';
     const offerType = campaign.offerType || 'DISCOUNT_COINS';
+    const minOrderClause = minOrderVal > 0 ? ` (Min order ₹${minOrderVal})` : '';
     if (offerType === 'DISCOUNT_COINS' && offerValue > 0) {
-      offerBadge = `🪙 *Reward:* ${offerValue} Discount Coins Activated (Valid for ${validityDays} days)`;
+      offerBadge = `🪙 *Reward:* ${offerValue} Discount Coins Activated${minOrderClause} (Valid for ${validityDays} days)`;
     } else if (offerType === 'DISCOUNT_PERCENT' && offerValue > 0) {
-      offerBadge = `🏷️ *Special Offer:* ${offerValue}% Discount Activated (Valid for ${validityDays} days)`;
+      offerBadge = `🏷️ *Special Offer:* ${offerValue}% Discount Activated${minOrderClause} (Valid for ${validityDays} days)`;
     } else if (offerType === 'FREE_ITEM') {
-      offerBadge = `🍟 *Complimentary Perk:* ${campaign.offerPerkText || 'Free Appetizer/Beverage'} on your table (Valid for ${validityDays} days)`;
+      offerBadge = `🍟 *Complimentary Perk:* ${campaign.offerPerkText || 'Free Appetizer/Beverage'} on your table${minOrderClause} (Valid for ${validityDays} days)`;
     }
 
     const coinBalanceBadge = `💰 *Your Coin Balance:* ${currentBalance} Coins`;

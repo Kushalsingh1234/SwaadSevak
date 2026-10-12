@@ -610,6 +610,7 @@ export interface AiRecommendation {
     audienceFilter: string;
     coinsReward: number;
     validityDays: number;
+    minOrderValue?: number;
     channel: CampaignChannel;
     defaultTone: CampaignTone;
     defaultLanguage: CampaignLanguage;
@@ -655,11 +656,19 @@ export interface CampaignStats {
   revenueGenerated: number;
   discountCost: number;
   netRevenue: number;
+  averageOrderValue?: number;
+  targetedCustomersCount?: number;
+  redeemedCustomersCount?: number;
   controlGroup?: {
-    groupSize: number;
-    returnCount: number;
-    returnRate: number;
-    incrementalRevenue: number;
+    groupSize?: number;
+    campaignGroupSize?: number;
+    campaignGroupReturns?: number;
+    controlGroupSize?: number;
+    controlGroupReturns?: number;
+    returnCount?: number;
+    returnRate?: number;
+    incrementalVisits?: number;
+    incrementalRevenue?: number;
   };
 }
 
@@ -670,8 +679,10 @@ export interface AiCampaign {
   description?: string;
   objective: string;
   audienceSegment: string;
+  targetSegment?: string;
   audienceConditions?: string;
   targetCount: number;
+  targetedCustomerIds?: string[];
   channel: CampaignChannel;
   mode: CampaignMode;
   priority: CampaignPriority;
@@ -682,6 +693,7 @@ export interface AiCampaign {
   offerValue: number;
   offerPerkText?: string;
   validityDays: number;
+  minOrderValue?: number;
   messageTemplate: string;
   resolvedMessagePreview: string;
   scheduledFor?: string;
@@ -693,6 +705,7 @@ export interface AiCampaign {
     minGapDays: number;
   };
   stats?: CampaignStats;
+  performance?: CampaignStats;
   createdAt: Date;
   updatedAt: Date;
 }

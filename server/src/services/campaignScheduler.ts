@@ -404,12 +404,99 @@ export class CampaignScheduler {
     }
 
     const triggerType = automation.triggerConfig?.type;
+    const isSpecificCustomer = automation.audienceConfig?.segment === 'SPECIFIC_CUSTOMER';
+    const specificCustId = automation.audienceConfig?.specificCustomerId;
+    const specificCustPhone = automation.audienceConfig?.specificCustomerPhone;
 
-    // 1. ORDER_COMPLETED (e.g. Post-Visit Feedback, Order Thank You)
+    // Helper to format offer text and optionally credit coins
+    const getOfferDetails = (cust?: Customer) => {
+      const offerType = automation.actionConfig?.offerType || 'NONE';
+      const offerVal = Number(automation.actionConfig?.offerValue || 0);
+      const offerPerk = automation.actionConfig?.offerPerkText || 'a Complimentary Appetizer';
+      let offerDetails = '';
+
+      if (offerType === 'DISCOUNT_COINS' && offerVal > 0) {
+        offerDetails = `${offerVal} Discount Coins`;
+        if (cust) {
+          const adjustRes = db.adjustCustomerCoins(
+            restaurantId,
+            cust.id,
+            offerVal,
+            `Automation Reward: ${automation.name}`
+          );
+          if (adjustRes) {
+            emitCustomerCoinsUpdated(restaurantId, adjustRes.customer);
+            cust.coinBalance = adjustRes.customer.coinBalance;
+          }
+        }
+      } else if (offerType === 'DISCOUNT_PERCENT' && offerVal > 0) {
+        offerDetails = `${offerVal}% Discount`;
+      } else if (offerType === 'FREE_ITEM') {
+        offerDetails = offerPerk;
+      } else if (offerType === 'FLAT_DISCOUNT' && offerVal > 0) {
+        offerDetails = `Flat ₹${offerVal} Off`;
+      }
+
+      return { offerType, offerVal, offerDetails };
+    };
+
+    // Helper to render personalized template
+    const renderAutomationMessage = (
+      rawTemplate: string,
+      customerName: string,
+      order?: any,
+      cust?: Customer
+    ) => {
+      const { offerDetails, offerVal } = getOfferDetails(cust);
+      const minOrderVal = Number(automation.actionConfig?.minOrderValue || 0);
+      const feedbackUrl = automation.actionConfig?.feedbackUrl || 'https://swaadsevak.com/feedback';
+      const orderLink = restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app';
+
+      return rawTemplate
+        .replace(/\{\{\s*customer_name\s*\}\}/gi, customerName || 'Valued Guest')
+        .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant.name)
+        .replace(/\{\{\s*(offer_details|offer)\s*\}\}/gi, offerDetails)
+        .replace(/\{\{\s*(coins|discount_coins)\s*\}\}/gi, String(offerVal))
+        .replace(/\{\{\s*discount_percent\s*\}\}/gi, `${offerVal}%`)
+        .replace(/\{\{\s*free_item\s*\}\}/gi, automation.actionConfig?.offerPerkText || 'Complimentary Treat')
+        .replace(/\{\{\s*min_order_value\s*\}\}/gi, minOrderVal > 0 ? `₹${minOrderVal}` : '')
+        .replace(/\{\{\s*order_number\s*\}\}/gi, order?.orderNumber || '')
+        .replace(/\{\{\s*bill_amount\s*\}\}/gi, order ? `₹${order.total}` : '')
+        .replace(/\{\{\s*feedback_link\s*\}\}/gi, feedbackUrl)
+        .replace(/\{\{\s*(order_link|menu_link)\s*\}\}/gi, orderLink);
+    };
+
+    // Filter candidate customers by segment
+    const getCandidateCustomers = (): Customer[] => {
+      const all = db.getCustomers(restaurantId, 'ALL');
+      if (isSpecificCustomer) {
+        return all.filter(c => (specificCustId && c.id === specificCustId) || (specificCustPhone && c.phone === specificCustPhone));
+      }
+      const seg = automation.audienceConfig?.segment || 'ALL';
+      return all.filter(c => {
+        if (!c.phone || c.phone.trim().length < 10) return false;
+        if (seg === 'INACTIVE') {
+          const days = c.lastVisit ? Math.floor((now.getTime() - new Date(c.lastVisit).getTime()) / 86400000) : 999;
+          return c.status === 'INACTIVE' || c.status === 'AT_RISK' || days >= 14;
+        }
+        if (seg === 'VIP') {
+          return c.status === 'VIP' || c.totalSpent >= 3000;
+        }
+        if (seg === 'LOYAL') {
+          return c.status === 'REGULAR' || c.totalOrders >= 3;
+        }
+        if (seg === 'NEW') {
+          return c.totalOrders <= 1;
+        }
+        return true;
+      });
+    };
+
+    // 1. ORDER_COMPLETED or FIRST_ORDER
     if (triggerType === 'ORDER_COMPLETED' || triggerType === 'FIRST_ORDER') {
       const delayMinutes = Number(
         automation.timingConfig?.delayMinutes ??
-        (triggerType === 'ORDER_COMPLETED' ? automation.triggerConfig?.value : 0) ??
+        automation.triggerConfig?.value ??
         0
       );
       const delayMs = delayMinutes * 60 * 1000;
@@ -418,7 +505,12 @@ export class CampaignScheduler {
       const completedOrders = allOrders.filter(o => o.status === 'COMPLETED');
 
       for (const order of completedOrders) {
-        // Idempotency: skip if already dispatched for this specific order
+        if (isSpecificCustomer) {
+          const matchesCust = (specificCustId && order.customerId === specificCustId) ||
+            (specificCustPhone && order.customerPhone === specificCustPhone);
+          if (!matchesCust) continue;
+        }
+
         if (db.isAutomationDispatched(automation.id, 'order', order.id)) {
           continue;
         }
@@ -428,18 +520,13 @@ export class CampaignScheduler {
           : new Date(order.updatedAt || order.createdAt).getTime();
 
         const elapsedMs = now.getTime() - completedTime;
-
-        // Has the configured delay elapsed? (e.g. 30 minutes)
         if (elapsedMs < delayMs) {
           continue;
         }
-
-        // Avoid triggering for old historical orders completed over 3 days ago
         if (elapsedMs > (delayMs + 3 * 86400000)) {
           continue;
         }
 
-        // Check if FIRST_ORDER trigger requires diner's total orders to be 1
         if (triggerType === 'FIRST_ORDER') {
           const dinerOrderCount = allOrders.filter(
             o => (o.customerId && o.customerId === order.customerId) || (o.customerPhone && o.customerPhone === order.customerPhone)
@@ -449,21 +536,20 @@ export class CampaignScheduler {
           }
         }
 
-        // Min order value criteria check
         const minOrderVal = Number(automation.actionConfig?.minOrderValue || 0);
         if (minOrderVal > 0 && order.total < minOrderVal) {
           continue;
         }
 
-        // Resolve customer contact details
         let recipientPhone = order.customerPhone;
         let customerName = order.customerName;
+        let customerObj: Customer | undefined;
 
-        if (!recipientPhone && order.customerId) {
-          const cust = db.getCustomerById(restaurantId, order.customerId);
-          if (cust) {
-            recipientPhone = cust.phone;
-            if (!customerName) customerName = cust.name;
+        if (order.customerId) {
+          customerObj = db.getCustomerById(restaurantId, order.customerId);
+          if (customerObj) {
+            if (!recipientPhone) recipientPhone = customerObj.phone;
+            if (!customerName) customerName = customerObj.name;
           }
         }
 
@@ -475,44 +561,18 @@ export class CampaignScheduler {
           continue;
         }
 
-        // Anti-spam cooldown per recipient
         const cooldownDays = Number(automation.timingConfig?.cooldownDays ?? automation.frequencyLimitDays ?? 7);
         const lastSent = db.getAutomationLastDispatchedToRecipient(automation.id, recipientPhone);
         if (lastSent && (now.getTime() - lastSent.getTime()) < cooldownDays * 86400000) {
           continue;
         }
 
-        // Format message
         const rawTemplate = automation.actionConfig?.messageTemplate || automation.action || 'Hi {{customer_name}}, thank you for dining with us!';
-        const offerVal = automation.actionConfig?.offerValue || 0;
-        const offerDetails = automation.actionConfig?.offerType === 'FREE_ITEM'
-          ? 'a Complimentary Appetizer'
-          : offerVal > 0 ? `${offerVal} Discount Coins` : '';
-
-        const rendered = rawTemplate
-          .replace(/\{\{\s*customer_name\s*\}\}/gi, customerName || 'Valued Guest')
-          .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant.name)
-          .replace(/\{\{\s*offer_details\s*\}\}/gi, offerDetails)
-          .replace(/\{\{\s*order_number\s*\}\}/gi, order.orderNumber)
-          .replace(/\{\{\s*bill_amount\s*\}\}/gi, `₹${order.total}`)
-          .replace(/\{\{\s*feedback_link\s*\}\}/gi, automation.actionConfig?.feedbackUrl || 'https://swaadsevak.com/feedback');
+        const rendered = renderAutomationMessage(rawTemplate, customerName || 'Valued Guest', order, customerObj);
 
         if (automation.channel === 'WHATSAPP') {
           if (!isWaConnected) {
             failed++;
-            const warnLog = {
-              id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              event: 'Delivery pending: WhatsApp disconnected',
-              timestamp: now.toISOString(),
-              details: `Trigger hit for Order #${order.orderNumber} (${customerName || recipientPhone}), but WhatsApp session is disconnected. Connect WhatsApp to dispatch.`,
-              type: 'WARNING' as const
-            };
-            db.updateAiAutomation(restaurantId, automation.id, {
-              status: 'NEEDS_ATTENTION',
-              statusReason: 'WhatsApp is not connected. Link your restaurant WhatsApp to enable automated delivery.',
-              messagesFailed: (automation.messagesFailed || 0) + 1,
-              activityLog: [warnLog, ...(automation.activityLog || [])].slice(0, 30)
-            });
             continue;
           }
 
@@ -536,31 +596,124 @@ export class CampaignScheduler {
           } else {
             failed++;
             db.recordAutomationDispatch(automation.id, 'order', order.id, recipientPhone, 'FAILED');
-            const errLog = {
-              id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              event: 'WhatsApp delivery failed',
-              timestamp: now.toISOString(),
-              details: `Failed to dispatch to ${recipientPhone}: ${sendRes.error}`,
-              type: 'ERROR' as const
-            };
-            db.updateAiAutomation(restaurantId, automation.id, {
-              messagesFailed: (automation.messagesFailed || 0) + 1,
-              activityLog: [errLog, ...(automation.activityLog || [])].slice(0, 30)
-            });
           }
         }
       }
     }
 
-    // 2. INACTIVITY_DAYS (Win-Back inactive customers)
+    // 2. RECURRING_DAYS (Send every X days, e.g. every 4 days for a customer)
+    else if (triggerType === 'RECURRING_DAYS' || automation.timingConfig?.frequencyDays) {
+      const frequencyDays = Number(
+        automation.timingConfig?.frequencyDays ||
+        automation.triggerConfig?.value ||
+        4
+      );
+      const candidates = getCandidateCustomers();
+
+      for (const cust of candidates) {
+        if (!cust.phone) continue;
+
+        const lastSent = db.getAutomationLastDispatchedToRecipient(automation.id, cust.phone);
+        if (lastSent && (now.getTime() - lastSent.getTime()) < frequencyDays * 86400000) {
+          continue;
+        }
+
+        processed++;
+        if (automation.channel === 'WHATSAPP') {
+          if (!isWaConnected) {
+            failed++;
+            continue;
+          }
+
+          const rawTemplate = automation.actionConfig?.messageTemplate || 'Hi {{customer_name}}, here is a special offer from {{restaurant_name}}!';
+          const rendered = renderAutomationMessage(rawTemplate, cust.name, undefined, cust);
+
+          const sendRes = await WhatsAppService.sendTextMessage(restaurantId, cust.phone, rendered);
+          if (sendRes.success) {
+            sent++;
+            db.recordAutomationDispatch(automation.id, 'customer', cust.id, cust.phone, 'SUCCESS');
+            const successLog = {
+              id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              event: 'Recurring message dispatched',
+              timestamp: now.toISOString(),
+              details: `Sent to ${cust.name} (${cust.phone}) [Every ${frequencyDays} days cycle]`,
+              type: 'SUCCESS' as const
+            };
+            db.updateAiAutomation(restaurantId, automation.id, {
+              customersReached: (automation.customersReached || 0) + 1,
+              messagesSent: (automation.messagesSent || 0) + 1,
+              lastRun: now.toISOString(),
+              activityLog: [successLog, ...(automation.activityLog || [])].slice(0, 30)
+            });
+          } else {
+            failed++;
+          }
+        }
+      }
+    }
+
+    // 3. DAY_OF_WEEK (e.g. Every Wednesday)
+    else if (triggerType === 'DAY_OF_WEEK' || automation.triggerConfig?.dayOfWeek) {
+      const targetDay = (automation.triggerConfig?.dayOfWeek || automation.timingConfig?.dayOfWeek || 'WEDNESDAY').toUpperCase();
+      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+
+      if (currentDay === targetDay) {
+        const candidates = getCandidateCustomers();
+
+        for (const cust of candidates) {
+          if (!cust.phone) continue;
+
+          // Check if already dispatched today (within 20 hours)
+          const lastSent = db.getAutomationLastDispatchedToRecipient(automation.id, cust.phone);
+          if (lastSent && (now.getTime() - lastSent.getTime()) < 20 * 3600000) {
+            continue;
+          }
+
+          processed++;
+          if (automation.channel === 'WHATSAPP') {
+            if (!isWaConnected) {
+              failed++;
+              continue;
+            }
+
+            const rawTemplate = automation.actionConfig?.messageTemplate || 'Happy {{day_of_week}}, {{customer_name}}! Treat yourself at {{restaurant_name}}.';
+            const rendered = renderAutomationMessage(rawTemplate, cust.name, undefined, cust)
+              .replace(/\{\{\s*day_of_week\s*\}\}/gi, targetDay);
+
+            const sendRes = await WhatsAppService.sendTextMessage(restaurantId, cust.phone, rendered);
+            if (sendRes.success) {
+              sent++;
+              db.recordAutomationDispatch(automation.id, 'customer', cust.id, cust.phone, 'SUCCESS');
+              const successLog = {
+                id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                event: `Weekly ${targetDay} message sent`,
+                timestamp: now.toISOString(),
+                details: `Dispatched weekly offer to ${cust.name} (${cust.phone})`,
+                type: 'SUCCESS' as const
+              };
+              db.updateAiAutomation(restaurantId, automation.id, {
+                customersReached: (automation.customersReached || 0) + 1,
+                messagesSent: (automation.messagesSent || 0) + 1,
+                lastRun: now.toISOString(),
+                activityLog: [successLog, ...(automation.activityLog || [])].slice(0, 30)
+              });
+            } else {
+              failed++;
+            }
+          }
+        }
+      }
+    }
+
+    // 4. INACTIVITY_DAYS (Win-Back inactive customers)
     else if (triggerType === 'INACTIVITY_DAYS') {
       const inactivityDays = Number(automation.triggerConfig?.value || 15);
       const minOrders = Number(automation.audienceConfig?.minOrders || 1);
       const minSpend = Number(automation.audienceConfig?.minSpend || 0);
 
-      const customers = db.getCustomers(restaurantId, 'ALL');
+      const candidates = getCandidateCustomers();
 
-      for (const cust of customers) {
+      for (const cust of candidates) {
         if (!cust.phone) continue;
         if (cust.totalOrders < minOrders || cust.totalSpent < minSpend) continue;
 
@@ -583,11 +736,7 @@ export class CampaignScheduler {
             }
 
             const rawTemplate = automation.actionConfig?.messageTemplate || 'Hi {{customer_name}}, we miss you at {{restaurant_name}}!';
-            const offerVal = automation.actionConfig?.offerValue || 50;
-            const rendered = rawTemplate
-              .replace(/\{\{\s*customer_name\s*\}\}/gi, cust.name)
-              .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant.name)
-              .replace(/\{\{\s*offer_details\s*\}\}/gi, `${offerVal} Discount Coins`);
+            const rendered = renderAutomationMessage(rawTemplate, cust.name, undefined, cust);
 
             const sendRes = await WhatsAppService.sendTextMessage(restaurantId, cust.phone, rendered);
             if (sendRes.success) {
@@ -597,7 +746,7 @@ export class CampaignScheduler {
                 id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
                 event: 'Win-back offer dispatched',
                 timestamp: now.toISOString(),
-                details: `Sent ${offerVal} coins to inactive guest ${cust.name} (${cust.phone})`,
+                details: `Dispatched win-back message to inactive guest ${cust.name} (${cust.phone})`,
                 type: 'SUCCESS' as const
               };
               db.updateAiAutomation(restaurantId, automation.id, {
@@ -612,13 +761,13 @@ export class CampaignScheduler {
       }
     }
 
-    // 3. BIRTHDAY
+    // 5. BIRTHDAY
     else if (triggerType === 'BIRTHDAY') {
-      const customers = db.getCustomers(restaurantId, 'ALL');
+      const candidates = getCandidateCustomers();
       const todayMonth = now.getMonth();
       const todayDate = now.getDate();
 
-      for (const cust of customers) {
+      for (const cust of candidates) {
         if (!cust.phone) continue;
         const bday = (cust as any).birthday ? new Date((cust as any).birthday) : null;
         if (!bday) continue;
@@ -632,11 +781,7 @@ export class CampaignScheduler {
           processed++;
           if (isWaConnected && automation.channel === 'WHATSAPP') {
             const rawTemplate = automation.actionConfig?.messageTemplate || 'Happy Birthday, {{customer_name}}!';
-            const offerVal = automation.actionConfig?.offerValue || 100;
-            const rendered = rawTemplate
-              .replace(/\{\{\s*customer_name\s*\}\}/gi, cust.name)
-              .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant.name)
-              .replace(/\{\{\s*offer_details\s*\}\}/gi, `${offerVal} Birthday Coins`);
+            const rendered = renderAutomationMessage(rawTemplate, cust.name, undefined, cust);
 
             const sendRes = await WhatsAppService.sendTextMessage(restaurantId, cust.phone, rendered);
             if (sendRes.success) {
@@ -653,12 +798,12 @@ export class CampaignScheduler {
       }
     }
 
-    // 4. VISIT_MILESTONE
+    // 6. VISIT_MILESTONE
     else if (triggerType === 'VISIT_MILESTONE') {
       const milestoneTarget = Number(automation.triggerConfig?.value || 5);
-      const customers = db.getCustomers(restaurantId, 'ALL');
+      const candidates = getCandidateCustomers();
 
-      for (const cust of customers) {
+      for (const cust of candidates) {
         if (cust.totalOrders >= milestoneTarget && cust.phone) {
           if (db.isAutomationDispatched(automation.id, 'milestone', `${cust.id}_${milestoneTarget}`)) {
             continue;
@@ -667,11 +812,7 @@ export class CampaignScheduler {
           processed++;
           if (isWaConnected && automation.channel === 'WHATSAPP') {
             const rawTemplate = automation.actionConfig?.messageTemplate || 'Thank you for your loyalty, {{customer_name}}!';
-            const offerVal = automation.actionConfig?.offerValue || 100;
-            const rendered = rawTemplate
-              .replace(/\{\{\s*customer_name\s*\}\}/gi, cust.name)
-              .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant.name)
-              .replace(/\{\{\s*offer_details\s*\}\}/gi, `${offerVal} Loyalty Coins`);
+            const rendered = renderAutomationMessage(rawTemplate, cust.name, undefined, cust);
 
             const sendRes = await WhatsAppService.sendTextMessage(restaurantId, cust.phone, rendered);
             if (sendRes.success) {

@@ -42,12 +42,16 @@ import {
   AiAutomation,
   AiAutomationStatus,
   AiAutomationActivityLog,
-  MarketingChannelConfig
+  MarketingChannelConfig,
+  Customer
 } from '../../types';
 
 interface AiAutomationsTabProps {
   automations: AiAutomation[];
   channels: MarketingChannelConfig[];
+  customers?: Customer[];
+  prefilledCustomer?: { id: string; name: string; phone: string } | null;
+  onClearPrefilledCustomer?: () => void;
   onRefreshAutomations: () => void;
   onRefreshChannels?: () => void;
   onOpenWhatsAppModal?: () => void;
@@ -111,6 +115,29 @@ const TEMPLATE_RECIPES: AutomationTemplateRecipe[] = [
     explanation: 'Automatically alerts guests who have not placed an order or dined in for 15 days, rewarding them with Discount Coins.'
   },
   {
+    id: 'tmpl-recurring-offer',
+    name: 'Recurring Special Offer / Treat',
+    category: 'LOYALTY',
+    categoryLabel: 'Recurring Offers',
+    businessOutcome: 'Keep diners excited with consistent weekly or 4-day perks',
+    goal: 'Increase repeat orders',
+    triggerSummary: 'Every 4 days recurring',
+    requiredIntegration: 'WhatsApp',
+    difficulty: 'Quick (1 min)',
+    triggerType: 'RECURRING_DAYS',
+    triggerValue: 4,
+    triggerUnit: 'days',
+    targetSegment: 'ALL',
+    minOrders: 0,
+    actionType: 'SEND_MESSAGE_WITH_OFFER',
+    offerType: 'DISCOUNT_COINS',
+    offerValue: 50,
+    minOrderValue: 250,
+    cooldownDays: 4,
+    messageTemplate: 'Hey {{customer_name}}! Craving delicious food? Visit {{restaurant_name}} this week and enjoy {{offer_details}} on your bill! We would love to host you. ❤️',
+    explanation: 'Sends a recurring treat or offer every 4 days to keep diners coming back.'
+  },
+  {
     id: 'tmpl-birthday-rewards',
     name: 'Birthday Rewards',
     category: 'SPECIAL_OCCASIONS',
@@ -140,11 +167,11 @@ const TEMPLATE_RECIPES: AutomationTemplateRecipe[] = [
     categoryLabel: 'Feedback & Reviews',
     businessOutcome: 'Collect 5-star Google reviews & resolve complaints privately',
     goal: 'Collect customer feedback',
-    triggerSummary: '2 hours after completed dine-in or takeaway order',
+    triggerSummary: '30 minutes after completed dine-in or takeaway order',
     requiredIntegration: 'WhatsApp',
     difficulty: 'Quick (1 min)',
     triggerType: 'ORDER_COMPLETED',
-    triggerValue: 120,
+    triggerValue: 30,
     triggerUnit: 'minutes',
     targetSegment: 'ALL',
     minOrders: 1,
@@ -154,7 +181,7 @@ const TEMPLATE_RECIPES: AutomationTemplateRecipe[] = [
     minOrderValue: 0,
     cooldownDays: 7,
     messageTemplate: 'Hi {{customer_name}}, thank you for dining at {{restaurant_name}} today! How was your experience? Tap here to let us know: {{feedback_link}}',
-    explanation: 'Requests feedback 2 hours after food service completes, safely ignoring cancelled or refunded orders.'
+    explanation: 'Requests feedback 30 minutes after food service completes, safely ignoring cancelled or refunded orders.'
   },
   {
     id: 'tmpl-thank-you-first-order',
@@ -231,6 +258,10 @@ const TEMPLATE_RECIPES: AutomationTemplateRecipe[] = [
 
 export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
   automations,
+  channels,
+  customers = [],
+  prefilledCustomer,
+  onClearPrefilledCustomer,
   onRefreshAutomations,
   onOpenWhatsAppModal,
   isWhatsAppConnected = false,
@@ -264,32 +295,31 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     };
   }>({ open: false });
 
-  // Wizard Step State (1 through 7)
+  // 4-Step Wizard State
+  // Step 1: Basics & Target Customers
   const [wizardStep, setWizardStep] = useState<number>(1);
-  const [wizardGoal, setWizardGoal] = useState<string>('Bring back inactive customers');
   const [wizardName, setWizardName] = useState<string>('');
   const [wizardDescription, setWizardDescription] = useState<string>('');
   const [wizardCategory, setWizardCategory] = useState<string>('RETENTION');
+  const [wizardGoal, setWizardGoal] = useState<string>('Bring back inactive customers');
 
-  // Step 2: Trigger
-  const [wizardTriggerType, setWizardTriggerType] = useState<string>('INACTIVITY_DAYS');
-  const [wizardTriggerValue, setWizardTriggerValue] = useState<number>(15);
-  const [wizardTriggerUnit, setWizardTriggerUnit] = useState<string>('days');
-
-  // Step 3: Audience
+  // Audience & Specific Customer
   const [wizardAudienceSegment, setWizardAudienceSegment] = useState<string>('INACTIVE');
+  const [wizardSpecificCustomerId, setWizardSpecificCustomerId] = useState<string>('');
+  const [wizardSpecificCustomerName, setWizardSpecificCustomerName] = useState<string>('');
+  const [wizardSpecificCustomerPhone, setWizardSpecificCustomerPhone] = useState<string>('');
+  const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
   const [wizardMinOrders, setWizardMinOrders] = useState<number>(1);
   const [wizardMinSpend, setWizardMinSpend] = useState<number>(0);
   const [liveEligibleCount, setLiveEligibleCount] = useState<number | null>(null);
   const [liveEstimating, setLiveEstimating] = useState<boolean>(false);
 
-  // Step 4: Action & Channel
+  // Step 2: Message & Offers
   const [wizardChannel, setWizardChannel] = useState<'WHATSAPP' | 'SMS'>('WHATSAPP');
   const [wizardActionType, setWizardActionType] = useState<string>('SEND_MESSAGE_WITH_OFFER');
-
-  // Step 5: Message & Offer
   const [wizardOfferType, setWizardOfferType] = useState<string>('DISCOUNT_COINS');
   const [wizardOfferValue, setWizardOfferValue] = useState<number>(75);
+  const [wizardOfferPerkText, setWizardOfferPerkText] = useState<string>('Complimentary Dessert');
   const [wizardMinOrderValue, setWizardMinOrderValue] = useState<number>(299);
   const [wizardValidityDays, setWizardValidityDays] = useState<number>(7);
   const [wizardFeedbackUrl, setWizardFeedbackUrl] = useState<string>('https://swaadsevak.com/feedback');
@@ -297,9 +327,19 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     'Hi {{customer_name}}, we miss seeing you at {{restaurant_name}}! Visit us again this week and enjoy {{offer_details}}. We look forward to serving you!'
   );
 
-  // Step 6: Timing & Frequency
-  const [wizardDelayMinutes, setWizardDelayMinutes] = useState<number>(0);
-  const [wizardCooldownDays, setWizardCooldownDays] = useState<number>(30);
+  // Step 3: Trigger & Schedule
+  const [wizardTriggerType, setWizardTriggerType] = useState<string>('INACTIVITY_DAYS');
+  const [wizardTriggerValue, setWizardTriggerValue] = useState<number>(15);
+  const [wizardTriggerUnit, setWizardTriggerUnit] = useState<string>('days');
+  const [wizardDelayMinutes, setWizardDelayMinutes] = useState<number>(30); // 30 min default
+  const [wizardRecurringDays, setWizardRecurringDays] = useState<number>(4); // 4 days default
+  const [wizardDayOfWeek, setWizardDayOfWeek] = useState<string>('WEDNESDAY'); // Wednesday default
+  const [wizardTimeOfDay, setWizardTimeOfDay] = useState<string>('11:30');
+  const [wizardInactivityDays, setWizardInactivityDays] = useState<number>(15);
+  const [wizardMilestoneOrders, setWizardMilestoneOrders] = useState<number>(5);
+
+  // Anti-spam protections
+  const [wizardCooldownDays, setWizardCooldownDays] = useState<number>(14);
   const [wizardQuietHoursEnabled, setWizardQuietHoursEnabled] = useState<boolean>(true);
   const [wizardQuietHoursStart, setWizardQuietHoursStart] = useState<string>('10:00');
   const [wizardQuietHoursEnd, setWizardQuietHoursEnd] = useState<string>('21:30');
@@ -330,6 +370,35 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Auto-launch wizard when prefilledCustomer is passed from Customer Directory
+  useEffect(() => {
+    if (prefilledCustomer) {
+      setWizardMode('CREATE');
+      setEditingAutomationId(null);
+      setWizardStep(1);
+      setWizardName(`Special Automation for ${prefilledCustomer.name}`);
+      setWizardGoal('Engage specific customer');
+      setWizardCategory('LOYALTY');
+      setWizardAudienceSegment('SPECIFIC_CUSTOMER');
+      setWizardSpecificCustomerId(prefilledCustomer.id);
+      setWizardSpecificCustomerName(prefilledCustomer.name);
+      setWizardSpecificCustomerPhone(prefilledCustomer.phone);
+      setWizardTriggerType('RECURRING_DAYS');
+      setWizardRecurringDays(4);
+      setWizardTriggerValue(4);
+      setWizardTriggerUnit('days');
+      setWizardOfferType('DISCOUNT_COINS');
+      setWizardOfferValue(75);
+      setWizardMinOrderValue(299);
+      setWizardValidityDays(7);
+      setWizardMessageTemplate(
+        `Hi {{customer_name}}, we have a special treat for you at {{restaurant_name}}! Visit us this week and enjoy {{offer_details}}. We look forward to seeing you! ❤️`
+      );
+      setWizardCooldownDays(4);
+      setShowWizard(true);
+    }
+  }, [prefilledCustomer]);
+
   // Fetch metrics and fresh automations on mount & period change
   const fetchOverviewMetrics = async (period: TimePeriod) => {
     setMetricsLoading(true);
@@ -359,15 +428,20 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     fetchOverviewMetrics(selectedPeriod);
   }, [selectedPeriod, automations]);
 
-  // Live estimate audience count in wizard Step 3
+  // Live estimate audience count in wizard Step 1
   useEffect(() => {
-    if (showWizard && wizardStep === 3) {
+    if (showWizard && wizardStep === 1) {
       let cancelled = false;
       setLiveEstimating(true);
       api.estimateAutomationAudience({
-        triggerConfig: { type: wizardTriggerType, value: wizardTriggerValue },
+        triggerConfig: {
+          type: wizardTriggerType,
+          value: wizardTriggerType === 'ORDER_COMPLETED' ? wizardDelayMinutes : wizardTriggerValue
+        },
         audienceConfig: {
           segment: wizardAudienceSegment,
+          specificCustomerId: wizardSpecificCustomerId,
+          specificCustomerPhone: wizardSpecificCustomerPhone,
           minOrders: wizardMinOrders,
           minSpend: wizardMinSpend,
           vipOnly: wizardAudienceSegment === 'VIP'
@@ -389,7 +463,18 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         cancelled = true;
       };
     }
-  }, [showWizard, wizardStep, wizardTriggerType, wizardTriggerValue, wizardAudienceSegment, wizardMinOrders, wizardMinSpend]);
+  }, [
+    showWizard,
+    wizardStep,
+    wizardTriggerType,
+    wizardTriggerValue,
+    wizardDelayMinutes,
+    wizardAudienceSegment,
+    wizardSpecificCustomerId,
+    wizardSpecificCustomerPhone,
+    wizardMinOrders,
+    wizardMinSpend
+  ]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -528,17 +613,26 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     setWizardTriggerValue(15);
     setWizardTriggerUnit('days');
     setWizardAudienceSegment('INACTIVE');
+    setWizardSpecificCustomerId('');
+    setWizardSpecificCustomerName('');
+    setWizardSpecificCustomerPhone('');
     setWizardMinOrders(1);
     setWizardMinSpend(0);
     setWizardChannel('WHATSAPP');
     setWizardActionType('SEND_MESSAGE_WITH_OFFER');
     setWizardOfferType('DISCOUNT_COINS');
     setWizardOfferValue(75);
+    setWizardOfferPerkText('Complimentary Dessert');
     setWizardMinOrderValue(299);
     setWizardValidityDays(7);
     setWizardMessageTemplate('Hi {{customer_name}}, we miss seeing you at {{restaurant_name}}! Visit us again this week and enjoy {{offer_details}}. We look forward to serving you!');
-    setWizardDelayMinutes(0);
-    setWizardCooldownDays(30);
+    setWizardDelayMinutes(30);
+    setWizardRecurringDays(4);
+    setWizardDayOfWeek('WEDNESDAY');
+    setWizardTimeOfDay('11:30');
+    setWizardInactivityDays(15);
+    setWizardMilestoneOrders(5);
+    setWizardCooldownDays(14);
     setWizardQuietHoursEnabled(true);
     setWizardQuietHoursStart('10:00');
     setWizardQuietHoursEnd('21:30');
@@ -550,7 +644,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
   const handleUseTemplate = (recipe: AutomationTemplateRecipe) => {
     setWizardMode('CREATE');
     setEditingAutomationId(null);
-    setWizardStep(2); // Start at Trigger step since goal is pre-picked
+    setWizardStep(1);
     setWizardGoal(recipe.goal);
     setWizardName(recipe.name);
     setWizardDescription(recipe.explanation);
@@ -559,16 +653,27 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     setWizardTriggerValue(recipe.triggerValue);
     setWizardTriggerUnit(recipe.triggerUnit);
     setWizardAudienceSegment(recipe.targetSegment);
+    setWizardSpecificCustomerId('');
+    setWizardSpecificCustomerName('');
+    setWizardSpecificCustomerPhone('');
     setWizardMinOrders(recipe.minOrders);
     setWizardMinSpend(recipe.minSpend || 0);
     setWizardChannel('WHATSAPP');
     setWizardActionType(recipe.actionType);
     setWizardOfferType(recipe.offerType);
     setWizardOfferValue(recipe.offerValue);
+    setWizardOfferPerkText('Complimentary Dessert');
     setWizardMinOrderValue(recipe.minOrderValue);
     setWizardValidityDays(7);
     setWizardMessageTemplate(recipe.messageTemplate);
-    setWizardDelayMinutes(recipe.triggerType === 'ORDER_COMPLETED' ? 120 : 0);
+    const delay = recipe.triggerType === 'ORDER_COMPLETED' ? (recipe.triggerValue || 30) : 30;
+    setWizardDelayMinutes(delay);
+    if (recipe.triggerType === 'INACTIVITY_DAYS') {
+      setWizardInactivityDays(recipe.triggerValue || 15);
+    }
+    if (recipe.triggerType === 'RECURRING_DAYS') {
+      setWizardRecurringDays(recipe.triggerValue || 4);
+    }
     setWizardCooldownDays(recipe.cooldownDays);
     setWizardQuietHoursEnabled(true);
     setWizardQuietHoursStart('10:00');
@@ -590,23 +695,41 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     setWizardTriggerValue(auto.triggerConfig?.value || 15);
     setWizardTriggerUnit(auto.triggerConfig?.unit || 'days');
     setWizardAudienceSegment(auto.audienceConfig?.segment || 'ALL');
+    setWizardSpecificCustomerId(auto.audienceConfig?.specificCustomerId || '');
+    setWizardSpecificCustomerName(auto.audienceConfig?.specificCustomerName || '');
+    setWizardSpecificCustomerPhone(auto.audienceConfig?.specificCustomerPhone || '');
     setWizardMinOrders(auto.audienceConfig?.minOrders ?? 1);
     setWizardMinSpend(auto.audienceConfig?.minSpend ?? 0);
     setWizardChannel((auto.channel as any) || 'WHATSAPP');
     setWizardActionType(auto.actionConfig?.type || 'SEND_MESSAGE_WITH_OFFER');
     setWizardOfferType(auto.actionConfig?.offerType || 'DISCOUNT_COINS');
     setWizardOfferValue(auto.actionConfig?.offerValue ?? 50);
+    setWizardOfferPerkText(auto.actionConfig?.offerPerkText || 'Complimentary Dessert');
     setWizardMinOrderValue(auto.actionConfig?.minOrderValue ?? 299);
     setWizardValidityDays(auto.actionConfig?.validityDays ?? 7);
     setWizardFeedbackUrl(auto.actionConfig?.feedbackUrl || 'https://swaadsevak.com/feedback');
     setWizardMessageTemplate(auto.actionConfig?.messageTemplate || 'Hi {{customer_name}}, we miss seeing you at {{restaurant_name}}!');
-    setWizardDelayMinutes(auto.timingConfig?.delayMinutes ?? 0);
+
+    const delay = auto.timingConfig?.delayMinutes ?? (auto.triggerConfig?.type === 'ORDER_COMPLETED' ? auto.triggerConfig.value : 30) ?? 30;
+    setWizardDelayMinutes(delay);
+    setWizardRecurringDays(auto.timingConfig?.frequencyDays ?? (auto.triggerConfig?.type === 'RECURRING_DAYS' ? auto.triggerConfig.value : 4) ?? 4);
+    setWizardDayOfWeek(auto.triggerConfig?.dayOfWeek || auto.timingConfig?.dayOfWeek || 'WEDNESDAY');
+    setWizardTimeOfDay(auto.triggerConfig?.timeOfDay || '11:30');
+    setWizardInactivityDays(auto.triggerConfig?.type === 'INACTIVITY_DAYS' ? (auto.triggerConfig.value || 15) : 15);
+    setWizardMilestoneOrders(auto.triggerConfig?.type === 'VISIT_MILESTONE' ? (auto.triggerConfig.value || 5) : 5);
+
     setWizardCooldownDays(auto.timingConfig?.cooldownDays ?? auto.frequencyLimitDays ?? 30);
     setWizardQuietHoursEnabled(auto.timingConfig?.quietHoursEnabled ?? true);
     setWizardQuietHoursStart(auto.timingConfig?.quietHoursStart || '10:00');
     setWizardQuietHoursEnd(auto.timingConfig?.quietHoursEnd || '21:30');
     setWizardError('');
     setShowWizard(true);
+  };
+
+  // Close wizard and cleanup prefilled customer
+  const handleCloseWizard = () => {
+    setShowWizard(false);
+    onClearPrefilledCustomer?.();
   };
 
   // Finish Wizard (Save Draft or Activate)
@@ -617,26 +740,70 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
       return;
     }
 
+    if (wizardAudienceSegment === 'SPECIFIC_CUSTOMER' && !wizardSpecificCustomerId && !wizardSpecificCustomerPhone) {
+      setWizardError('Please select a specific customer from the directory.');
+      setWizardStep(1);
+      return;
+    }
+
     setWizardSaving(true);
     setWizardError('');
 
-    const triggerDescription =
-      wizardTriggerType === 'INACTIVITY_DAYS'
-        ? `No recorded visit or order for ${wizardTriggerValue} days`
-        : wizardTriggerType === 'BIRTHDAY'
-        ? 'Customer birthday matching today'
-        : wizardTriggerType === 'ORDER_COMPLETED'
-        ? `${wizardDelayMinutes} minutes after completed order`
-        : wizardTriggerType === 'FIRST_ORDER'
-        ? 'Immediately after 1st order completed'
-        : wizardTriggerType === 'VISIT_MILESTONE'
-        ? `Completed visit milestone reaches ${wizardTriggerValue}`
-        : 'Customer trigger event';
+    let finalTriggerValue = wizardTriggerValue;
+    let finalTriggerUnit = wizardTriggerUnit;
+    let triggerDescription = '';
 
-    const actionDescription =
-      wizardActionType === 'REQUEST_FEEDBACK'
-        ? 'Send friendly feedback link'
-        : `Send ${wizardOfferValue} Discount Coins + personalized message`;
+    if (wizardTriggerType === 'ORDER_COMPLETED') {
+      finalTriggerValue = wizardDelayMinutes;
+      finalTriggerUnit = 'minutes';
+      triggerDescription = `${wizardDelayMinutes} minutes after completed order`;
+    } else if (wizardTriggerType === 'RECURRING_DAYS') {
+      finalTriggerValue = wizardRecurringDays;
+      finalTriggerUnit = 'days';
+      triggerDescription = `Every ${wizardRecurringDays} days recurring`;
+    } else if (wizardTriggerType === 'DAY_OF_WEEK') {
+      finalTriggerValue = 1;
+      finalTriggerUnit = 'week';
+      triggerDescription = `Every ${wizardDayOfWeek} at ${wizardTimeOfDay}`;
+    } else if (wizardTriggerType === 'INACTIVITY_DAYS') {
+      finalTriggerValue = wizardInactivityDays;
+      finalTriggerUnit = 'days';
+      triggerDescription = `No recorded visit or order for ${wizardInactivityDays} days`;
+    } else if (wizardTriggerType === 'BIRTHDAY') {
+      finalTriggerValue = 0;
+      finalTriggerUnit = 'days';
+      triggerDescription = 'On customer birthday at 10:00 AM';
+    } else if (wizardTriggerType === 'VISIT_MILESTONE') {
+      finalTriggerValue = wizardMilestoneOrders;
+      finalTriggerUnit = 'visits';
+      triggerDescription = `Completed visit milestone reaches ${wizardMilestoneOrders}`;
+    } else if (wizardTriggerType === 'FIRST_ORDER') {
+      finalTriggerValue = wizardDelayMinutes || 15;
+      finalTriggerUnit = 'minutes';
+      triggerDescription = `Immediately after 1st order (${wizardDelayMinutes} mins)`;
+    }
+
+    let actionDescription = '';
+    if (wizardOfferType === 'DISCOUNT_COINS') {
+      actionDescription = `Send ${wizardOfferValue} Discount Coins + personalized message`;
+    } else if (wizardOfferType === 'DISCOUNT_PERCENT') {
+      actionDescription = `Send ${wizardOfferValue}% Discount + personalized message`;
+    } else if (wizardOfferType === 'FREE_ITEM') {
+      actionDescription = `Send Free Perk (${wizardOfferPerkText}) + personalized message`;
+    } else if (wizardOfferType === 'FLAT_DISCOUNT') {
+      actionDescription = `Send Flat ₹${wizardOfferValue} Off + personalized message`;
+    } else if (wizardActionType === 'REQUEST_FEEDBACK') {
+      actionDescription = 'Send friendly feedback link';
+    } else {
+      actionDescription = 'Send personalized greeting message';
+    }
+
+    let conditionsDesc = '';
+    if (wizardAudienceSegment === 'SPECIFIC_CUSTOMER') {
+      conditionsDesc = `Target Diner: ${wizardSpecificCustomerName || 'Guest'} (${wizardSpecificCustomerPhone || ''})`;
+    } else {
+      conditionsDesc = `Segment: ${wizardAudienceSegment}, Min orders: ${wizardMinOrders}`;
+    }
 
     const payload: Partial<AiAutomation> = {
       name: wizardName.trim(),
@@ -644,19 +811,24 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
       category: wizardCategory,
       goal: wizardGoal,
       trigger: triggerDescription,
-      conditions: `Target segment: ${wizardAudienceSegment}, Min orders: ${wizardMinOrders}`,
+      conditions: conditionsDesc,
       action: actionDescription,
       channel: wizardChannel,
       frequencyLimitDays: wizardCooldownDays,
       status: targetStatus,
       triggerConfig: {
         type: wizardTriggerType,
-        value: wizardTriggerValue,
-        unit: wizardTriggerUnit,
+        value: finalTriggerValue,
+        unit: finalTriggerUnit,
+        dayOfWeek: wizardTriggerType === 'DAY_OF_WEEK' ? wizardDayOfWeek : undefined,
+        timeOfDay: wizardTriggerType === 'DAY_OF_WEEK' ? wizardTimeOfDay : undefined,
         description: triggerDescription
       },
       audienceConfig: {
         segment: wizardAudienceSegment,
+        specificCustomerId: wizardAudienceSegment === 'SPECIFIC_CUSTOMER' ? wizardSpecificCustomerId : undefined,
+        specificCustomerName: wizardAudienceSegment === 'SPECIFIC_CUSTOMER' ? wizardSpecificCustomerName : undefined,
+        specificCustomerPhone: wizardAudienceSegment === 'SPECIFIC_CUSTOMER' ? wizardSpecificCustomerPhone : undefined,
         minOrders: wizardMinOrders,
         minSpend: wizardMinSpend,
         vipOnly: wizardAudienceSegment === 'VIP'
@@ -666,12 +838,15 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         messageTemplate: wizardMessageTemplate,
         offerType: wizardOfferType,
         offerValue: wizardOfferValue,
+        offerPerkText: wizardOfferPerkText,
         minOrderValue: wizardMinOrderValue,
         validityDays: wizardValidityDays,
         feedbackUrl: wizardFeedbackUrl
       },
       timingConfig: {
         delayMinutes: wizardDelayMinutes,
+        frequencyDays: wizardTriggerType === 'RECURRING_DAYS' ? wizardRecurringDays : undefined,
+        dayOfWeek: wizardTriggerType === 'DAY_OF_WEEK' ? wizardDayOfWeek : undefined,
         quietHoursEnabled: wizardQuietHoursEnabled,
         quietHoursStart: wizardQuietHoursStart,
         quietHoursEnd: wizardQuietHoursEnd,
@@ -684,7 +859,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         const res = await api.updateAiAutomation(editingAutomationId, payload);
         if (res.success) {
           showToast(`Automation "${payload.name}" updated successfully`, 'SUCCESS');
-          setShowWizard(false);
+          handleCloseWizard();
           onRefreshAutomations();
         } else {
           setWizardError(res.message || 'Failed to update automation');
@@ -693,7 +868,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         const res = await api.createAiAutomation(payload);
         if (res.success) {
           showToast(res.message || 'Automation created successfully', 'SUCCESS');
-          setShowWizard(false);
+          handleCloseWizard();
           onRefreshAutomations();
         } else {
           setWizardError(res.message || 'Failed to create automation');
@@ -709,17 +884,43 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
   // Helper: Live Preview text formatting
   const livePreviewRendered = useMemo(() => {
     let text = wizardMessageTemplate || '';
-    const offerText =
-      wizardOfferType === 'FREE_ITEM'
-        ? 'a Complimentary Appetizer'
-        : `${wizardOfferValue} Discount Coins`;
+    let offerText = '';
+    if (wizardOfferType === 'DISCOUNT_COINS') {
+      offerText = `${wizardOfferValue} Discount Coins`;
+    } else if (wizardOfferType === 'DISCOUNT_PERCENT') {
+      offerText = `${wizardOfferValue}% Discount`;
+    } else if (wizardOfferType === 'FREE_ITEM') {
+      offerText = wizardOfferPerkText || 'a Complimentary Appetizer';
+    } else if (wizardOfferType === 'FLAT_DISCOUNT') {
+      offerText = `Flat ₹${wizardOfferValue} Off`;
+    }
+
+    const recipientDisplayName =
+      wizardAudienceSegment === 'SPECIFIC_CUSTOMER' && wizardSpecificCustomerName
+        ? wizardSpecificCustomerName
+        : 'Rahul';
+
     text = text
-      .replace(/\{\{\s*customer_name\s*\}\}/gi, 'Rahul')
+      .replace(/\{\{\s*customer_name\s*\}\}/gi, recipientDisplayName)
       .replace(/\{\{\s*restaurant_name\s*\}\}/gi, 'SwaadSevak Café')
-      .replace(/\{\{\s*offer_details\s*\}\}/gi, offerText)
-      .replace(/\{\{\s*feedback_link\s*\}\}/gi, wizardFeedbackUrl);
+      .replace(/\{\{\s*(offer_details|offer)\s*\}\}/gi, offerText)
+      .replace(/\{\{\s*(coins|discount_coins)\s*\}\}/gi, String(wizardOfferValue))
+      .replace(/\{\{\s*discount_percent\s*\}\}/gi, `${wizardOfferValue}%`)
+      .replace(/\{\{\s*free_item\s*\}\}/gi, wizardOfferPerkText || 'Complimentary Treat')
+      .replace(/\{\{\s*min_order_value\s*\}\}/gi, wizardMinOrderValue > 0 ? `₹${wizardMinOrderValue}` : '')
+      .replace(/\{\{\s*feedback_link\s*\}\}/gi, wizardFeedbackUrl)
+      .replace(/\{\{\s*(order_link|menu_link)\s*\}\}/gi, 'https://swaadsevak.vercel.app');
     return text;
-  }, [wizardMessageTemplate, wizardOfferType, wizardOfferValue, wizardFeedbackUrl]);
+  }, [
+    wizardMessageTemplate,
+    wizardOfferType,
+    wizardOfferValue,
+    wizardOfferPerkText,
+    wizardMinOrderValue,
+    wizardFeedbackUrl,
+    wizardAudienceSegment,
+    wizardSpecificCustomerName
+  ]);
 
   return (
     <div className="space-y-6">
@@ -1413,7 +1614,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         </div>
       )}
 
-      {/* 4. SEVEN-STEP AUTOMATION CREATION & EDIT WIZARD MODAL */}
+      {/* 4. FOUR-STEP CUSTOM AUTOMATION CREATION & EDIT WIZARD MODAL */}
       {showWizard &&
         createPortal(
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1424,38 +1625,32 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-orange-600" />
                     <h2 className="font-black text-base text-slate-900">
-                      {wizardMode === 'EDIT' ? 'Edit Automation' : 'Create Automation'}
+                      {wizardMode === 'EDIT' ? 'Edit Automation' : 'Create Custom Automation'}
                     </h2>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Step {wizardStep} of 7: {
+                    Step {wizardStep} of 4: {
                       wizardStep === 1
-                        ? 'Choose the goal'
+                        ? 'Name & Target Customers'
                         : wizardStep === 2
-                        ? 'Configure the trigger'
+                        ? 'Message, Offers & Quick Tags'
                         : wizardStep === 3
-                        ? 'Select the audience'
-                        : wizardStep === 4
-                        ? 'Configure the action'
-                        : wizardStep === 5
-                        ? 'Customize the message'
-                        : wizardStep === 6
-                        ? 'Set timing and frequency'
-                        : 'Review and activate'
+                        ? 'Timing, Frequency & Trigger Schedule'
+                        : 'Review & Activate'
                     }
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowWizard(false)}
+                  onClick={handleCloseWizard}
                   className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Progress Dots */}
-              <div className="grid grid-cols-7 gap-1 px-5 pt-3">
-                {[1, 2, 3, 4, 5, 6, 7].map(s => (
+              {/* Progress Bar (4 Steps) */}
+              <div className="grid grid-cols-4 gap-1.5 px-5 pt-3">
+                {[1, 2, 3, 4].map(s => (
                   <div
                     key={s}
                     className={`h-1.5 rounded-full transition-all ${
@@ -1478,262 +1673,181 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                   </div>
                 )}
 
-                {/* STEP 1: CHOOSE THE GOAL */}
+                {/* STEP 1: NAME & TARGET CUSTOMERS */}
                 {wizardStep === 1 && (
                   <div className="space-y-4">
+                    {/* Automation Name Input */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        What do you want this automation to achieve?
-                      </label>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Select a clear business objective for your restaurant.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        {
-                          goal: 'Bring back inactive customers',
-                          icon: TrendingUp,
-                          category: 'RETENTION',
-                          desc: 'Target guests who haven’t visited in 15+ days'
-                        },
-                        {
-                          goal: 'Increase repeat orders',
-                          icon: RepeatIcon,
-                          category: 'REPEAT_ORDERS',
-                          desc: 'Prompt 2nd order right after the first visit'
-                        },
-                        {
-                          goal: 'Reward loyal customers',
-                          icon: Award,
-                          category: 'LOYALTY',
-                          desc: 'Unlock milestone coins when visits reach 5+'
-                        },
-                        {
-                          goal: 'Collect customer feedback',
-                          icon: Smile,
-                          category: 'FEEDBACK',
-                          desc: 'Send post-dining review prompt safely'
-                        },
-                        {
-                          goal: 'Send birthday offers',
-                          icon: Heart,
-                          category: 'SPECIAL_OCCASIONS',
-                          desc: 'Deliver a birthday greeting and special offer'
-                        }
-                      ].map(item => (
-                        <div
-                          key={item.goal}
-                          onClick={() => {
-                            setWizardGoal(item.goal);
-                            setWizardCategory(item.category);
-                            if (!wizardName) setWizardName(item.goal);
-                          }}
-                          className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all ${
-                            wizardGoal === item.goal
-                              ? 'border-orange-600 bg-orange-50/60 shadow-xs'
-                              : 'border-slate-200 hover:border-slate-300 bg-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-xs text-slate-900">{item.goal}</span>
-                          </div>
-                          <p className="text-[11px] text-slate-500">{item.desc}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-2">
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Automation Name
+                      <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        1. Automation Name
                       </label>
                       <input
                         type="text"
                         value={wizardName}
                         onChange={e => setWizardName(e.target.value)}
-                        placeholder="e.g. 15-Day Inactive Win-Back"
-                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                        placeholder="e.g. Special Offer for Bhargavi, 30-Min Post-Order Feedback, 15-Day Win-Back"
+                        className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl font-medium focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white"
                       />
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 2: CONFIGURE THE TRIGGER */}
-                {wizardStep === 2 && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        When should this automation run?
-                      </label>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Set the triggering condition in plain everyday language.
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Give this automation a recognizable name so you can track its performance.
                       </p>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 text-xs">
-                        <label className="font-bold text-slate-800 block">Triggering Event</label>
-                        <select
-                          value={wizardTriggerType}
-                          onChange={e => {
-                            setWizardTriggerType(e.target.value);
-                            if (e.target.value === 'INACTIVITY_DAYS') setWizardTriggerValue(15);
-                            if (e.target.value === 'VISIT_MILESTONE') setWizardTriggerValue(5);
-                            if (e.target.value === 'ORDER_COMPLETED') setWizardDelayMinutes(120);
-                          }}
-                          className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium"
-                        >
-                          <option value="INACTIVITY_DAYS">When a customer becomes inactive</option>
-                          <option value="ORDER_COMPLETED">When an order is completed</option>
-                          <option value="BIRTHDAY">On a customer's birthday</option>
-                          <option value="VISIT_MILESTONE">When a customer reaches a visit milestone</option>
-                          <option value="FIRST_ORDER">Immediately after first completed order</option>
-                        </select>
-
-                        {/* Parameter based on selected trigger */}
-                        {wizardTriggerType === 'INACTIVITY_DAYS' && (
-                          <div>
-                            <label className="font-semibold text-slate-700 block mb-1">
-                              Inactivity Period (Days without order or visit)
-                            </label>
-                            <div className="grid grid-cols-4 gap-2">
-                              {[7, 15, 30, 60].map(days => (
-                                <button
-                                  key={days}
-                                  type="button"
-                                  onClick={() => setWizardTriggerValue(days)}
-                                  className={`py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
-                                    wizardTriggerValue === days
-                                      ? 'bg-orange-600 text-white border-orange-600 shadow-xs'
-                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                                  }`}
-                                >
-                                  {days} Days
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {wizardTriggerType === 'VISIT_MILESTONE' && (
-                          <div>
-                            <label className="font-semibold text-slate-700 block mb-1">
-                              Milestone Visit Threshold
-                            </label>
-                            <input
-                              type="number"
-                              min={2}
-                              max={50}
-                              value={wizardTriggerValue}
-                              onChange={e => setWizardTriggerValue(Number(e.target.value))}
-                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
-                            />
-                          </div>
-                        )}
-
-                        {wizardTriggerType === 'ORDER_COMPLETED' && (
-                          <div>
-                            <label className="font-semibold text-slate-700 block mb-1">
-                              Delay after order completion
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { min: 30, label: '30 mins' },
-                                { min: 120, label: '2 hours' },
-                                { min: 1440, label: 'Next morning' }
-                              ].map(opt => (
-                                <button
-                                  key={opt.min}
-                                  type="button"
-                                  onClick={() => setWizardDelayMinutes(opt.min)}
-                                  className={`py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
-                                    wizardDelayMinutes === opt.min
-                                      ? 'bg-orange-600 text-white border-orange-600'
-                                      : 'bg-white text-slate-700 border-slate-200'
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 3: SELECT THE AUDIENCE */}
-                {wizardStep === 3 && (
-                  <div className="space-y-4">
+                    {/* Customer Category Selector */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Who should be targeted?
+                      <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        2. Category of Customers to Apply On
                       </label>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Filter which diners qualify based on real CRM purchase patterns.
+                      <p className="text-xs text-slate-500 mb-2.5">
+                        Choose the customer group or target a specific individual customer.
                       </p>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {[
+                          {
+                            id: 'INACTIVE',
+                            label: 'Inactive Customers',
+                            desc: 'Win back guests with no recent visits'
+                          },
+                          {
+                            id: 'ALL',
+                            label: 'All Customers',
+                            desc: 'Every registered guest in your CRM'
+                          },
+                          {
+                            id: 'VIP',
+                            label: '👑 VIP Spenders',
+                            desc: 'High lifetime spend (₹3,000+)'
+                          },
+                          {
+                            id: 'LOYAL',
+                            label: '⭐ Loyal Regulars',
+                            desc: 'Frequent diners with 3+ visits'
+                          },
+                          {
+                            id: 'NEW',
+                            label: '🌱 First-Time Diners',
+                            desc: 'Turn first visits into repeats'
+                          },
+                          {
+                            id: 'SPECIFIC_CUSTOMER',
+                            label: '🎯 Specific Customer',
+                            desc: 'Target one customer directly'
+                          }
+                        ].map(cat => (
+                          <div
+                            key={cat.id}
+                            onClick={() => {
+                              setWizardAudienceSegment(cat.id);
+                              if (cat.id !== 'SPECIFIC_CUSTOMER') {
+                                setWizardSpecificCustomerId('');
+                                setWizardSpecificCustomerName('');
+                                setWizardSpecificCustomerPhone('');
+                              }
+                            }}
+                            className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                              wizardAudienceSegment === cat.id
+                                ? 'border-orange-500 bg-orange-50/70 shadow-xs'
+                                : 'border-slate-200 hover:border-slate-300 bg-white'
+                            }`}
+                          >
+                            <span className="font-bold text-xs text-slate-900 block mb-0.5">
+                              {cat.label}
+                            </span>
+                            <span className="text-[10px] text-slate-500 block leading-tight">
+                              {cat.desc}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div>
-                        <label className="font-bold text-xs text-slate-700 block mb-1">
-                          Customer Segment
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {[
-                            { id: 'ALL', label: 'All Customers' },
-                            { id: 'INACTIVE', label: 'Inactive Only' },
-                            { id: 'LOYAL', label: 'Loyal Diners (3+ visits)' },
-                            { id: 'VIP', label: 'VIP (High spenders)' }
-                          ].map(seg => (
-                            <button
-                              key={seg.id}
-                              type="button"
-                              onClick={() => setWizardAudienceSegment(seg.id)}
-                              className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-left ${
-                                wizardAudienceSegment === seg.id
-                                  ? 'bg-orange-50 text-orange-800 border-orange-500 shadow-xs'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                              }`}
-                            >
-                              {seg.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <div>
-                          <label className="font-semibold text-xs text-slate-700 block mb-1">
-                            Min Completed Orders
+                    {/* Specific Customer Selection UI */}
+                    {wizardAudienceSegment === 'SPECIFIC_CUSTOMER' && (
+                      <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-indigo-600" />
+                            <span>Select Customer from Directory</span>
                           </label>
+                          {wizardSpecificCustomerName && (
+                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                              Selected: {wizardSpecificCustomerName}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Search Input for Customers */}
+                        <div className="relative">
+                          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
-                            type="number"
-                            min={0}
-                            value={wizardMinOrders}
-                            onChange={e => setWizardMinOrders(Number(e.target.value))}
-                            className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl"
+                            type="text"
+                            placeholder="Type customer name (e.g. Bhargavi) or phone number..."
+                            value={customerSearchQuery}
+                            onChange={e => setCustomerSearchQuery(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                           />
                         </div>
 
-                        <div>
-                          <label className="font-semibold text-xs text-slate-700 block mb-1">
-                            Min Spend Threshold (₹)
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={wizardMinSpend}
-                            onChange={e => setWizardMinSpend(Number(e.target.value))}
-                            className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl"
-                          />
+                        {/* Customer List Picker */}
+                        <div className="max-h-40 overflow-y-auto space-y-1.5 bg-white p-2 rounded-lg border border-slate-200">
+                          {customers
+                            .filter(c => {
+                              if (!customerSearchQuery.trim()) return true;
+                              const q = customerSearchQuery.toLowerCase();
+                              return c.name.toLowerCase().includes(q) || c.phone.includes(q);
+                            })
+                            .slice(0, 8)
+                            .map(c => {
+                              const isSelected =
+                                wizardSpecificCustomerId === c.id || wizardSpecificCustomerPhone === c.phone;
+                              return (
+                                <div
+                                  key={c.id}
+                                  onClick={() => {
+                                    setWizardSpecificCustomerId(c.id);
+                                    setWizardSpecificCustomerName(c.name);
+                                    setWizardSpecificCustomerPhone(c.phone);
+                                    if (!wizardName || wizardName.startsWith('Special Automation for')) {
+                                      setWizardName(`Special Automation for ${c.name}`);
+                                    }
+                                  }}
+                                  className={`p-2 rounded-lg border text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                                    isSelected
+                                      ? 'border-indigo-500 bg-indigo-50 text-indigo-950 font-bold'
+                                      : 'border-slate-100 hover:bg-slate-50 text-slate-700'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">
+                                      {c.name.slice(0, 1)}
+                                    </div>
+                                    <div>
+                                      <span className="font-bold text-xs">{c.name}</span>
+                                      <span className="text-[10px] text-slate-500 block font-mono">
+                                        {c.phone}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="text-right text-[11px]">
+                                    <span className="text-slate-500 block">{c.totalOrders} orders</span>
+                                    <span className="text-amber-700 font-bold">🪙 {c.coinBalance} coins</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          {customers.length === 0 && (
+                            <p className="text-xs text-slate-400 text-center py-2">
+                              No customer records found.
+                            </p>
+                          )}
                         </div>
                       </div>
+                    )}
 
-                      {/* Live Audience Count from Real CRM Records */}
-                      <div className="p-3.5 rounded-xl bg-slate-900 text-white flex items-center justify-between text-xs mt-3">
+                    {/* Live Audience Count Indicator for General Categories */}
+                    {wizardAudienceSegment !== 'SPECIFIC_CUSTOMER' && (
+                      <div className="p-3 rounded-xl bg-slate-900 text-white flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-emerald-400" />
                           <span>Estimated Currently Eligible in CRM:</span>
@@ -1743,205 +1857,184 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                             ? 'Calculating...'
                             : liveEligibleCount !== null
                             ? `${liveEligibleCount} guests`
-                            : 'All eligible'}
+                            : 'All eligible in segment'}
                         </span>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
-                {/* STEP 4: CONFIGURE THE ACTION */}
-                {wizardStep === 4 && (
+                {/* STEP 2: MESSAGE, OFFERS & QUICK TAGS */}
+                {wizardStep === 2 && (
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        What should SwaadSevak do?
-                      </label>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Choose the communication channel and action payload.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <label className="font-bold text-xs text-slate-700 block mb-2">
-                          Delivery Channel
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div
-                            onClick={() => setWizardChannel('WHATSAPP')}
-                            className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                              wizardChannel === 'WHATSAPP'
-                                ? 'border-emerald-600 bg-emerald-50/50 shadow-xs'
-                                : 'border-slate-200 bg-white'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                <Smartphone className="w-4 h-4 text-emerald-600" />
-                                WhatsApp
-                              </span>
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                  isWhatsAppConnected
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}
-                              >
-                                {isWhatsAppConnected ? 'Connected' : 'Not Connected'}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-slate-500">
-                              Instant direct message to the customer's WhatsApp chat.
-                            </p>
-                          </div>
-
-                          <div
-                            onClick={() => setWizardChannel('SMS')}
-                            className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                              wizardChannel === 'SMS'
-                                ? 'border-sky-600 bg-sky-50/50 shadow-xs'
-                                : 'border-slate-200 bg-white'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-xs text-slate-900">SMS Gateway</span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                Fallback
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-slate-500">
-                              Standard 160-character cellular SMS.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Provider Alert if WhatsApp chosen but disconnected */}
-                      {wizardChannel === 'WHATSAPP' && !isWhatsAppConnected && (
-                        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                            <span>
-                              WhatsApp is not connected. You can save as a draft, or connect now.
-                            </span>
-                          </div>
-                          {onOpenWhatsAppModal && (
-                            <button
-                              type="button"
-                              onClick={onOpenWhatsAppModal}
-                              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px] shrink-0"
-                            >
-                              Connect
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 5: CUSTOMIZE THE MESSAGE */}
-                {wizardStep === 5 && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Customize the Message & Offer
-                      </label>
-                      <p className="text-xs text-slate-500 mb-2">
-                        Insert variables to personalize messages for each guest.
-                      </p>
-                    </div>
-
                     {/* Offer Controls */}
-                    <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                      <div>
-                        <label className="font-semibold text-slate-700 block mb-1">Incentive Type</label>
-                        <select
-                          value={wizardOfferType}
-                          onChange={e => setWizardOfferType(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
-                        >
-                          <option value="DISCOUNT_COINS">Discount Coins</option>
-                          <option value="FREE_ITEM">Free Complimentary Item</option>
-                          <option value="NONE">No Discount (Greeting only)</option>
-                        </select>
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                          1. Reward or Offer in Message
+                        </label>
+                        <span className="text-[11px] font-medium text-slate-500">
+                          Included automatically via <code className="text-orange-600 font-mono">{'{{offer_details}}'}</code>
+                        </span>
                       </div>
 
-                      {wizardOfferType === 'DISCOUNT_COINS' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         <div>
-                          <label className="font-semibold text-slate-700 block mb-1">Coin Value</label>
-                          <input
-                            type="number"
-                            min={10}
-                            step={5}
-                            value={wizardOfferValue}
-                            onChange={e => setWizardOfferValue(Number(e.target.value))}
-                            className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
-                          />
+                          <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                            Offer Type
+                          </label>
+                          <select
+                            value={wizardOfferType}
+                            onChange={e => setWizardOfferType(e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium"
+                          >
+                            <option value="DISCOUNT_COINS">Discount Coins (🪙)</option>
+                            <option value="DISCOUNT_PERCENT">Discount Percentage (%)</option>
+                            <option value="FREE_ITEM">Free Complimentary Item</option>
+                            <option value="FLAT_DISCOUNT">Flat ₹ Discount</option>
+                            <option value="NONE">No Offer (Greeting only)</option>
+                          </select>
                         </div>
-                      )}
 
-                      <div>
-                        <label className="font-semibold text-slate-700 block mb-1">Min Order (₹)</label>
-                        <input
-                          type="number"
-                          min={0}
-                          step={50}
-                          value={wizardMinOrderValue}
-                          onChange={e => setWizardMinOrderValue(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
-                        />
+                        {wizardOfferType === 'DISCOUNT_COINS' && (
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                              Coin Value (🪙)
+                            </label>
+                            <input
+                              type="number"
+                              min={10}
+                              step={5}
+                              value={wizardOfferValue}
+                              onChange={e => setWizardOfferValue(Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {wizardOfferType === 'DISCOUNT_PERCENT' && (
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                              Discount Percentage (%)
+                            </label>
+                            <input
+                              type="number"
+                              min={5}
+                              max={100}
+                              step={5}
+                              value={wizardOfferValue}
+                              onChange={e => setWizardOfferValue(Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {wizardOfferType === 'FLAT_DISCOUNT' && (
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                              Flat Discount (₹)
+                            </label>
+                            <input
+                              type="number"
+                              min={10}
+                              step={10}
+                              value={wizardOfferValue}
+                              onChange={e => setWizardOfferValue(Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {wizardOfferType === 'FREE_ITEM' && (
+                          <div className="sm:col-span-2">
+                            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                              Complimentary Item Name
+                            </label>
+                            <input
+                              type="text"
+                              value={wizardOfferPerkText}
+                              onChange={e => setWizardOfferPerkText(e.target.value)}
+                              placeholder="e.g. Free Dessert, Complimentary Cold Coffee"
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {wizardOfferType !== 'FREE_ITEM' && (
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                              Min Order (₹)
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              step={50}
+                              value={wizardMinOrderValue}
+                              onChange={e => setWizardMinOrderValue(Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Message Template Textarea */}
+                    {/* Message Composer Textarea & Quick Link Tag Chips */}
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="font-bold text-xs text-slate-700">Message Content</label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="font-bold text-xs text-slate-800">
+                          2. Compose Message Content
+                        </label>
                         <span className="text-[10px] text-slate-400">
                           {wizardMessageTemplate.length} characters
                         </span>
                       </div>
+
                       <textarea
                         rows={3}
                         value={wizardMessageTemplate}
                         onChange={e => setWizardMessageTemplate(e.target.value)}
-                        className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-sans"
+                        placeholder="Write your personalized message here..."
+                        className="w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-sans leading-relaxed"
                       />
 
-                      {/* Variable Chips */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        <span className="text-[10px] font-bold text-slate-400">Insert tag:</span>
-                        {[
-                          { tag: '{{customer_name}}', label: 'Guest Name' },
-                          { tag: '{{restaurant_name}}', label: 'Café Name' },
-                          { tag: '{{offer_details}}', label: 'Offer Perk' },
-                          { tag: '{{feedback_link}}', label: 'Review Link' }
-                        ].map(chip => (
-                          <button
-                            key={chip.tag}
-                            type="button"
-                            onClick={() =>
-                              setWizardMessageTemplate(prev => `${prev} ${chip.tag}`)
-                            }
-                            className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-mono cursor-pointer transition-colors"
-                          >
-                            + {chip.label}
-                          </button>
-                        ))}
+                      {/* Quick Links Tag Buttons (Inserts variables into textarea) */}
+                      <div className="mt-2 space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                          Click to insert variable tag into message:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {[
+                            { tag: '{{customer_name}}', label: 'Guest Name' },
+                            { tag: '{{restaurant_name}}', label: 'Café Name' },
+                            { tag: '{{offer_details}}', label: 'Offer Perk' },
+                            { tag: '{{coins}}', label: 'Coins Amount' },
+                            { tag: '{{discount_percent}}', label: 'Discount %' },
+                            { tag: '{{free_item}}', label: 'Free Item' },
+                            { tag: '{{feedback_link}}', label: 'Review Link' },
+                            { tag: '{{order_link}}', label: 'Menu Link' }
+                          ].map(chip => (
+                            <button
+                              key={chip.tag}
+                              type="button"
+                              onClick={() => setWizardMessageTemplate(prev => `${prev} ${chip.tag}`)}
+                              className="px-2 py-1 rounded-md bg-slate-100 hover:bg-orange-100 hover:text-orange-800 text-slate-700 text-[10px] font-mono cursor-pointer transition-colors border border-slate-200/80"
+                            >
+                              + {chip.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
                     {/* Live Mobile Message Preview */}
                     <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 space-y-1.5">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase">
-                        <span>Customer WhatsApp Live Preview</span>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
+                        <span>WhatsApp Live Message Preview</span>
                         <span>Now</span>
                       </div>
-                      <div className="p-3 rounded-lg bg-emerald-50 text-slate-800 text-xs border border-emerald-200 shadow-2xs leading-relaxed whitespace-pre-wrap">
+                      <div className="p-3 rounded-lg bg-emerald-50 text-slate-800 text-xs border border-emerald-200 shadow-2xs leading-relaxed whitespace-pre-wrap font-sans">
                         {livePreviewRendered}
-                        {wizardMinOrderValue > 0 && (
+                        {wizardMinOrderValue > 0 && wizardOfferType !== 'NONE' && (
                           <div className="text-[10px] text-slate-500 mt-2">
                             *Valid on minimum order of ₹{wizardMinOrderValue}
                           </div>
@@ -1951,97 +2044,356 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                   </div>
                 )}
 
-                {/* STEP 6: SET TIMING AND FREQUENCY */}
-                {wizardStep === 6 && (
+                {/* STEP 3: TIMING, FREQUENCY & TRIGGER SCHEDULE */}
+                {wizardStep === 3 && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Set Timing & Anti-Spam Frequency
+                      <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        When & How Often Should This Message Send?
                       </label>
                       <p className="text-xs text-slate-500 mb-3">
-                        Protect diners from message fatigue and prevent spam.
+                        Choose between post-order delivery, recurring days interval, or specific days of the week.
                       </p>
                     </div>
 
-                    <div className="space-y-3">
-                      {/* Quiet Hours */}
-                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <label className="font-bold text-slate-800">
-                            Respect Quiet Hours (Do Not Disturb)
-                          </label>
-                          <input
-                            type="checkbox"
-                            checked={wizardQuietHoursEnabled}
-                            onChange={e => setWizardQuietHoursEnabled(e.target.checked)}
-                            className="w-4 h-4 text-orange-600 rounded cursor-pointer"
-                          />
+                    {/* Schedule Mode Radio Cards */}
+                    <div className="space-y-2.5">
+                      {/* Option 1: After Customer Orders */}
+                      <div
+                        onClick={() => {
+                          setWizardTriggerType('ORDER_COMPLETED');
+                          setWizardTriggerUnit('minutes');
+                          setWizardTriggerValue(wizardDelayMinutes || 30);
+                        }}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          wizardTriggerType === 'ORDER_COMPLETED'
+                            ? 'border-orange-500 bg-orange-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5 text-orange-600" />
+                            After customer orders something (Post-Order)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                            Minutes
+                          </span>
                         </div>
-                        <p className="text-[11px] text-slate-500">
-                          Automations will never send early morning or late night messages outside these business hours.
+                        <p className="text-[11px] text-slate-500 mb-2">
+                          Send feedback link, thank you note, or next-order offer after order completion.
                         </p>
-                        {wizardQuietHoursEnabled && (
-                          <div className="grid grid-cols-2 gap-3 pt-1">
-                            <div>
-                              <span className="text-[10px] font-semibold text-slate-500">Start Time</span>
-                              <input
-                                type="time"
-                                value={wizardQuietHoursStart}
-                                onChange={e => setWizardQuietHoursStart(e.target.value)}
-                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs mt-1"
-                              />
+
+                        {wizardTriggerType === 'ORDER_COMPLETED' && (
+                          <div className="pt-2 border-t border-orange-200/60 space-y-2">
+                            <span className="text-[10px] font-bold text-slate-600 block">
+                              Select or type delay after order completion:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {[15, 30, 45, 60, 120].map(mins => (
+                                <button
+                                  key={mins}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWizardDelayMinutes(mins);
+                                    setWizardTriggerValue(mins);
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                    wizardDelayMinutes === mins
+                                      ? 'bg-orange-600 text-white border-orange-600'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                  }`}
+                                >
+                                  {mins === 60 ? '1 Hour' : mins === 120 ? '2 Hours' : `${mins} mins`}
+                                </button>
+                              ))}
+                              {/* Custom minutes input */}
+                              <div className="flex items-center gap-1 bg-white px-2 py-1 border border-slate-200 rounded-lg">
+                                <span className="text-[10px] text-slate-500 font-semibold">Custom:</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={1440}
+                                  value={wizardDelayMinutes}
+                                  onClick={e => e.stopPropagation()}
+                                  onChange={e => {
+                                    const val = Number(e.target.value) || 30;
+                                    setWizardDelayMinutes(val);
+                                    setWizardTriggerValue(val);
+                                  }}
+                                  className="w-14 text-xs font-bold outline-none text-slate-900 text-center"
+                                />
+                                <span className="text-[10px] text-slate-500 font-semibold">mins</span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-[10px] font-semibold text-slate-500">End Time</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Option 2: Recurring Frequency in Days */}
+                      <div
+                        onClick={() => {
+                          setWizardTriggerType('RECURRING_DAYS');
+                          setWizardTriggerUnit('days');
+                          setWizardTriggerValue(wizardRecurringDays || 4);
+                        }}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          wizardTriggerType === 'RECURRING_DAYS'
+                            ? 'border-orange-500 bg-orange-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <RepeatIcon className="w-3.5 h-3.5 text-blue-600" />
+                            Recurring interval frequency (Every X days)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                            Days
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-2">
+                          Send a periodic perk, message, or offer consistently every few days (e.g. every 4 days for Bhargavi).
+                        </p>
+
+                        {wizardTriggerType === 'RECURRING_DAYS' && (
+                          <div className="pt-2 border-t border-orange-200/60 space-y-2">
+                            <span className="text-[10px] font-bold text-slate-600 block">
+                              Select or type interval in days:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {[2, 3, 4, 7, 10, 14, 30].map(days => (
+                                <button
+                                  key={days}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWizardRecurringDays(days);
+                                    setWizardTriggerValue(days);
+                                    setWizardCooldownDays(days);
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                    wizardRecurringDays === days
+                                      ? 'bg-blue-600 text-white border-blue-600'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                  }`}
+                                >
+                                  Every {days} Days
+                                </button>
+                              ))}
+                              {/* Custom days input */}
+                              <div className="flex items-center gap-1 bg-white px-2 py-1 border border-slate-200 rounded-lg">
+                                <span className="text-[10px] text-slate-500 font-semibold">Every:</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={365}
+                                  value={wizardRecurringDays}
+                                  onClick={e => e.stopPropagation()}
+                                  onChange={e => {
+                                    const val = Number(e.target.value) || 4;
+                                    setWizardRecurringDays(val);
+                                    setWizardTriggerValue(val);
+                                    setWizardCooldownDays(val);
+                                  }}
+                                  className="w-12 text-xs font-bold outline-none text-slate-900 text-center"
+                                />
+                                <span className="text-[10px] text-slate-500 font-semibold">Days</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Option 3: Particular Day of the Week */}
+                      <div
+                        onClick={() => {
+                          setWizardTriggerType('DAY_OF_WEEK');
+                          setWizardTriggerUnit('week');
+                          setWizardTriggerValue(1);
+                        }}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          wizardTriggerType === 'DAY_OF_WEEK'
+                            ? 'border-orange-500 bg-orange-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                            Every particular day of the week (e.g. Wednesday)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                            Weekly
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-2">
+                          Automatically deliver weekly promotions every Wednesday, Friday, or chosen day.
+                        </p>
+
+                        {wizardTriggerType === 'DAY_OF_WEEK' && (
+                          <div className="pt-2 border-t border-orange-200/60 space-y-2">
+                            <span className="text-[10px] font-bold text-slate-600 block">
+                              Select day of the week and send time:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'].map(day => (
+                                <button
+                                  key={day}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWizardDayOfWeek(day);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                    wizardDayOfWeek === day
+                                      ? 'bg-purple-600 text-white border-purple-600'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                  }`}
+                                >
+                                  {day.slice(0, 3)}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 pt-1">
+                              <span className="text-[11px] text-slate-600 font-semibold">Preferred Send Time:</span>
                               <input
                                 type="time"
-                                value={wizardQuietHoursEnd}
-                                onChange={e => setWizardQuietHoursEnd(e.target.value)}
-                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs mt-1"
+                                value={wizardTimeOfDay}
+                                onChange={e => setWizardTimeOfDay(e.target.value)}
+                                className="px-2 py-1 text-xs bg-white border border-slate-300 rounded-lg"
                               />
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Cooldown limit */}
-                      <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-2 text-xs">
-                        <label className="font-bold text-slate-800 block">
-                          Customer Touch Cooldown Gap
-                        </label>
-                        <p className="text-[11px] text-slate-500">
-                          Prevent the same customer from receiving this campaign more than once within this window.
-                        </p>
-                        <div className="grid grid-cols-4 gap-2 pt-1">
-                          {[7, 15, 30, 60].map(cd => (
-                            <button
-                              key={cd}
-                              type="button"
-                              onClick={() => setWizardCooldownDays(cd)}
-                              className={`py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
-                                wizardCooldownDays === cd
-                                  ? 'bg-orange-600 text-white border-orange-600 shadow-xs'
-                                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                              }`}
-                            >
-                              {cd} Days
-                            </button>
-                          ))}
+                      {/* Option 4: Inactivity Threshold */}
+                      <div
+                        onClick={() => {
+                          setWizardTriggerType('INACTIVITY_DAYS');
+                          setWizardTriggerUnit('days');
+                          setWizardTriggerValue(wizardInactivityDays || 15);
+                        }}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          wizardTriggerType === 'INACTIVITY_DAYS'
+                            ? 'border-orange-500 bg-orange-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                            When customer becomes inactive (Win-Back)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            Inactivity
+                          </span>
                         </div>
+                        <p className="text-[11px] text-slate-500 mb-2">
+                          Automatically win back customers who have not visited or ordered for N days.
+                        </p>
+
+                        {wizardTriggerType === 'INACTIVITY_DAYS' && (
+                          <div className="pt-2 border-t border-orange-200/60 space-y-2">
+                            <span className="text-[10px] font-bold text-slate-600 block">
+                              Select or type inactive days threshold:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {[7, 14, 15, 21, 30, 45, 60].map(days => (
+                                <button
+                                  key={days}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWizardInactivityDays(days);
+                                    setWizardTriggerValue(days);
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                    wizardInactivityDays === days
+                                      ? 'bg-emerald-600 text-white border-emerald-600'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                  }`}
+                                >
+                                  {days} Days
+                                </button>
+                              ))}
+                              {/* Custom days input */}
+                              <div className="flex items-center gap-1 bg-white px-2 py-1 border border-slate-200 rounded-lg">
+                                <span className="text-[10px] text-slate-500 font-semibold">Custom:</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={365}
+                                  value={wizardInactivityDays}
+                                  onClick={e => e.stopPropagation()}
+                                  onChange={e => {
+                                    const val = Number(e.target.value) || 15;
+                                    setWizardInactivityDays(val);
+                                    setWizardTriggerValue(val);
+                                  }}
+                                  className="w-12 text-xs font-bold outline-none text-slate-900 text-center"
+                                />
+                                <span className="text-[10px] text-slate-500 font-semibold">Days</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
+                    </div>
+
+                    {/* Quiet Hours Protection */}
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <label className="font-bold text-slate-800">
+                          Respect Quiet Hours (Do Not Disturb)
+                        </label>
+                        <input
+                          type="checkbox"
+                          checked={wizardQuietHoursEnabled}
+                          onChange={e => setWizardQuietHoursEnabled(e.target.checked)}
+                          className="w-4 h-4 text-orange-600 rounded cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Prevents sending early morning or late night messages outside these business hours.
+                      </p>
+                      {wizardQuietHoursEnabled && (
+                        <div className="grid grid-cols-2 gap-3 pt-1">
+                          <div>
+                            <span className="text-[10px] font-semibold text-slate-500">Earliest Send (Morning)</span>
+                            <input
+                              type="time"
+                              value={wizardQuietHoursStart}
+                              onChange={e => setWizardQuietHoursStart(e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs mt-1"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-semibold text-slate-500">Latest Send (Night)</span>
+                            <input
+                              type="time"
+                              value={wizardQuietHoursEnd}
+                              onChange={e => setWizardQuietHoursEnd(e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs mt-1"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* STEP 7: REVIEW AND ACTIVATE */}
-                {wizardStep === 7 && (
+                {/* STEP 4: REVIEW & ACTIVATE */}
+                {wizardStep === 4 && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
                         Review & Activate Automation
                       </label>
                       <p className="text-xs text-slate-500 mb-3">
-                        Review your automation parameters before saving.
+                        Carefully review your configured parameters before launching.
                       </p>
                     </div>
 
@@ -2051,33 +2403,63 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                         <span className="font-bold text-slate-900">{wizardName}</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span className="font-bold text-slate-500 uppercase text-[10px]">Trigger:</span>
-                        <span className="font-semibold text-slate-800">
-                          {wizardTriggerType} ({wizardTriggerValue} {wizardTriggerUnit})
+                        <span className="font-bold text-slate-500 uppercase text-[10px]">Target Audience:</span>
+                        <span className="font-bold text-indigo-900">
+                          {wizardAudienceSegment === 'SPECIFIC_CUSTOMER'
+                            ? `Specific Patron: ${wizardSpecificCustomerName || 'Guest'} (${wizardSpecificCustomerPhone || ''})`
+                            : wizardAudienceSegment === 'INACTIVE'
+                            ? 'Inactive Customers'
+                            : wizardAudienceSegment === 'VIP'
+                            ? 'VIP Spenders'
+                            : wizardAudienceSegment === 'LOYAL'
+                            ? 'Loyal Diners (3+ visits)'
+                            : wizardAudienceSegment === 'NEW'
+                            ? 'New Diners'
+                            : 'All Customers'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span className="font-bold text-slate-500 uppercase text-[10px]">Audience:</span>
-                        <span className="font-semibold text-slate-800">
-                          {wizardAudienceSegment} (Min {wizardMinOrders} orders)
+                        <span className="font-bold text-slate-500 uppercase text-[10px]">Trigger & Schedule:</span>
+                        <span className="font-semibold text-slate-900">
+                          {wizardTriggerType === 'ORDER_COMPLETED'
+                            ? `${wizardDelayMinutes} minutes after order completed`
+                            : wizardTriggerType === 'RECURRING_DAYS'
+                            ? `Every ${wizardRecurringDays} days recurring`
+                            : wizardTriggerType === 'DAY_OF_WEEK'
+                            ? `Every ${wizardDayOfWeek} at ${wizardTimeOfDay}`
+                            : wizardTriggerType === 'INACTIVITY_DAYS'
+                            ? `No order or visit for ${wizardInactivityDays} days`
+                            : wizardTriggerType === 'BIRTHDAY'
+                            ? 'On customer birthday at 10:00 AM'
+                            : wizardTriggerType === 'VISIT_MILESTONE'
+                            ? `Completed visit milestone reaches ${wizardMilestoneOrders}`
+                            : `${wizardTriggerType} (${wizardTriggerValue} ${wizardTriggerUnit})`}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span className="font-bold text-slate-500 uppercase text-[10px]">Offer / Reward:</span>
+                        <span className="font-bold text-amber-800">
+                          {wizardOfferType === 'DISCOUNT_COINS'
+                            ? `🪙 ${wizardOfferValue} Discount Coins`
+                            : wizardOfferType === 'DISCOUNT_PERCENT'
+                            ? `🏷️ ${wizardOfferValue}% Discount`
+                            : wizardOfferType === 'FREE_ITEM'
+                            ? `🍟 ${wizardOfferPerkText}`
+                            : wizardOfferType === 'FLAT_DISCOUNT'
+                            ? `Flat ₹${wizardOfferValue} Off`
+                            : 'No Discount (Greeting only)'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-500 uppercase text-[10px]">Channel:</span>
                         <span className="font-bold text-emerald-700 flex items-center gap-1">
                           <Smartphone className="w-3.5 h-3.5" />
                           {wizardChannel}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-500 uppercase text-[10px]">Safety Gap:</span>
-                        <span className="font-semibold text-slate-800">
-                          Max once every {wizardCooldownDays} days per diner
-                        </span>
-                      </div>
                     </div>
 
-                    {/* Disconnected Provider Alert if WhatsApp is chosen */}
+                    {/* Disconnected Provider Alert if WhatsApp chosen */}
                     {wizardChannel === 'WHATSAPP' && !isWhatsAppConnected && (
                       <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -2106,12 +2488,16 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {wizardStep < 7 ? (
+                  {wizardStep < 4 ? (
                     <button
                       type="button"
                       onClick={() => {
                         if (wizardStep === 1 && !wizardName.trim()) {
-                          setWizardName(wizardGoal);
+                          if (wizardAudienceSegment === 'SPECIFIC_CUSTOMER' && wizardSpecificCustomerName) {
+                            setWizardName(`Special Automation for ${wizardSpecificCustomerName}`);
+                          } else {
+                            setWizardName(wizardGoal || 'Custom Automation');
+                          }
                         }
                         setWizardStep(prev => prev + 1);
                       }}

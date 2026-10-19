@@ -303,6 +303,13 @@ router.post('/automations/estimate-audience', (req: AuthenticatedRequest, res: R
   const now = Date.now();
 
   const eligible = allCustomers.filter(c => {
+    // Specific customer check
+    if (audienceConfig?.segment === 'SPECIFIC_CUSTOMER') {
+      const matchId = audienceConfig.specificCustomerId && c.id === audienceConfig.specificCustomerId;
+      const matchPhone = audienceConfig.specificCustomerPhone && c.phone === audienceConfig.specificCustomerPhone;
+      return Boolean(matchId || matchPhone);
+    }
+
     // Check opt-out if stored in customer prefs
     const prefs = db.customerMarketingPreferences.get(c.id);
     if (prefs && prefs.whatsapp === false && prefs.sms === false) {
@@ -327,6 +334,20 @@ router.post('/automations/estimate-audience', (req: AuthenticatedRequest, res: R
     // First order
     if (triggerType === 'FIRST_ORDER') {
       if (c.totalOrders !== 1) return false;
+    }
+
+    // Audience segment check
+    const seg = audienceConfig?.segment;
+    if (seg === 'INACTIVE') {
+      const lastVisitMs = c.lastVisit ? new Date(c.lastVisit).getTime() : new Date(c.createdAt).getTime();
+      const daysSince = (now - lastVisitMs) / (1000 * 60 * 60 * 24);
+      if (c.status !== 'INACTIVE' && c.status !== 'AT_RISK' && daysSince < 14) return false;
+    } else if (seg === 'VIP') {
+      if (c.status !== 'VIP' && c.totalSpent < 3000) return false;
+    } else if (seg === 'LOYAL') {
+      if (c.status !== 'REGULAR' && c.totalOrders < 3) return false;
+    } else if (seg === 'NEW') {
+      if (c.totalOrders > 1) return false;
     }
 
     // Audience min orders
@@ -619,7 +640,7 @@ router.post('/automations/:id/test', async (req: AuthenticatedRequest, res: Resp
   }
 
   const restaurant = db.getRestaurant(restaurantId);
-  const sampleCustomer = db.getCustomers(restaurantId, 'ALL')[0] || {
+  let sampleCustomer = db.getCustomers(restaurantId, 'ALL')[0] || {
     name: 'Rahul Sharma',
     phone: '9876543210',
     totalOrders: 3,
@@ -627,17 +648,48 @@ router.post('/automations/:id/test', async (req: AuthenticatedRequest, res: Resp
     coinBalance: 50
   };
 
-  const rawTemplate = existing.actionConfig?.messageTemplate || existing.action || 'Hi {{customer_name}}! Welcome to {{restaurant_name}}.';
-  const offerValue = existing.actionConfig?.offerValue || 50;
-  const offerDetails = existing.actionConfig?.offerType === 'FREE_ITEM'
-    ? 'a Complimentary Appetizer'
-    : `${offerValue} Discount Coins`;
+  if (existing.audienceConfig?.segment === 'SPECIFIC_CUSTOMER') {
+    const matched = db.getCustomers(restaurantId, 'ALL').find(
+      c => (existing.audienceConfig?.specificCustomerId && c.id === existing.audienceConfig.specificCustomerId) ||
+           (existing.audienceConfig?.specificCustomerPhone && c.phone === existing.audienceConfig.specificCustomerPhone)
+    );
+    if (matched) sampleCustomer = matched;
+    else if (existing.audienceConfig?.specificCustomerName) {
+      sampleCustomer = {
+        ...sampleCustomer,
+        name: existing.audienceConfig.specificCustomerName,
+        phone: existing.audienceConfig.specificCustomerPhone || sampleCustomer.phone
+      };
+    }
+  }
 
+  const rawTemplate = existing.actionConfig?.messageTemplate || existing.action || 'Hi {{customer_name}}! Welcome to {{restaurant_name}}.';
+  const offerType = existing.actionConfig?.offerType || 'NONE';
+  const offerValue = Number(existing.actionConfig?.offerValue || 0);
+  const minOrderVal = Number(existing.actionConfig?.minOrderValue || 0);
+
+  let offerDetails = '';
+  if (offerType === 'DISCOUNT_COINS' && offerValue > 0) {
+    offerDetails = `${offerValue} Discount Coins`;
+  } else if (offerType === 'DISCOUNT_PERCENT' && offerValue > 0) {
+    offerDetails = `${offerValue}% Discount`;
+  } else if (offerType === 'FREE_ITEM') {
+    offerDetails = existing.actionConfig?.offerPerkText || 'a Complimentary Appetizer';
+  } else if (offerType === 'FLAT_DISCOUNT' && offerValue > 0) {
+    offerDetails = `Flat ₹${offerValue} Off`;
+  }
+
+  const orderLink = restaurant?.slug ? `https://swaadsevak.vercel.app/m/${restaurant.slug}` : 'https://swaadsevak.vercel.app';
   const renderedMessage = rawTemplate
     .replace(/\{\{\s*customer_name\s*\}\}/gi, sampleCustomer.name)
     .replace(/\{\{\s*restaurant_name\s*\}\}/gi, restaurant?.name || 'SwaadSevak Café')
-    .replace(/\{\{\s*offer_details\s*\}\}/gi, offerDetails)
-    .replace(/\{\{\s*feedback_link\s*\}\}/gi, existing.actionConfig?.feedbackUrl || 'https://swaadsevak.com/feedback');
+    .replace(/\{\{\s*(offer_details|offer)\s*\}\}/gi, offerDetails)
+    .replace(/\{\{\s*(coins|discount_coins)\s*\}\}/gi, String(offerValue))
+    .replace(/\{\{\s*discount_percent\s*\}\}/gi, `${offerValue}%`)
+    .replace(/\{\{\s*free_item\s*\}\}/gi, existing.actionConfig?.offerPerkText || 'Complimentary Treat')
+    .replace(/\{\{\s*min_order_value\s*\}\}/gi, minOrderVal > 0 ? `₹${minOrderVal}` : '')
+    .replace(/\{\{\s*feedback_link\s*\}\}/gi, existing.actionConfig?.feedbackUrl || 'https://swaadsevak.com/feedback')
+    .replace(/\{\{\s*(order_link|menu_link)\s*\}\}/gi, orderLink);
 
   const waStatus = WhatsAppService.getStatus(restaurantId);
   const isWaConnected = waStatus.status === 'CONNECTED';

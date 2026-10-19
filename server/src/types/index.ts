@@ -745,10 +745,15 @@ export interface AiAutomation {
     type: string;
     value?: number;
     unit?: string;
+    dayOfWeek?: string;
+    timeOfDay?: string;
     description?: string;
   };
   audienceConfig?: {
     segment?: string;
+    specificCustomerId?: string;
+    specificCustomerName?: string;
+    specificCustomerPhone?: string;
     minOrders?: number;
     minSpend?: number;
     maxInactiveDays?: number;
@@ -759,12 +764,15 @@ export interface AiAutomation {
     messageTemplate: string;
     offerType?: string;
     offerValue?: number;
+    offerPerkText?: string;
     minOrderValue?: number;
     validityDays?: number;
     feedbackUrl?: string;
   };
   timingConfig?: {
     delayMinutes?: number;
+    frequencyDays?: number;
+    dayOfWeek?: string;
     quietHoursEnabled?: boolean;
     quietHoursStart?: string;
     quietHoursEnd?: string;

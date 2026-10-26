@@ -45,6 +45,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<'PRINT' | 'WHATSAPP' | 'SETTLE_ONLY' | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [waStatus, setWaStatus] = useState<{ connected: boolean; phone?: string } | null>(null);
 
   // CRITICAL: Reset all form states whenever modal opens or order changes so no previous toasts/states persist!
   useEffect(() => {
@@ -55,10 +56,25 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
       setIsSubmitting(false);
       setActionInProgress(null);
       setStatusMessage(null);
+
+      // Check live WhatsApp connection state
+      api.getWhatsAppStatus()
+        .then(res => {
+          if (res && res.success && res.data) {
+            setWaStatus({
+              connected: res.data.status === 'CONNECTED',
+              phone: res.data.phoneNumber
+            });
+          } else {
+            setWaStatus({ connected: false });
+          }
+        })
+        .catch(() => setWaStatus({ connected: false }));
     } else {
       setStatusMessage(null);
       setIsSubmitting(false);
       setActionInProgress(null);
+      setWaStatus(null);
     }
   }, [isOpen, order?.id]);
 
@@ -125,7 +141,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
       } else if (targetAction === 'WHATSAPP') {
         setStatusMessage({
           type: 'success',
-          text: 'Generating PDF receipt & preparing WhatsApp...'
+          text: 'Dispatching PDF receipt from connected WhatsApp number...'
         });
 
         const waRes = await sendInvoicePdfWhatsApp(
@@ -135,15 +151,24 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
           cleanPhone
         );
 
-        setStatusMessage({
-          type: 'success',
-          text: waRes.message || `✓ WhatsApp receipt processed for +91 ${cleanPhone}!`
-        });
+        if (waRes.success) {
+          setStatusMessage({
+            type: 'success',
+            text: waRes.message || `✓ Official PDF receipt sent to WhatsApp (+91 ${cleanPhone})!`
+          });
 
-        setTimeout(() => {
-          onOrderFinalized(finalizedOrder, finalizedBill);
-          onClose();
-        }, 1200);
+          setTimeout(() => {
+            onOrderFinalized(finalizedOrder, finalizedBill);
+            onClose();
+          }, 1500);
+        } else {
+          setStatusMessage({
+            type: 'error',
+            text: waRes.message || 'Could not send WhatsApp receipt. Please check device pairing in CRM Settings.'
+          });
+          setIsSubmitting(false);
+          setActionInProgress(null);
+        }
       } else {
         // Quick settle only
         setStatusMessage({
@@ -331,19 +356,37 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
             </div>
 
             {/* Dynamic helper text for WhatsApp */}
-            <p className="text-[11px] transition-colors">
-              {hasValidPhone ? (
-                <span className="text-emerald-700 font-semibold flex items-center gap-1.5 bg-emerald-50/80 px-2.5 py-1 rounded-lg border border-emerald-200/60">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  WhatsApp receipt enabled for +91 {cleanPhone}
-                </span>
-              ) : (
-                <span className="text-slate-400 flex items-center gap-1.5 px-1">
-                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  Enter 10-digit WhatsApp number to enable sending digital PDF e-receipt.
-                </span>
+            <div className="pt-0.5 space-y-1.5">
+              <p className="text-[11px] transition-colors">
+                {hasValidPhone ? (
+                  <span className="text-emerald-700 font-semibold flex items-center gap-1.5 bg-emerald-50/80 px-2.5 py-1 rounded-lg border border-emerald-200/60">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Recipient set to +91 {cleanPhone}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 flex items-center gap-1.5 px-1">
+                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    Enter 10-digit WhatsApp number to send automatic PDF e-receipt.
+                  </span>
+                )}
+              </p>
+
+              {waStatus && (
+                <div className="text-[10px] px-1 font-medium flex items-center gap-1.5">
+                  {waStatus.connected ? (
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Sender: Connected {waStatus.phone ? `(${waStatus.phone})` : ''} • Sends automatically
+                    </span>
+                  ) : (
+                    <span className="text-amber-700 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Sender: Disconnected. Scan QR in CRM Settings to pair device.
+                    </span>
+                  )}
+                </div>
               )}
-            </p>
+            </div>
           </div>
 
           {/* 3. Payment Mode Selection */}

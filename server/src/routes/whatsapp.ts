@@ -130,8 +130,9 @@ router.post('/send-pdf-receipt', async (req: AuthenticatedRequest, res: Response
       });
     }
 
-    // Clean base64 header if present (data:application/pdf;base64,...)
-    const cleanBase64 = String(pdfBase64).replace(/^data:application\/pdf[^;]*;base64,/, '');
+    // Clean any data URI prefix if present (e.g. data:application/pdf;base64,...)
+    const rawBase64 = String(pdfBase64).includes(',') ? String(pdfBase64).split(',')[1] : String(pdfBase64);
+    const cleanBase64 = rawBase64.replace(/\s+/g, '');
     const buffer = Buffer.from(cleanBase64, 'base64');
 
     const restaurant = db.getRestaurant(restaurantId);

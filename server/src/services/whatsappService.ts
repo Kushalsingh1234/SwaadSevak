@@ -249,25 +249,55 @@ export class WhatsAppService {
     fileName: string,
     captionText?: string
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const session = this.sessions.get(restaurantId);
+    let session = this.sessions.get(restaurantId);
+
+    // If session is not active in memory, check if creds exist on disk and wake it up
+    if (!session || session.state.status !== 'CONNECTED') {
+      const sessionDir = path.join(SESSIONS_DIR, restaurantId);
+      if (fs.existsSync(path.join(sessionDir, 'creds.json'))) {
+        console.log(`[WhatsApp] Session not connected in memory. Initializing/resuming session for ${restaurantId}...`);
+        await this.initSession(restaurantId).catch(console.warn);
+        // Wait up to 5 seconds for connection to establish
+        for (let i = 0; i < 25; i++) {
+          await new Promise(r => setTimeout(r, 200));
+          session = this.sessions.get(restaurantId);
+          if (session && session.state.status === 'CONNECTED') break;
+        }
+      }
+    }
 
     if (!session || !session.sock || session.state.status !== 'CONNECTED') {
       return {
         success: false,
-        error: 'WhatsApp is not connected for this restaurant. Please scan the QR code in Settings / CRM to pair your WhatsApp number.'
+        error: 'WhatsApp device is not connected. Please scan the pairing QR code in CRM Settings.'
       };
     }
 
     const jid = this.formatPhoneToJid(recipientPhone);
 
+    // Verify WhatsApp registration if possible
+    let targetJid = jid;
     try {
+      const [contact] = await session.sock.onWhatsApp(jid);
+      if (contact && contact.exists && contact.jid) {
+        targetJid = contact.jid;
+      }
+    } catch {
+      // Use formatted JID as fallback
+    }
+
+    try {
+      console.log(`[WhatsApp] Sending PDF document to ${targetJid} (${documentBuffer.length} bytes)...`);
+
       // 1. Send the PDF document directly
-      const res = await session.sock.sendMessage(jid, {
+      const res = await session.sock.sendMessage(targetJid, {
         document: documentBuffer,
         mimetype: 'application/pdf',
-        fileName: fileName || 'Receipt.pdf',
+        fileName: fileName || 'Dining-Invoice.pdf',
         caption: captionText || undefined
       });
+
+      console.log(`[WhatsApp] PDF document delivered successfully! Message ID: ${res?.key?.id}`);
 
       return {
         success: true,

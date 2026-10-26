@@ -35,12 +35,12 @@ export const MySubscriptionSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             My Subscription
           </h2>
-          <p className="text-xs sm:text-sm text-stone-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Manage your billing cycle, active plan features, and renewal schedule.
           </p>
         </div>
@@ -48,28 +48,28 @@ export const MySubscriptionSection: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsRenewModalOpen(true)}
-          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-stone-950 font-black text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center gap-2 shrink-0 self-start sm:self-auto"
+          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-105 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer flex items-center gap-2 shrink-0 self-start sm:self-auto"
         >
-          <Sparkles className="w-4 h-4 text-stone-950" />
+          <Sparkles className="w-4 h-4 text-white" />
           <span>Renew Subscription</span>
         </button>
       </div>
 
       {/* Warning Banners based on Status */}
       {subscription.status === 'EXPIRING_SOON' && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-start gap-3.5 animate-in fade-in">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3.5 animate-in fade-in">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-amber-300">
+            <h4 className="text-sm font-bold text-amber-900">
               Subscription Expiring Soon ({subscription.remainingDays} Days Remaining)
             </h4>
-            <p className="text-xs text-amber-200/90 leading-relaxed">
+            <p className="text-xs text-amber-800 leading-relaxed">
               Your active subscription plan is scheduled to expire on <strong>{formatDate(subscription.expiryDate)}</strong>. Renew now to prevent interruption of your live kitchen display (KOT), customer QR ordering, and table management.
             </p>
             <div className="pt-1.5">
               <button
                 onClick={() => setIsRenewModalOpen(true)}
-                className="text-xs font-black text-stone-950 px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="text-xs font-bold text-white px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <span>Renew Before Expiry</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -80,19 +80,19 @@ export const MySubscriptionSection: React.FC = () => {
       )}
 
       {subscription.status === 'EXPIRED' && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-start gap-3.5 animate-in fade-in">
-          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3.5 animate-in fade-in">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-red-300">
+            <h4 className="text-sm font-bold text-red-900">
               Subscription Expired
             </h4>
-            <p className="text-xs text-red-200/90 leading-relaxed">
+            <p className="text-xs text-red-800 leading-relaxed">
               Your plan expired on <strong>{formatDate(subscription.expiryDate)}</strong>. To resume uninterrupted POS billing and kitchen printer dispatch, please choose a renewal plan below.
             </p>
             <div className="pt-1.5">
               <button
                 onClick={() => setIsRenewModalOpen(true)}
-                className="text-xs font-black text-white px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="text-xs font-bold text-white px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <span>Re-Activate Subscription</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -102,35 +102,35 @@ export const MySubscriptionSection: React.FC = () => {
         </div>
       )}
 
-      {/* Main Hero Subscription Card (Stripe/Linear Luxury Card) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#24160D] via-[#1C120C] to-[#170E08] border border-white/[0.12] p-6 sm:p-9 shadow-2xl space-y-7">
+      {/* Main Hero Subscription Card (Luxury Light Card) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-orange-50/20 to-amber-50/30 border border-slate-200/90 p-6 sm:p-9 shadow-sm space-y-7">
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 right-1/4 w-80 h-32 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-80 h-32 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Card Title & Top Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-orange-400 block mb-1">
+            <span className="text-[11px] font-black uppercase tracking-wider text-orange-600 block mb-1">
               MY CURRENT PLAN
             </span>
             <div className="flex items-center gap-3">
-              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 {subscription.planName}
               </h3>
               {subscription.status === 'ACTIVE' && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   ACTIVE
                 </span>
               )}
               {subscription.status === 'EXPIRING_SOON' && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   <Clock className="w-3.5 h-3.5" />
                   EXPIRING SOON
                 </span>
               )}
               {subscription.status === 'EXPIRED' && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">
                   EXPIRED
                 </span>
               )}
@@ -138,11 +138,11 @@ export const MySubscriptionSection: React.FC = () => {
           </div>
 
           <div className="text-left sm:text-right">
-            <span className="text-xs text-stone-400 block">Subscription Price</span>
-            <span className="text-2xl sm:text-3xl font-black text-white">
+            <span className="text-xs text-slate-500 block">Subscription Price</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">
               ₹{subscription.price.toLocaleString('en-IN')}
             </span>
-            <span className="text-[11px] text-stone-400 block mt-0.5">
+            <span className="text-[11px] text-slate-400 block mt-0.5">
               Inclusive of all taxes
             </span>
           </div>
@@ -150,25 +150,25 @@ export const MySubscriptionSection: React.FC = () => {
 
         {/* Lifecycle Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-            <span className="text-[11px] font-semibold text-stone-400 block">Subscription Duration</span>
-            <span className="text-sm font-bold text-white mt-1 block">{subscription.durationLabel}</span>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 block">Subscription Duration</span>
+            <span className="text-sm font-bold text-slate-900 mt-1 block">{subscription.durationLabel}</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-            <span className="text-[11px] font-semibold text-stone-400 block">Subscription Start Date</span>
-            <span className="text-sm font-bold text-white mt-1 block">{formatDate(subscription.startDate)}</span>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 block">Subscription Start Date</span>
+            <span className="text-sm font-bold text-slate-900 mt-1 block">{formatDate(subscription.startDate)}</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-            <span className="text-[11px] font-semibold text-stone-400 block">Subscription Expiry Date</span>
-            <span className="text-sm font-bold text-amber-400 mt-1 block">{formatDate(subscription.expiryDate)}</span>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 block">Subscription Expiry Date</span>
+            <span className="text-sm font-bold text-amber-600 mt-1 block">{formatDate(subscription.expiryDate)}</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-            <span className="text-[11px] font-semibold text-stone-400 block">Days Remaining</span>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 block">Days Remaining</span>
             <span className={`text-base font-black mt-1 block ${
-              subscription.remainingDays <= 7 ? 'text-amber-400' : 'text-emerald-400'
+              subscription.remainingDays <= 7 ? 'text-amber-600' : 'text-emerald-600'
             }`}>
               {subscription.remainingDays} Days
             </span>
@@ -176,30 +176,30 @@ export const MySubscriptionSection: React.FC = () => {
         </div>
 
         {/* Dynamic Progress Bar Section */}
-        <div className="space-y-2.5 p-5 rounded-2xl bg-black/30 border border-white/[0.06]">
+        <div className="space-y-2.5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-stone-300 font-medium">
-              Subscription Usage Progress: <strong className="text-white">{subscription.progressPercent}%</strong>
+            <span className="text-slate-700 font-medium">
+              Subscription Usage Progress: <strong className="text-slate-900">{subscription.progressPercent}%</strong>
             </span>
-            <span className="text-stone-400">
+            <span className="text-slate-500">
               {subscription.usedDays} of {subscription.totalDays} Total Days Consumed
             </span>
           </div>
 
-          <div className="h-3 w-full bg-white/[0.06] rounded-full overflow-hidden border border-white/[0.08] relative">
+          <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden border border-slate-300 relative">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 subscription.status === 'EXPIRED'
                   ? 'bg-red-500'
                   : subscription.status === 'EXPIRING_SOON'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500'
-                  : 'bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-400'
+                  : 'bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500'
               }`}
               style={{ width: `${subscription.progressPercent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-stone-500 pt-1">
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
             <span>Started: {formatDate(subscription.startDate)}</span>
             <span>Expires: {formatDate(subscription.expiryDate)}</span>
           </div>
@@ -207,48 +207,48 @@ export const MySubscriptionSection: React.FC = () => {
 
         {/* Feature Entitlements in Active Plan */}
         <div className="pt-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
             Included Operating System Capabilities
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">Live Kitchen Display &amp; KOT System</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">Live Kitchen Display &amp; KOT System</span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">Direct QR Digital Ordering (0% Commission)</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">Direct QR Digital Ordering (0% Commission)</span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">GST-Compliant Automated Bill Printing</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">GST-Compliant Automated Bill Printing</span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">Multi-Device Counter &amp; Tablet Sync</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">Multi-Device Counter &amp; Tablet Sync</span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">Aggregator Hub (Swiggy + Zomato Sync)</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">Aggregator Hub (Swiggy + Zomato Sync)</span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-stone-300">24/7 Priority Manager Concierge Support</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-slate-800 font-medium">24/7 Priority Manager Concierge Support</span>
             </div>
           </div>
         </div>
 
         {/* Action Callout */}
-        <div className="pt-4 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-stone-400 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Active Transaction ID: <code className="text-white font-mono">{subscription.transactionId}</code></span>
+        <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-xs text-slate-500 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Active Transaction ID: <code className="text-slate-900 font-mono font-semibold">{subscription.transactionId}</code></span>
           </div>
 
           <button
             type="button"
             onClick={() => setIsRenewModalOpen(true)}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-stone-950 font-black text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-105 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             <span>Renew Subscription</span>
             <ArrowRight className="w-4 h-4" />
@@ -257,9 +257,9 @@ export const MySubscriptionSection: React.FC = () => {
       </div>
 
       {/* Testing Dynamic Status Switcher (Interactive Sandbox for Verification) */}
-      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-stone-400">
-          <Zap className="w-4 h-4 text-amber-400" />
+      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-slate-600 font-medium">
+          <Zap className="w-4 h-4 text-amber-500" />
           <span>Interactive Expiry Simulator (Verify dynamic date calculations):</span>
         </div>
         <div className="flex items-center gap-2">
@@ -268,8 +268,8 @@ export const MySubscriptionSection: React.FC = () => {
             onClick={() => setTestExpiryDays(124)}
             className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               subscription.remainingDays > 7
-                ? 'bg-emerald-500 text-stone-950 shadow-sm'
-                : 'bg-white/[0.06] text-stone-400 hover:text-white'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
           >
             Active (124d)
@@ -279,8 +279,8 @@ export const MySubscriptionSection: React.FC = () => {
             onClick={() => setTestExpiryDays(4)}
             className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               subscription.remainingDays <= 7 && subscription.remainingDays > 0
-                ? 'bg-amber-400 text-stone-950 shadow-sm'
-                : 'bg-white/[0.06] text-stone-400 hover:text-white'
+                ? 'bg-amber-500 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
           >
             Expiring Soon (4d)
@@ -290,8 +290,8 @@ export const MySubscriptionSection: React.FC = () => {
             onClick={() => setTestExpiryDays(0)}
             className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               subscription.remainingDays === 0
-                ? 'bg-red-500 text-white shadow-sm'
-                : 'bg-white/[0.06] text-stone-400 hover:text-white'
+                ? 'bg-red-500 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
           >
             Expired (0d)

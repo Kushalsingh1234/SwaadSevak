@@ -543,7 +543,7 @@ const AppContent: React.FC = () => {
           currentTab === 'orders'
             ? 'pt-14 lg:pt-4 p-2 sm:p-3.5 lg:p-4 lg:pt-3 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
             : currentTab === 'profile'
-            ? 'pt-14 lg:pt-0 p-0 w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto bg-[#110A06]'
+            ? 'pt-14 lg:pt-0 p-0 w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto bg-slate-50'
             : 'pt-14 lg:pt-4 p-3.5 sm:p-5 lg:p-6 lg:pt-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
         }`}>
           {currentTab === 'dashboard' && (

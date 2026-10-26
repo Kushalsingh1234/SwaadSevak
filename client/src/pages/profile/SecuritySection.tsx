@@ -108,34 +108,34 @@ export const SecuritySection: React.FC = () => {
   return (
     <div className="space-y-7">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Security &amp; Authentication
           </h2>
-          <p className="text-xs sm:text-sm text-stone-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Manage your manager password, connected Google authorization, and account security audit.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold shrink-0 self-start sm:self-auto">
-          <ShieldCheck className="w-4 h-4" />
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shrink-0 self-start sm:self-auto shadow-xs">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
           <span>SOC-2 &amp; AES-256 Protected</span>
         </div>
       </div>
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in ${
+          className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in shadow-xs ${
             statusMsg.type === 'success'
-              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
-              : 'bg-red-500/15 border border-red-500/30 text-red-300'
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
           }`}
         >
           {statusMsg.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+            <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
           )}
           <span className="text-xs font-semibold">{statusMsg.text}</span>
         </div>
@@ -144,23 +144,25 @@ export const SecuritySection: React.FC = () => {
       {/* Grid: Change Password & Account Security Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
         {/* Left Column (Span 7): Change Password Form */}
-        <div className="lg:col-span-7 p-6 sm:p-7 rounded-3xl bg-[#1C120C]/90 border border-white/[0.1] shadow-xl space-y-6">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.08]">
-            <KeyRound className="w-5 h-5 text-orange-400" />
+        <div className="lg:col-span-7 p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-6">
+          <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0">
+              <KeyRound className="w-4 h-4" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white">Change Manager Password</h3>
-              <p className="text-xs text-stone-400">Used for counter tablet logins and manager overrides.</p>
+              <h3 className="text-base font-bold text-slate-900">Change Manager Password</h3>
+              <p className="text-xs text-slate-500">Used for counter tablet logins and manager overrides.</p>
             </div>
           </div>
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             {/* Current Password */}
             <div>
-              <label className="block text-xs font-semibold text-stone-300 mb-1.5 tracking-wide">
-                Current Password <span className="text-orange-400">*</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 tracking-wide">
+                Current Password <span className="text-orange-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -169,12 +171,12 @@ export const SecuritySection: React.FC = () => {
                   placeholder="Enter current password (demo: 1234)"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/[0.03] border border-white/[0.1] text-white text-sm placeholder:text-stone-600 focus:border-brand-500 focus:bg-white/[0.05] focus:ring-2 focus:ring-brand-500/20 outline-none transition-all font-mono tracking-wider"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-mono tracking-wider"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-200 cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -184,8 +186,8 @@ export const SecuritySection: React.FC = () => {
             {/* New Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-stone-300 tracking-wide">
-                  New Password <span className="text-orange-400">*</span>
+                <label className="block text-xs font-semibold text-slate-700 tracking-wide">
+                  New Password <span className="text-orange-500">*</span>
                 </label>
                 {newPassword && (
                   <span className={`text-[11px] font-bold ${strengthInfo.text}`}>
@@ -194,7 +196,7 @@ export const SecuritySection: React.FC = () => {
                 )}
               </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -203,12 +205,12 @@ export const SecuritySection: React.FC = () => {
                   placeholder="Enter secure new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/[0.03] border border-white/[0.1] text-white text-sm placeholder:text-stone-600 focus:border-brand-500 focus:bg-white/[0.05] focus:ring-2 focus:ring-brand-500/20 outline-none transition-all font-mono tracking-wider"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-mono tracking-wider"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-200 cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -220,27 +222,27 @@ export const SecuritySection: React.FC = () => {
                   <div
                     key={step}
                     className={`h-1.5 rounded-full transition-colors ${
-                      step <= strengthScore ? strengthInfo.color : 'bg-white/[0.08]'
+                      step <= strengthScore ? strengthInfo.color : 'bg-slate-200'
                     }`}
                   />
                 ))}
               </div>
 
               {/* Real-time Checklist */}
-              <div className="mt-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06] grid grid-cols-2 gap-2 text-[11px]">
-                <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-400' : 'text-stone-500'}`}>
+              <div className="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90 grid grid-cols-2 gap-2 text-[11px]">
+                <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-600 font-medium' : 'text-slate-400'}`}>
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>Min. 8 characters</span>
                 </div>
-                <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-400' : 'text-stone-500'}`}>
+                <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-600 font-medium' : 'text-slate-400'}`}>
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>At least 1 number</span>
                 </div>
-                <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-400' : 'text-stone-500'}`}>
+                <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-600 font-medium' : 'text-slate-400'}`}>
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>1 uppercase letter</span>
                 </div>
-                <div className={`flex items-center gap-1.5 ${hasSpecialChar ? 'text-emerald-400' : 'text-stone-500'}`}>
+                <div className={`flex items-center gap-1.5 ${hasSpecialChar ? 'text-emerald-600 font-medium' : 'text-slate-400'}`}>
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>1 special symbol</span>
                 </div>
@@ -250,17 +252,17 @@ export const SecuritySection: React.FC = () => {
             {/* Confirm New Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-stone-300 tracking-wide">
-                  Confirm New Password <span className="text-orange-400">*</span>
+                <label className="block text-xs font-semibold text-slate-700 tracking-wide">
+                  Confirm New Password <span className="text-orange-500">*</span>
                 </label>
                 {confirmPassword && (
-                  <span className={`text-[11px] font-bold ${passwordsMatch ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`text-[11px] font-bold ${passwordsMatch ? 'text-emerald-600' : 'text-red-500'}`}>
                     {passwordsMatch ? '✓ Passwords match' : '✗ Do not match'}
                   </span>
                 )}
               </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -269,16 +271,16 @@ export const SecuritySection: React.FC = () => {
                   placeholder="Re-type new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-3 rounded-xl bg-white/[0.03] border text-white text-sm placeholder:text-stone-600 outline-none transition-all font-mono tracking-wider ${
+                  className={`w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border text-slate-900 text-sm placeholder:text-slate-400 outline-none transition-all font-mono tracking-wider ${
                     confirmPassword && !passwordsMatch
-                      ? 'border-red-500/50 focus:border-red-400 focus:ring-2 focus:ring-red-500/20'
-                      : 'border-white/[0.1] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'
+                      ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      : 'border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-200 cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -289,14 +291,14 @@ export const SecuritySection: React.FC = () => {
               <button
                 type="submit"
                 disabled={isUpdating || !isPasswordValid || !passwordsMatch}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-stone-950 font-black text-xs shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-105 text-white font-black text-xs shadow-md shadow-orange-500/20 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isUpdating ? 'Updating Password...' : 'Update Password'}
               </button>
             </div>
           </form>
 
-          <p className="text-[10px] text-stone-500 text-center pt-1">
+          <p className="text-[10px] text-slate-400 text-center pt-1">
             Firebase Architecture Ready: In production, password modification re-authenticates the current token with Firebase Auth before persistence.
           </p>
         </div>
@@ -304,25 +306,22 @@ export const SecuritySection: React.FC = () => {
         {/* Right Column (Span 5): Account Security & Verification Badges */}
         <div className="lg:col-span-5 space-y-5">
           {/* Account Verification Status Card */}
-          <div className="relative overflow-hidden p-6 rounded-3xl bg-gradient-to-b from-[#231710]/95 via-[#1B110B]/95 to-[#130C07]/95 border border-amber-900/35 shadow-2xl backdrop-blur-xl space-y-4">
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent pointer-events-none" />
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/[0.07] rounded-full blur-2xl pointer-events-none" />
-
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.07]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                     Account Verification Status
                   </h3>
-                  <p className="text-[10px] text-stone-400 font-medium">Enterprise Security Tier</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Enterprise Security Tier</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 4/4 Verified
               </span>
             </div>
@@ -330,9 +329,9 @@ export const SecuritySection: React.FC = () => {
             {/* Verification Rows */}
             <div className="space-y-2.5">
               {/* Google Account */}
-              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+              <div className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 transition-all duration-200 flex items-center justify-between gap-3 group">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -341,63 +340,63 @@ export const SecuritySection: React.FC = () => {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Google Identity</span>
-                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.googleEmail}</p>
+                    <span className="text-xs font-semibold text-slate-800 block group-hover:text-orange-600 transition-colors">Google Identity</span>
+                    <p className="text-[11px] text-slate-500 font-mono truncate">{profile.googleEmail}</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Connected
                 </span>
               </div>
 
               {/* Email Verification */}
-              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+              <div className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 transition-all duration-200 flex items-center justify-between gap-3 group">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-sky-500/15 border border-sky-500/25 flex items-center justify-center text-sky-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-sky-600 shrink-0">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Email Status</span>
-                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.email}</p>
+                    <span className="text-xs font-semibold text-slate-800 block group-hover:text-orange-600 transition-colors">Email Status</span>
+                    <p className="text-[11px] text-slate-500 font-mono truncate">{profile.email}</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   Verified
                 </span>
               </div>
 
               {/* Phone Verification */}
-              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+              <div className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 transition-all duration-200 flex items-center justify-between gap-3 group">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
                     <Smartphone className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Phone Status</span>
-                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.phone}</p>
+                    <span className="text-xs font-semibold text-slate-800 block group-hover:text-orange-600 transition-colors">Phone Status</span>
+                    <p className="text-[11px] text-slate-500 font-mono truncate">{profile.phone}</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   SMS Verified
                 </span>
               </div>
 
               {/* Account KYC */}
-              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+              <div className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 transition-all duration-200 flex items-center justify-between gap-3 group">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0">
                     <FileCheck className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Hospitality KYC</span>
-                    <p className="text-[11px] text-stone-400 truncate">GST &amp; FSSAI Validated</p>
+                    <span className="text-xs font-semibold text-slate-800 block group-hover:text-orange-600 transition-colors">Hospitality KYC</span>
+                    <p className="text-[11px] text-slate-500 truncate">GST &amp; FSSAI Validated</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-950/70 text-indigo-300 border border-indigo-500/35 shadow-[0_0_10px_rgba(99,102,241,0.18)] shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
                   Approved
                 </span>
               </div>
@@ -405,25 +404,22 @@ export const SecuritySection: React.FC = () => {
           </div>
 
           {/* Active Shift Session Card */}
-          <div className="relative overflow-hidden p-6 rounded-3xl bg-gradient-to-b from-[#231710]/95 via-[#1B110B]/95 to-[#130C07]/95 border border-amber-900/35 shadow-2xl backdrop-blur-xl space-y-4">
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent pointer-events-none" />
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-orange-500/[0.07] rounded-full blur-2xl pointer-events-none" />
-
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.07]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400 shrink-0 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0">
                   <Activity className="w-4 h-4 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                     Active Shift Session
                   </h3>
-                  <p className="text-[10px] text-stone-400 font-medium">Encrypted TLS v1.3 • AES-256</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Encrypted TLS v1.3 • AES-256</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.12)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 Active Now
               </span>
             </div>
@@ -431,26 +427,26 @@ export const SecuritySection: React.FC = () => {
             {/* Session Details */}
             <div className="space-y-2.5">
               {/* POS Terminal */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.025] border border-white/[0.07] space-y-2.5">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400 shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0 mt-0.5">
                     <Laptop className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-stone-100">Current POS Terminal</span>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                      <span className="text-xs font-bold text-slate-900">Current POS Terminal</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-orange-50 text-orange-700 border border-orange-200">
                         This Device
                       </span>
                     </div>
-                    <p className="text-[11px] text-stone-300 font-medium pt-0.5">Chrome on macOS (Live Orders Active)</p>
+                    <p className="text-[11px] text-slate-600 font-medium pt-0.5">Chrome on macOS (Live Orders Active)</p>
                     <div className="flex items-center gap-2 pt-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-stone-300 bg-black/50 px-2 py-0.5 rounded-md border border-white/[0.08]">
-                        <Globe className="w-3 h-3 text-stone-400" />
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-700 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                        <Globe className="w-3 h-3 text-slate-400" />
                         49.37.182.41
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-stone-300 bg-black/50 px-2 py-0.5 rounded-md border border-white/[0.08]">
-                        <MapPin className="w-3 h-3 text-amber-400" />
+                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-700 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                        <MapPin className="w-3 h-3 text-amber-500" />
                         Bengaluru, IN
                       </span>
                     </div>
@@ -459,17 +455,17 @@ export const SecuritySection: React.FC = () => {
               </div>
 
               {/* Shift Sign-in */}
-              <div className="p-3 rounded-2xl bg-white/[0.025] border border-white/[0.07] flex items-center justify-between gap-3">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-stone-100 block">Last Shift Login</span>
-                    <p className="text-[11px] text-stone-400 truncate">{formatDate(profile.lastLogin)}</p>
+                    <span className="text-xs font-semibold text-slate-800 block">Last Shift Login</span>
+                    <p className="text-[11px] text-slate-500 truncate">{formatDate(profile.lastLogin)}</p>
                   </div>
                 </div>
-                <span className="px-2 py-1 rounded-md text-[10px] font-semibold text-stone-300 bg-white/[0.04] border border-white/[0.08] shrink-0">
+                <span className="px-2 py-1 rounded-md text-[10px] font-semibold text-slate-700 bg-white border border-slate-200 shadow-2xs shrink-0">
                   Session Valid
                 </span>
               </div>

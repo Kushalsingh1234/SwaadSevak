@@ -338,8 +338,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   type="button"
                   onClick={() => {
                     setIsProfileMenuOpen(false);
-                    setCurrentTab('profile');
-                    setProfileTab('account');
+                    onLogout();
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
                 >

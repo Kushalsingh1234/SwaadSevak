@@ -4,9 +4,7 @@ export type ProfileTabId =
   | 'restaurant'
   | 'subscription'
   | 'history'
-  | 'security'
-  | 'notifications'
-  | 'account';
+  | 'security';
 
 export interface UserProfileData {
   fullName: string;

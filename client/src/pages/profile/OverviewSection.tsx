@@ -3,6 +3,7 @@ import {
   User,
   Store,
   CreditCard,
+  History,
   ShieldCheck,
   Calendar,
   Sparkles,
@@ -324,12 +325,12 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </button>
 
           <button
-            onClick={() => onNavigateTab('notifications')}
+            onClick={() => onNavigateTab('history')}
             className="p-4 rounded-2xl bg-white hover:bg-orange-50/40 border border-slate-200/90 hover:border-orange-300 text-left transition-all cursor-pointer group shadow-xs hover:shadow-sm"
           >
-            <Sparkles className="w-5 h-5 text-orange-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Notification Alerts</h4>
-            <p className="text-xs text-slate-500 mt-0.5">Expiry reminders &amp; payment confirmations</p>
+            <History className="w-5 h-5 text-orange-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Subscription History</h4>
+            <p className="text-xs text-slate-500 mt-0.5">Past invoices, plan upgrades &amp; GST tax receipts</p>
           </button>
         </div>
       </div>

@@ -8,8 +8,6 @@ import {
   CreditCard,
   History,
   ShieldCheck,
-  Bell,
-  Sliders,
   LogOut,
   ArrowLeft,
   ChevronRight,
@@ -38,8 +36,6 @@ import { MySubscriptionSection } from './MySubscriptionSection';
 import { RenewSubscriptionModal } from './RenewSubscriptionModal';
 import { SubscriptionHistorySection } from './SubscriptionHistorySection';
 import { SecuritySection } from './SecuritySection';
-import { NotificationPreferencesSection } from './NotificationPreferencesSection';
-import { AccountSettingsSection } from './AccountSettingsSection';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import { DeleteAccountModal } from './DeleteAccountModal';
 
@@ -110,20 +106,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
       label: 'Security & Password',
       shortLabel: 'Security',
       icon: ShieldCheck,
-      badge: null,
-    },
-    {
-      id: 'notifications' as ProfileTabId,
-      label: 'Notifications',
-      shortLabel: 'Notifications',
-      icon: Bell,
-      badge: null,
-    },
-    {
-      id: 'account' as ProfileTabId,
-      label: 'Account Settings',
-      shortLabel: 'Account',
-      icon: Sliders,
       badge: null,
     },
   ];
@@ -341,13 +323,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
             {activeTab === 'subscription' && <MySubscriptionSection />}
             {activeTab === 'history' && <SubscriptionHistorySection />}
             {activeTab === 'security' && <SecuritySection />}
-            {activeTab === 'notifications' && <NotificationPreferencesSection />}
-            {activeTab === 'account' && (
-              <AccountSettingsSection
-                onOpenLogoutModal={() => setIsLogoutModalOpen(true)}
-                onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
-              />
-            )}
           </main>
         </div>
       </div>

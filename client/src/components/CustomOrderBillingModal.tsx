@@ -176,29 +176,29 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 md:p-6 overflow-y-auto no-scrollbar animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 sm:p-6 md:p-8 overflow-y-auto no-scrollbar animate-fade-in"
     >
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-stone-200 flex flex-col max-h-[85vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         
         {/* Clean, Modern Header with Generous Padding */}
-        <div className="px-6 py-4.5 bg-white border-b border-stone-200 flex items-center justify-between shrink-0 rounded-t-2xl">
+        <div className="px-6 py-5 bg-white border-b border-stone-200 flex items-center justify-between shrink-0 rounded-t-3xl">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-xs">
               <Receipt className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">Finalize Custom Order Bill</h3>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100/80 text-emerald-800 border border-emerald-200/80">
                   Bill & Settle
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-slate-700">{order.orderNumber}</span>
+              <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                <span className="font-semibold text-slate-700 bg-stone-100 px-2 py-0.5 rounded-md text-[11px]">{order.orderNumber}</span>
                 <span>•</span>
-                <span>{order.tableNumber || 'Takeaway'}</span>
+                <span className="text-slate-600 bg-stone-100 px-2 py-0.5 rounded-md text-[11px]">{order.tableNumber || 'Takeaway'}</span>
                 <span>•</span>
-                <span className="text-amber-800 font-semibold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60 text-[10px]">
+                <span className="text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80 text-[10px]">
                   Custom Order
                 </span>
               </p>
@@ -208,7 +208,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-stone-100 transition-colors disabled:opacity-40"
+            className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-stone-100 transition-colors disabled:opacity-40 cursor-pointer"
             title="Close Modal"
           >
             <X className="w-5 h-5" />
@@ -218,7 +218,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
         {/* Real-time Action Status Banner (Only visible when active action or error) */}
         {statusMessage && (
           <div
-            className={`mx-6 mt-4 p-3 rounded-xl border text-xs font-medium flex items-center gap-2 animate-fade-in ${
+            className={`mx-6 mt-4 p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2.5 animate-fade-in ${
               statusMessage.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                 : 'bg-rose-50 border-rose-200 text-rose-900'
@@ -237,9 +237,9 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
         <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
           
           {/* 1. Order Itemization Summary (Compact Card) */}
-          <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 space-y-2.5">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-2">
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <div className="p-4 rounded-2xl bg-stone-50/80 border border-stone-200/80 space-y-2.5">
+            <div className="flex items-center justify-between border-b border-stone-200/80 pb-2">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Utensils className="w-3.5 h-3.5 text-slate-500" />
                 Order Breakdown
               </span>
@@ -248,7 +248,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
               </span>
             </div>
 
-            <div className="divide-y divide-stone-100 max-h-32 overflow-y-auto pr-1 no-scrollbar">
+            <div className="divide-y divide-stone-200/50 max-h-32 overflow-y-auto pr-1 no-scrollbar">
               {order.items.map((item, idx) => (
                 <div key={idx} className="py-1.5 flex items-baseline justify-between text-xs">
                   <div>
@@ -266,7 +266,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
             </div>
 
             {/* Subtotal, Tax, Grand Total */}
-            <div className="pt-2 border-t border-stone-200 space-y-1 text-xs">
+            <div className="pt-2 border-t border-stone-200/80 space-y-1 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 tabular-nums">₹{subtotal.toFixed(2)}</span>
@@ -275,7 +275,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
                 <span>GST / Taxes ({gstTier})</span>
                 <span className="font-semibold text-slate-900 tabular-nums">₹{tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold text-slate-900 pt-1.5 border-t border-stone-200">
+              <div className="flex justify-between text-sm font-bold text-slate-900 pt-1.5 border-t border-stone-200/80">
                 <span>Grand Total</span>
                 <span className="text-base font-extrabold text-slate-900 tabular-nums">
                   ₹{grandTotal.toFixed(2)}
@@ -285,19 +285,19 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
           </div>
 
           {/* 2. Customer Information (Directory CRM Integration) */}
-          <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-3 shadow-xs">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-amber-600" />
                 <h4 className="text-xs font-bold text-slate-900">Customer Details</h4>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-amber-600" />
                 Auto-saved to Directory
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                   Customer Name:
@@ -309,7 +309,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
                     placeholder="e.g. Rahul Sharma"
                     value={customerName}
                     onChange={e => setCustomerName(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
                   />
                 </div>
               </div>
@@ -328,7 +328,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
                     placeholder="10-digit number"
                     value={customerPhone}
                     onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-11 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none tracking-wide"
+                    className="w-full pl-11 pr-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none tracking-wide transition-all"
                   />
                 </div>
               </div>
@@ -337,12 +337,13 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
             {/* Dynamic helper text for WhatsApp */}
             <p className="text-[11px] transition-colors">
               {hasValidPhone ? (
-                <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-700 font-semibold flex items-center gap-1.5 bg-emerald-50/80 px-2.5 py-1 rounded-lg border border-emerald-200/60">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   WhatsApp receipt enabled for +91 {cleanPhone}
                 </span>
               ) : (
-                <span className="text-slate-400">
+                <span className="text-slate-400 flex items-center gap-1.5 px-1">
+                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   Enter 10-digit WhatsApp number to enable sending digital PDF e-receipt.
                 </span>
               )}
@@ -350,17 +351,17 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
           </div>
 
           {/* 3. Payment Mode Selection */}
-          <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2.5 shadow-xs">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 space-y-3 shadow-xs">
             <label className="block text-xs font-bold text-slate-900">
               Payment Mode Chosen:
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => setPaymentMode('UPI')}
-                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-3 px-2 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMode === 'UPI'
-                    ? 'border-brand-500 bg-brand-50/50 text-brand-900 ring-2 ring-brand-400/20'
+                    ? 'border-brand-500 bg-brand-50/60 text-brand-900 ring-2 ring-brand-400/20 shadow-xs'
                     : 'border-stone-200 hover:border-stone-300 text-slate-700 hover:bg-stone-50'
                 }`}
               >
@@ -371,9 +372,9 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
               <button
                 type="button"
                 onClick={() => setPaymentMode('CASH')}
-                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-3 px-2 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMode === 'CASH'
-                    ? 'border-emerald-500 bg-emerald-50/50 text-emerald-900 ring-2 ring-emerald-400/20'
+                    ? 'border-emerald-500 bg-emerald-50/60 text-emerald-900 ring-2 ring-emerald-400/20 shadow-xs'
                     : 'border-stone-200 hover:border-stone-300 text-slate-700 hover:bg-stone-50'
                 }`}
               >
@@ -384,9 +385,9 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
               <button
                 type="button"
                 onClick={() => setPaymentMode('CARD')}
-                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-3 px-2 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMode === 'CARD'
-                    ? 'border-blue-500 bg-blue-50/50 text-blue-900 ring-2 ring-blue-400/20'
+                    ? 'border-blue-500 bg-blue-50/60 text-blue-900 ring-2 ring-blue-400/20 shadow-xs'
                     : 'border-stone-200 hover:border-stone-300 text-slate-700 hover:bg-stone-50'
                 }`}
               >
@@ -398,8 +399,8 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
         </div>
 
         {/* Action Footer */}
-        <div className="p-5 bg-stone-50 border-t border-stone-200 space-y-2.5 shrink-0 rounded-b-2xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="p-5 sm:p-6 bg-stone-50 border-t border-stone-200 space-y-3 shrink-0 rounded-b-3xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 1. Generate & Print Receipt (Always available) */}
             <button
               type="button"
@@ -442,7 +443,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
               type="button"
               onClick={() => handleFinalizeBill('SETTLE_ONLY')}
               disabled={isSubmitting}
-              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             >
               Mark Paid & Settle without Receipt
             </button>

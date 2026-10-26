@@ -2397,6 +2397,13 @@ class DatabaseStore {
       if (table) {
         table.status = 'AVAILABLE';
       }
+      if (order.additions && order.additions.length > 0) {
+        for (const add of order.additions) {
+          if (add.status === 'PENDING') {
+            add.status = 'ACCEPTED';
+          }
+        }
+      }
     }
 
     // For online aggregator orders, marking delivered also marks settled

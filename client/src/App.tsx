@@ -271,9 +271,10 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('swaad:unauthorized', handleUnauthorized);
   }, []);
 
-  // Calculate pending orders requiring attention
-  const pendingCount = orders.filter(o => o.status === 'PENDING').length;
-  const pendingAdditionsCount = orders.reduce((sum, o) => {
+  // Calculate pending orders requiring attention (only from active orders, not completed/delivered/rejected)
+  const activeOrders = orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED');
+  const pendingCount = activeOrders.filter(o => o.status === 'PENDING').length;
+  const pendingAdditionsCount = activeOrders.reduce((sum, o) => {
     return sum + (o.additions?.filter(a => a.status === 'PENDING').length || 0);
   }, 0);
   const totalNeedsAttentionCount = pendingCount + pendingAdditionsCount;

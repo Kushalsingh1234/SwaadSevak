@@ -383,10 +383,10 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         {/* Source Channels: All, Dine-In, Swiggy, Zomato */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0">
           {[
-            { id: 'ALL', label: 'All', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
-            { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
-            { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
-            { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED' && o.status !== 'REJECTED').length },
+            { id: 'ALL', label: 'All', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
+            { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
+            { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
+            { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
           ].map(tab => (
             <button
               key={tab.id}

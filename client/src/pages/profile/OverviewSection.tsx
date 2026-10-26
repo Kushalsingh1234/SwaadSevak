@@ -14,9 +14,24 @@ import {
   Phone,
   MapPin,
   ExternalLink,
+  UtensilsCrossed,
+  ChefHat,
+  Coffee,
+  Flame,
+  Crown,
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
 import { ProfileTabId } from '../../types/profile';
+
+const BRAND_SYMBOLS_MAP: Record<string, { icon: any; color: string }> = {
+  store: { icon: Store, color: 'from-amber-400 via-orange-500 to-amber-600' },
+  utensils: { icon: UtensilsCrossed, color: 'from-amber-400 via-yellow-500 to-amber-600' },
+  chef: { icon: ChefHat, color: 'from-rose-500 via-orange-500 to-amber-600' },
+  coffee: { icon: Coffee, color: 'from-amber-700 via-stone-700 to-amber-800' },
+  flame: { icon: Flame, color: 'from-red-500 via-orange-500 to-amber-600' },
+  crown: { icon: Crown, color: 'from-purple-600 via-indigo-600 to-amber-600' },
+  sparkles: { icon: Sparkles, color: 'from-emerald-500 via-teal-500 to-amber-600' },
+};
 
 interface OverviewSectionProps {
   onNavigateTab: (tab: ProfileTabId) => void;
@@ -76,48 +91,64 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Card: Profile Summary */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-50/60 via-white to-orange-50/60 border border-slate-200/90 p-6 sm:p-8 shadow-sm">
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 right-0 w-96 h-48 bg-gradient-to-bl from-orange-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
+      {/* Top Banner Card: Premium Golden Heritage Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF3DC] border border-amber-300/80 p-6 sm:p-8 shadow-[0_10px_35px_-8px_rgba(217,119,6,0.14)]">
+        {/* Top Gold Hairline Accent */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent pointer-events-none" />
+
+        {/* Golden Ambient Blur Glows */}
+        <div className="absolute -top-16 -right-16 w-72 h-72 bg-gradient-to-br from-amber-400/20 via-yellow-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-gradient-to-tr from-orange-400/15 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-4 sm:gap-5">
-            {/* Restaurant Emblem */}
-            <div className="relative shrink-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white font-black text-xl sm:text-2xl flex items-center justify-center shadow-md">
-                <Store className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white" title="Restaurant Active">
-                ✓
-              </div>
-            </div>
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* Restaurant Golden Emblem */}
+            {(() => {
+              const brandSym = BRAND_SYMBOLS_MAP[restaurantProfile.logoUrl || 'store'] || BRAND_SYMBOLS_MAP.store;
+              const BrandSymIcon = brandSym.icon;
+              return (
+                <div className="relative shrink-0">
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${brandSym.color} p-0.5 shadow-lg shadow-amber-500/25 ring-4 ring-amber-200/70`}>
+                    <div className="w-full h-full rounded-[14px] sm:rounded-[22px] bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 flex items-center justify-center text-white">
+                      <BrandSymIcon className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-sm" />
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-xs" title="Restaurant Active">
+                    ✓
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Name & Identity */}
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   {restaurantProfile.restaurantName || 'The Chai & Chaat Co.'}
                 </h2>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 border border-orange-200 text-orange-700">
-                  <Sparkles className="w-2.5 h-2.5" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 to-yellow-100/90 border border-amber-300 text-amber-900 shadow-2xs">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
                   RESTAURANT PROFILE
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Active Restaurant
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-mono">
-                Managed by @{profile.username} • {restaurantProfile.restaurantType || 'Café & Bistro'}
+              <p className="text-xs text-slate-600 font-medium">
+                Managed by <strong className="text-slate-800 font-semibold font-mono">@{profile.username}</strong> • <span className="text-amber-950 font-semibold">{restaurantProfile.restaurantType || 'Café & Bistro'}</span>
               </p>
-              <p className="text-xs text-slate-600 flex items-center gap-2 pt-0.5">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>{restaurantProfile.address || 'Indiranagar'}, {restaurantProfile.city || 'Bengaluru'}</span>
-                <span className="text-slate-300">•</span>
-                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>{restaurantProfile.phone || profile.phone}</span>
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 pt-0.5">
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>{restaurantProfile.address || 'Indiranagar'}, {restaurantProfile.city || 'Bengaluru'}</span>
+                </span>
+                <span className="text-amber-300 hidden sm:inline">•</span>
+                <span className="inline-flex items-center gap-1.5 font-mono">
+                  <Phone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>{restaurantProfile.phone || profile.phone}</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -125,11 +156,13 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           <div className="flex items-center gap-2.5 shrink-0 self-stretch lg:self-auto">
             <button
               onClick={() => onNavigateTab('restaurant')}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-orange-50 border border-orange-200 text-xs font-bold text-orange-700 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-white/95 hover:bg-amber-50/90 border border-amber-300 hover:border-amber-400 text-xs font-black text-amber-900 shadow-sm shadow-amber-500/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer group active:scale-[0.99]"
             >
-              <Store className="w-4 h-4 text-orange-500" />
+              <div className="w-6 h-6 rounded-lg bg-amber-100/90 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Store className="w-3.5 h-3.5 text-amber-700" />
+              </div>
               <span>Manage Restaurant Details</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>

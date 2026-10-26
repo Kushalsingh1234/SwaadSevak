@@ -15,10 +15,11 @@ import { trackEvent } from '../../lib/analytics';
 
 interface HeroSectionProps {
   onOpenLogin?: () => void;
+  onGetStarted?: () => void;
   isLoggedIn?: boolean;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedIn = false }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, onGetStarted, isLoggedIn = false }) => {
   return (
     <section
       className="relative min-h-[100dvh] xl:min-h-screen flex flex-col justify-between font-sans overflow-hidden px-4 sm:px-8 lg:px-12 xl:px-16 pt-24 sm:pt-28 pb-6 sm:pb-8 text-left"
@@ -67,26 +68,65 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenLogin, isLoggedI
               </p>
             </div>
 
-            {/* CTA Button: Platform Login / Go to Dashboard */}
+            {/* CTA Buttons: Get Started & Platform Login / Go to Dashboard */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
-              <a
-                href={isLoggedIn ? "#dashboard" : "#login"}
-                data-event={isLoggedIn ? "hero_dashboard_click" : "hero_platform_login_click"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  trackEvent(isLoggedIn ? 'hero_dashboard_click' : 'hero_platform_login_click');
-                  if (onOpenLogin) {
-                    onOpenLogin();
-                  } else {
-                    window.location.hash = isLoggedIn ? 'dashboard' : 'login';
-                  }
-                }}
-                className="group relative inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 rounded-2xl font-extrabold text-base bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 text-stone-950 shadow-[0_0_30px_rgba(242,92,5,0.4)] hover:shadow-[0_0_40px_rgba(242,92,5,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer overflow-hidden"
-              >
-                <LogIn className="w-5 h-5 text-stone-950 shrink-0" />
-                <span className="tracking-wide">{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
-                <ArrowRight className="w-5 h-5 text-stone-950 shrink-0 transition-transform group-hover:translate-x-1" />
-              </a>
+              {isLoggedIn ? (
+                <a
+                  href="#dashboard"
+                  data-event="hero_dashboard_click"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    trackEvent('hero_dashboard_click');
+                    if (onOpenLogin) {
+                      onOpenLogin();
+                    } else {
+                      window.location.hash = 'dashboard';
+                    }
+                  }}
+                  className="group relative inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 rounded-2xl font-extrabold text-base bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 text-stone-950 shadow-[0_0_30px_rgba(242,92,5,0.4)] hover:shadow-[0_0_40px_rgba(242,92,5,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer overflow-hidden"
+                >
+                  <span className="tracking-wide">Go to Dashboard</span>
+                  <ArrowRight className="w-5 h-5 text-stone-950 shrink-0 transition-transform group-hover:translate-x-1" />
+                </a>
+              ) : (
+                <>
+                  <a
+                    href="#signup"
+                    data-event="hero_get_started_click"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      trackEvent('hero_get_started_click');
+                      if (onGetStarted) {
+                        onGetStarted();
+                      } else {
+                        window.location.hash = 'signup';
+                      }
+                    }}
+                    className="group relative inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 rounded-2xl font-black text-base bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 text-stone-950 shadow-[0_0_30px_rgba(242,92,5,0.4)] hover:shadow-[0_0_40px_rgba(242,92,5,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer overflow-hidden"
+                  >
+                    <span className="tracking-wide">Get Started</span>
+                    <ArrowRight className="w-5 h-5 text-stone-950 shrink-0 transition-transform group-hover:translate-x-1" />
+                  </a>
+
+                  <a
+                    href="#login"
+                    data-event="hero_platform_login_click"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      trackEvent('hero_platform_login_click');
+                      if (onOpenLogin) {
+                        onOpenLogin();
+                      } else {
+                        window.location.hash = 'login';
+                      }
+                    }}
+                    className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-4 rounded-2xl font-bold text-base text-stone-200 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.14] transition-all cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4 text-orange-400 shrink-0" />
+                    <span>Platform Login</span>
+                  </a>
+                </>
+              )}
             </div>
 
             {/* 3 Trust Points Row as Glassmorphic Badges */}

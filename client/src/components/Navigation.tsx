@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -13,10 +13,18 @@ import {
   Layers,
   Sparkles,
   Coins,
-  Settings
+  Settings,
+  User,
+  ChevronDown,
+  ChevronRight,
+  CreditCard,
+  ShieldCheck,
+  Coffee,
 } from 'lucide-react';
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
+import { useProfile } from '../context/ProfileContext';
+import { CafeOutletSwitcherModal } from './CafeOutletSwitcherModal';
 
 interface NavigationProps {
   currentTab: string;
@@ -36,6 +44,40 @@ export const Navigation: React.FC<NavigationProps> = ({
   pendingOrdersCount = 0,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  const {
+    profile,
+    subscription,
+    setActiveTab: setProfileTab,
+    outlets,
+    activeOutlet,
+    isOutletSwitcherOpen,
+    setIsOutletSwitcherOpen,
+  } = useProfile();
+
+  const displayName = activeOutlet?.name || profile?.fullName || 'The Chai & Chaat Co.';
+  
+  const getInitials = (name: string) => {
+    if (!name) return 'SS';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isProfileMenuOpen]);
 
   // Grouped Navigation per brief: Operations vs Business
   const operationItems = [
@@ -126,13 +168,32 @@ export const Navigation: React.FC<NavigationProps> = ({
             </span>
           </div>
 
-          <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between">
-            <div className="overflow-hidden pr-1">
-              <p className="text-xs font-semibold text-slate-200 truncate">{restaurant?.name || 'My Restaurant'}</p>
-              <p className="text-[10px] text-slate-400 truncate">{restaurant?.city || 'Dining Room'}</p>
+          <button
+            type="button"
+            onClick={() => setIsOutletSwitcherOpen(true)}
+            className="w-full mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-white/[0.06] transition-all text-left cursor-pointer group"
+            title="Switch Cafe Outlet / Branch"
+          >
+            <div className="flex items-center gap-2.5 overflow-hidden pr-1">
+              <div className="w-8 h-8 rounded-xl overflow-hidden border border-orange-500/30 shrink-0 bg-[#251A12] flex items-center justify-center">
+                {activeOutlet.logoUrl ? (
+                  <img src={activeOutlet.logoUrl} alt={activeOutlet.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Coffee className="w-4 h-4 text-orange-400" />
+                )}
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-slate-200 truncate group-hover:text-orange-400 transition-colors">
+                  {activeOutlet.name}
+                </p>
+                <p className="text-[10px] text-stone-400 truncate flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {activeOutlet.area} • Switch Branch
+                </p>
+              </div>
             </div>
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="System Online" />
-          </div>
+            <ChevronDown className="w-3.5 h-3.5 text-stone-400 group-hover:text-white transition-transform shrink-0" />
+          </button>
         </div>
 
         {/* Grouped Navigation Links */}
@@ -221,20 +282,165 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
         </div>
 
-        {/* Manager Footer: Pinned to bottom, static */}
-        <div className="p-3 border-t border-white/[0.08] bg-[#140C1D] shrink-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-slate-200 truncate">{manager?.username || 'Shift Manager'}</p>
-              <p className="text-[10px] text-slate-400">Shift Active</p>
-            </div>
-            <button
-              onClick={onLogout}
-              title="Sign Out"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-red-400 hover:bg-white/[0.06] transition-colors shrink-0"
+        {/* Professional Profile Button: Replaced the old Logout Button */}
+        <div ref={profileMenuRef} className="relative p-2.5 border-t border-white/[0.08] bg-[#140C1D] shrink-0">
+          {/* Dropdown Menu (pops up above footer) */}
+          {isProfileMenuOpen && (
+            <div 
+              className="absolute bottom-full left-2 right-2 mb-2 bg-[#1C120C] text-stone-200 border border-white/[0.12] rounded-2xl p-2 shadow-2xl space-y-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150"
+              onClick={(e) => e.stopPropagation()}
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-white truncate">{activeOutlet.name}</p>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    Online
+                  </span>
+                </div>
+                <p className="text-[10px] text-stone-400 truncate">{activeOutlet.area}, {activeOutlet.city}</p>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] font-semibold text-emerald-400">
+                    {subscription?.remainingDays || 180} days remaining
+                  </span>
+                </div>
+              </div>
+
+              {/* Cafe Branch Switcher in Menu */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setIsOutletSwitcherOpen(true);
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-orange-500/15 border border-orange-500/30 text-orange-300 hover:bg-orange-500/25 transition-colors cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Store className="w-4 h-4 text-orange-400 shrink-0" />
+                  <span className="truncate">Switch Café Outlet...</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/25 text-orange-400">
+                  {outlets.length} Branches
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentTab('profile');
+                  setProfileTab('overview');
+                  setIsProfileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-300 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+              >
+                <User className="w-4 h-4 text-orange-400" />
+                <span>Profile & Account</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentTab('profile');
+                  setProfileTab('subscription');
+                  setIsProfileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-stone-300 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5">
+                  <CreditCard className="w-4 h-4 text-amber-400" />
+                  <span>My Subscription</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/25">
+                  {subscription?.status || 'ACTIVE'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentTab('profile');
+                  setProfileTab('security');
+                  setIsProfileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-300 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+              >
+                <ShieldCheck className="w-4 h-4 text-blue-400" />
+                <span>Security & Password</span>
+              </button>
+
+              <div className="pt-1 border-t border-white/[0.06] mt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    setCurrentTab('profile');
+                    setProfileTab('account');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out / Log Out...</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Profile button trigger */}
+          <div
+            className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all ${
+              currentTab === 'profile'
+                ? 'bg-orange-500/15 border-orange-500/40 text-white shadow-sm'
+                : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.15] text-stone-200'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentTab('profile');
+                setIsProfileMenuOpen(false);
+              }}
+              className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer group"
+              title="Open Profile & Account Dashboard"
+            >
+              <div className="relative shrink-0">
+                {activeOutlet.logoUrl ? (
+                  <img
+                    src={activeOutlet.logoUrl}
+                    alt={activeOutlet.name}
+                    className="w-8 h-8 rounded-lg object-cover border border-orange-500/40 shadow-xs"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                    <Coffee className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-[#140C1D]" />
+              </div>
+              <div className="text-left overflow-hidden min-w-0">
+                <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition-colors">
+                  {activeOutlet.name}
+                </p>
+                <p className="text-[10px] text-stone-400 truncate">
+                  {activeOutlet.area} • {subscription?.remainingDays || 180}d
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsProfileMenuOpen(prev => !prev);
+              }}
+              className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0 ml-1"
+              title="Toggle Quick Menu"
+              aria-label="Toggle quick menu"
+            >
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  isProfileMenuOpen ? 'rotate-180 text-orange-400' : ''
+                }`}
+              />
             </button>
           </div>
         </div>
@@ -257,12 +463,29 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         <div className="flex items-center gap-1.5">
           <button
-            onClick={onLogout}
-            title="Sign Out"
-            className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-white/[0.06] active:scale-95 transition-all"
-            aria-label="Sign out"
+            type="button"
+            onClick={() => setCurrentTab('profile')}
+            title="Profile & Account Management"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all active:scale-95 cursor-pointer ${
+              currentTab === 'profile'
+                ? 'bg-orange-500/20 border-orange-500/40 text-white'
+                : 'bg-white/[0.05] border-white/[0.08] text-slate-300 hover:text-white'
+            }`}
+            aria-label="Profile and account"
           >
-            <LogOut className="w-4 h-4" />
+            {activeOutlet.logoUrl ? (
+              <img
+                src={activeOutlet.logoUrl}
+                alt={activeOutlet.name}
+                className="w-5 h-5 rounded-md object-cover border border-orange-500/40"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-[10px]">
+                <Coffee className="w-3.5 h-3.5" />
+              </div>
+            )}
+            <span className="text-xs font-semibold max-w-[80px] truncate hidden xs:inline">{activeOutlet.name}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -368,14 +591,19 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs text-slate-300 font-medium truncate">{manager?.username || 'Shift Manager'}</span>
+                <span className="text-xs text-slate-300 font-medium truncate">{displayName}</span>
               </div>
               <button
-                onClick={onLogout}
-                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 font-semibold py-1.5 px-3 rounded-lg bg-red-500/10 border border-red-500/20 active:scale-95 transition-all"
+                type="button"
+                onClick={() => {
+                  setCurrentTab('profile');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 font-semibold py-1.5 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition-all cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
+                <User className="w-3.5 h-3.5" />
+                <span>My Profile</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -414,6 +642,12 @@ export const Navigation: React.FC<NavigationProps> = ({
           );
         })}
       </nav>
+
+      {/* Global Cafe Outlet Switcher Modal */}
+      <CafeOutletSwitcherModal
+        isOpen={isOutletSwitcherOpen}
+        onClose={() => setIsOutletSwitcherOpen(false)}
+      />
     </>
   );
 };

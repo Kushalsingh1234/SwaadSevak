@@ -15,7 +15,13 @@ import { Footer } from './components/layout/Footer';
 import { CookieBanner } from './components/ui/CookieBanner';
 
 // Platform Pages & Components
-import { LoginPage } from './pages/LoginPage';
+import { AuthOnboardingProvider } from './context/AuthOnboardingContext';
+import { LoginPage } from './pages/auth/LoginPage';
+import { SignupPage } from './pages/auth/SignupPage';
+import { CreateAccountPage } from './pages/auth/CreateAccountPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { SubscriptionPlansPage } from './pages/subscription/SubscriptionPlansPage';
+import { RestaurantOnboardingPage } from './pages/onboarding/RestaurantOnboardingPage';
 import { RegisterOnboardingPage } from './pages/RegisterOnboardingPage';
 import { WebsiteServicePage } from './pages/WebsiteServicePage';
 import { DashboardOverviewPage } from './pages/DashboardOverviewPage';
@@ -33,12 +39,14 @@ import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { FeatureDetailPage } from './pages/FeatureDetailPage';
 import { Navigation } from './components/Navigation';
 import { AddDishModal } from './components/AddDishModal';
+import { ProfilePage } from './pages/profile/ProfilePage';
+import { ProfileProvider } from './context/ProfileContext';
 import { api } from './services/api';
 import { getSocket, joinRestaurantRoom } from './services/socket';
 import { soundManager } from './utils/sound';
 import { Restaurant, Manager, Order, TableItem, MenuCategory, MenuItem, Bill } from './types';
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // Check if current URL is a diner QR scan: /menu/:slug/:token
   const pathname = window.location.pathname;
   const matchDinerRoute = pathname.match(/^\/menu\/([^\/]+)\/([^\/]+)/);
@@ -67,13 +75,34 @@ export const App: React.FC = () => {
     return 'qr-ordering';
   });
 
-  const [view, setView] = useState<'landing' | 'login' | 'register' | 'dashboard' | 'website-inquiry' | 'feature-detail'>(() => {
+  const [view, setView] = useState<
+    | 'landing'
+    | 'login'
+    | 'signup'
+    | 'create-account'
+    | 'forgot-password'
+    | 'reset-password'
+    | 'subscription-plans'
+    | 'onboarding'
+    | 'register'
+    | 'dashboard'
+    | 'website-inquiry'
+    | 'feature-detail'
+  >(() => {
     const hasToken = !!localStorage.getItem('swaad_token');
     const hash = window.location.hash.toLowerCase();
 
     // Specific feature detail or website inquiry views
     if (hash === '#website-inquiry' || hash === '#website-service' || hash === '#website') return 'website-inquiry';
     if (hash.startsWith('#feature-') || hash.startsWith('#features/')) return 'feature-detail';
+
+    // Explicit auth & onboarding routes
+    if (hash === '#signup') return 'signup';
+    if (hash === '#create-account') return 'create-account';
+    if (hash === '#forgot-password') return 'forgot-password';
+    if (hash === '#reset-password') return 'reset-password';
+    if (hash === '#subscription-plans' || hash === '#plans' || hash === '#pricing') return 'subscription-plans';
+    if (hash === '#onboarding') return 'onboarding';
 
     // If authenticated:
     if (hasToken) {
@@ -92,7 +121,11 @@ export const App: React.FC = () => {
   });
 
   // Dashboard state
-  const [currentTab, setCurrentTab] = useState('orders');
+  const [currentTab, setCurrentTab] = useState(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#profile') return 'profile';
+    return 'orders';
+  });
   const [restaurant, setRestaurant] = useState<Restaurant | null>(() => {
     const saved = localStorage.getItem('swaad_restaurant');
     return saved ? JSON.parse(saved) : null;
@@ -121,8 +154,8 @@ export const App: React.FC = () => {
     const initialHash = window.location.hash.toLowerCase();
     const hasToken = !!localStorage.getItem('swaad_token');
 
-    // If already logged in and visiting without a hash or on auth hashes, ensure URL points to #dashboard
-    if (hasToken && (initialHash === '' || initialHash === '#login' || initialHash === '#register')) {
+    // If already logged in and visiting without a hash or on default login hash, ensure URL points to #dashboard
+    if (hasToken && (initialHash === '' || initialHash === '#login')) {
       window.location.hash = 'dashboard';
     }
 
@@ -136,21 +169,38 @@ export const App: React.FC = () => {
         const featId = currentHash.startsWith('#feature-') ? currentHash.replace('#feature-', '') : currentHash.replace('#features/', '');
         setActiveFeatureId(featId);
         setView('feature-detail');
+      } else if (currentHash === '#signup') {
+        setView('signup');
+      } else if (currentHash === '#create-account') {
+        setView('create-account');
+      } else if (currentHash === '#forgot-password') {
+        setView('forgot-password');
+      } else if (currentHash === '#reset-password') {
+        setView('reset-password');
+      } else if (currentHash === '#subscription-plans' || currentHash === '#plans' || currentHash === '#pricing') {
+        setView('subscription-plans');
+      } else if (currentHash === '#onboarding') {
+        setView('onboarding');
+      } else if (currentHash === '#login') {
+        setView('login');
+      } else if (currentHash === '#register') {
+        setView('register');
+      } else if (currentHash === '#profile') {
+        if (currentHasToken) {
+          setView('dashboard');
+          setCurrentTab('profile');
+        } else {
+          setView('login');
+          window.location.hash = 'login';
+        }
       } else if (currentHasToken) {
         if (isMarketingHash(currentHash)) {
           setView('landing');
-        } else if (currentHash === '#login' || currentHash === '#register') {
-          setView('dashboard');
-          window.location.hash = 'dashboard';
         } else {
           setView('dashboard');
         }
       } else {
-        if (currentHash === '#login') {
-          setView('login');
-        } else if (currentHash === '#register') {
-          setView('register');
-        } else if (currentHash === '#dashboard') {
+        if (currentHash === '#dashboard') {
           setView('login');
           window.location.hash = 'login';
         } else {
@@ -314,9 +364,108 @@ export const App: React.FC = () => {
     return (
       <LoginPage
         onLoginSuccess={handleLoginSuccess}
-        onGoToRegister={() => {
-          setView('register');
-          window.location.hash = 'register';
+        onGoToSignup={() => {
+          setView('signup');
+          window.location.hash = 'signup';
+        }}
+        onGoToForgotPassword={() => {
+          setView('forgot-password');
+          window.location.hash = 'forgot-password';
+        }}
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = 'landing';
+        }}
+      />
+    );
+  }
+
+  // View: Signup Page (Google Registration)
+  if (view === 'signup') {
+    return (
+      <SignupPage
+        onGoogleSuccess={() => {
+          setView('create-account');
+          window.location.hash = 'create-account';
+        }}
+        onGoToLogin={() => {
+          setView('login');
+          window.location.hash = 'login';
+        }}
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = 'landing';
+        }}
+      />
+    );
+  }
+
+  // View: Create Username & Password Page
+  if (view === 'create-account') {
+    return (
+      <CreateAccountPage
+        onAccountCreated={() => {
+          setView('subscription-plans');
+          window.location.hash = 'subscription-plans';
+        }}
+        onBackToSignup={() => {
+          setView('signup');
+          window.location.hash = 'signup';
+        }}
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = 'landing';
+        }}
+      />
+    );
+  }
+
+  // View: Forgot Password & Reset Flow
+  if (view === 'forgot-password' || view === 'reset-password') {
+    return (
+      <ForgotPasswordPage
+        onGoToLogin={() => {
+          setView('login');
+          window.location.hash = 'login';
+        }}
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = 'landing';
+        }}
+      />
+    );
+  }
+
+  // View: Subscription Plans Page
+  if (view === 'subscription-plans') {
+    return (
+      <SubscriptionPlansPage
+        onPlanConfirmed={() => {
+          setView('onboarding');
+          window.location.hash = 'onboarding';
+        }}
+        onBackToLanding={() => {
+          setView('landing');
+          window.location.hash = 'landing';
+        }}
+      />
+    );
+  }
+
+  // View: Restaurant Onboarding Page
+  if (view === 'onboarding') {
+    return (
+      <RestaurantOnboardingPage
+        onComplete={(createdRest) => {
+          handleLoginSuccess({
+            token: localStorage.getItem('swaad_token') || 'token_new',
+            restaurant: createdRest || JSON.parse(localStorage.getItem('swaad_restaurant') || '{}'),
+            manager: JSON.parse(localStorage.getItem('swaad_manager') || '{}'),
+          });
+        }}
+        onBackToPlans={() => {
+          setView('subscription-plans');
+          window.location.hash = 'subscription-plans';
         }}
         onBackToLanding={() => {
           setView('landing');
@@ -389,10 +538,12 @@ export const App: React.FC = () => {
           pendingOrdersCount={totalNeedsAttentionCount}
         />
 
-        <main className={`flex-1 min-w-0 pt-14 lg:pt-4 ${
+        <main className={`flex-1 min-w-0 ${
           currentTab === 'orders'
-            ? 'p-2 sm:p-3.5 lg:p-4 lg:pt-3 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
-            : 'p-3.5 sm:p-5 lg:p-6 lg:pt-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
+            ? 'pt-14 lg:pt-4 p-2 sm:p-3.5 lg:p-4 lg:pt-3 pb-24 sm:pb-28 lg:pb-4 lg:h-full lg:overflow-hidden flex flex-col w-full'
+            : currentTab === 'profile'
+            ? 'pt-14 lg:pt-0 p-0 w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto bg-[#110A06]'
+            : 'pt-14 lg:pt-4 p-3.5 sm:p-5 lg:p-6 lg:pt-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28 lg:pb-8 lg:h-full lg:overflow-y-auto'
         }`}>
           {currentTab === 'dashboard' && (
             <DashboardOverviewPage
@@ -530,6 +681,13 @@ export const App: React.FC = () => {
               onNavigateTab={setCurrentTab}
             />
           )}
+
+          {currentTab === 'profile' && (
+            <ProfilePage
+              onLogout={handleLogout}
+              onNavigateTab={setCurrentTab}
+            />
+          )}
         </main>
 
         <AddDishModal
@@ -565,6 +723,10 @@ export const App: React.FC = () => {
             window.location.hash = 'login';
           }
         }}
+        onGetStarted={() => {
+          setView('signup');
+          window.location.hash = 'signup';
+        }}
         onOpenWebsiteService={() => {
           setView('website-inquiry');
           window.location.hash = 'website-inquiry';
@@ -585,6 +747,10 @@ export const App: React.FC = () => {
               setView('login');
               window.location.hash = 'login';
             }
+          }}
+          onGetStarted={() => {
+            setView('signup');
+            window.location.hash = 'signup';
           }}
         />
 
@@ -631,6 +797,16 @@ export const App: React.FC = () => {
       {/* Global Action Utilities */}
       <CookieBanner />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthOnboardingProvider>
+      <ProfileProvider>
+        <AppContent />
+      </ProfileProvider>
+    </AuthOnboardingProvider>
   );
 };
 

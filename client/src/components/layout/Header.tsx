@@ -6,11 +6,17 @@ import { trackEvent } from '../../lib/analytics';
 
 interface HeaderProps {
   onOpenLogin?: () => void;
+  onGetStarted?: () => void;
   onOpenWebsiteService?: () => void;
   isLoggedIn?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenLogin, onOpenWebsiteService, isLoggedIn = false }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onOpenLogin,
+  onGetStarted,
+  onOpenWebsiteService,
+  isLoggedIn = false,
+}) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -37,11 +43,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, onOpenWebsiteServic
   const handleLoginClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setMobileMenuOpen(false);
-    trackEvent(isLoggedIn ? 'header_dashboard_click' : 'header_get_started_click');
+    trackEvent('header_login_click');
     if (onOpenLogin) {
       onOpenLogin();
     } else {
       window.location.hash = isLoggedIn ? 'dashboard' : 'login';
+    }
+  };
+
+  const handleGetStartedClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    trackEvent(isLoggedIn ? 'header_dashboard_click' : 'header_get_started_click');
+    if (isLoggedIn) {
+      if (onOpenLogin) onOpenLogin();
+      else window.location.hash = 'dashboard';
+    } else {
+      if (onGetStarted) onGetStarted();
+      else window.location.hash = 'signup';
     }
   };
 
@@ -108,18 +127,41 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, onOpenWebsiteServic
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-4">
-          {/* Primary CTA Button: Platform Login or Go to Dashboard */}
-          <a
-            href={isLoggedIn ? "#dashboard" : "#login"}
-            data-event={isLoggedIn ? "header_dashboard_click" : "header_get_started_click"}
-            onClick={handleLoginClick}
-            className="btn-shine hidden sm:inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 rounded-xl font-extrabold text-base bg-orange-500 text-espresso hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring cursor-pointer"
-            style={{ color: '#1A0F0A' }}
-          >
-            <span>{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
-            <ArrowRight className="w-5 h-5" />
-          </a>
+        <div className="flex items-center gap-3">
+          {isLoggedIn ? (
+            <a
+              href="#dashboard"
+              data-event="header_dashboard_click"
+              onClick={handleGetStartedClick}
+              className="btn-shine hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-sm bg-orange-500 text-espresso hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring cursor-pointer"
+              style={{ color: '#1A0F0A' }}
+            >
+              <span>Go to Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          ) : (
+            <>
+              <a
+                href="#login"
+                data-event="header_login_click"
+                onClick={handleLoginClick}
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold text-sm text-stone-200 hover:text-white hover:bg-white/[0.08] transition-all duration-200 focus-ring cursor-pointer"
+              >
+                <span>Platform Login</span>
+              </a>
+
+              <a
+                href="#signup"
+                data-event="header_get_started_click"
+                onClick={handleGetStartedClick}
+                className="btn-shine hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-orange-500 to-amber-500 text-espresso hover:from-orange-600 hover:to-amber-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-glow-orange focus-ring cursor-pointer"
+                style={{ color: '#1A0F0A' }}
+              >
+                <span>Get Started</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </>
+          )}
 
           {/* Mobile Hamburger Toggle */}
           <button
@@ -180,15 +222,35 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogin, onOpenWebsiteServic
             </a>
           </nav>
 
-          <div className="pt-2">
-            <a
-              href={isLoggedIn ? "#dashboard" : "#login"}
-              onClick={handleLoginClick}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft cursor-pointer"
-            >
-              <span>{isLoggedIn ? 'Go to Dashboard' : 'Platform Login'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
+          <div className="pt-2 space-y-2">
+            {isLoggedIn ? (
+              <a
+                href="#dashboard"
+                onClick={handleGetStartedClick}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-orange-500 text-espresso hover:bg-orange-600 transition-colors shadow-soft cursor-pointer"
+              >
+                <span>Go to Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            ) : (
+              <>
+                <a
+                  href="#signup"
+                  onClick={handleGetStartedClick}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-orange-500 to-amber-500 text-espresso hover:from-orange-600 hover:to-amber-600 transition-colors shadow-soft cursor-pointer"
+                >
+                  <span>Get Started Free</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+                <a
+                  href="#login"
+                  onClick={handleLoginClick}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-stone-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <span>Platform Login</span>
+                </a>
+              </>
+            )}
           </div>
         </div>
       )}

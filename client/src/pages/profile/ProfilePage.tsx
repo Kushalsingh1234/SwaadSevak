@@ -27,7 +27,6 @@ import { NotificationPreferencesSection } from './NotificationPreferencesSection
 import { AccountSettingsSection } from './AccountSettingsSection';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import { DeleteAccountModal } from './DeleteAccountModal';
-import { CafeOutletSwitcherModal } from '../../components/CafeOutletSwitcherModal';
 
 interface ProfilePageProps {
   onLogout: () => void;
@@ -42,10 +41,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
     restaurantProfile,
     subscription,
     requestAccountDeletion,
-    outlets,
-    activeOutlet,
-    isOutletSwitcherOpen,
-    setIsOutletSwitcherOpen,
   } = useProfile();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -211,50 +206,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
           {/* Left Sidebar */}
           <aside className="hidden lg:block w-72 xl:w-80 shrink-0 sticky top-20 space-y-4">
-            {/* Active Cafe Outlet Switcher Card */}
+            {/* Restaurant Identity Card */}
             <div className="p-4 rounded-3xl bg-[#1C120C] border border-white/[0.08] shadow-xl space-y-3">
               <div className="flex items-center gap-3.5">
                 <div className="relative shrink-0">
-                  {activeOutlet.logoUrl ? (
-                    <img
-                      src={activeOutlet.logoUrl}
-                      alt={activeOutlet.name}
-                      className="w-12 h-12 rounded-2xl object-cover border border-orange-500/40 shadow-md"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
-                      <Store className="w-6 h-6 text-white" />
-                    </div>
-                  )}
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
+                    <Store className="w-6 h-6 text-white" />
+                  </div>
                   <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#1C120C]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold text-white truncate">{activeOutlet.name}</h3>
-                  <p className="text-[11px] text-stone-400 truncate">{activeOutlet.area}, {activeOutlet.city}</p>
+                  <h3 className="text-sm font-bold text-white truncate">{restaurantProfile.restaurantName || 'The Chai & Chaat Co.'}</h3>
+                  <p className="text-[11px] text-stone-400 truncate">{restaurantProfile.city || 'Bengaluru'}, {restaurantProfile.state || 'Karnataka'}</p>
                   <div className="mt-1 flex items-center gap-1.5">
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Active Outlet
+                      Operational
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Cafe Switcher Action */}
-              <button
-                type="button"
-                onClick={() => setIsOutletSwitcherOpen(true)}
-                className="w-full py-2 px-3 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-orange-300 font-bold text-xs flex items-center justify-between transition-all cursor-pointer group"
-                title="Switch to another cafe branch"
-              >
-                <div className="flex items-center gap-2">
-                  <Store className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Switch Café Branch</span>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-400 font-bold group-hover:translate-x-0.5 transition-transform">
-                  {outlets.length} Outlets ❯
-                </span>
-              </button>
             </div>
 
             {/* Sidebar Navigation */}
@@ -377,10 +348,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
         onClose={() => setIsRenewModalOpen(false)}
       />
 
-      <CafeOutletSwitcherModal
-        isOpen={isOutletSwitcherOpen}
-        onClose={() => setIsOutletSwitcherOpen(false)}
-      />
     </div>
   );
 };

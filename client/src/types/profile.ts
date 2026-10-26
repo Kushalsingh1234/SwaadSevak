@@ -87,18 +87,3 @@ export interface NotificationPreferences {
   promotions: boolean;
 }
 
-export interface CafeOutlet {
-  id: string;
-  name: string;
-  branchName: string;
-  type: string;
-  city: string;
-  area: string;
-  status: 'ONLINE' | 'BUSY' | 'CLOSING_SOON';
-  logoUrl?: string;
-  phone: string;
-  ordersActive: number;
-  tablesCount: number;
-  fssaiNumber: string;
-}
-

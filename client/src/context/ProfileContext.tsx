@@ -7,7 +7,6 @@ import {
   NotificationPreferences,
   ProfileTabId,
   SubscriptionStatus,
-  CafeOutlet,
 } from '../types/profile';
 import { SUBSCRIPTION_PLANS } from '../config/subscriptionPlans';
 
@@ -59,13 +58,6 @@ interface ProfileContextType {
   
   // Account Management
   requestAccountDeletion: (confirmationText: string) => Promise<{ success: boolean; message?: string }>;
-
-  // Multi-Outlet Cafe Switcher
-  outlets: CafeOutlet[];
-  activeOutlet: CafeOutlet;
-  switchOutlet: (outletId: string) => void;
-  isOutletSwitcherOpen: boolean;
-  setIsOutletSwitcherOpen: (open: boolean) => void;
 }
 
 const STORAGE_KEYS = {
@@ -108,73 +100,10 @@ const computeSubscriptionMetrics = (startDateStr: string, expiryDateStr: string)
 
 export const DEFAULT_CAFE_LOGO = 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=200&auto=format&fit=crop&q=80';
 
-export const INITIAL_OUTLETS: CafeOutlet[] = [
-  {
-    id: 'outlet-1',
-    name: 'The Chai & Chaat Co.',
-    branchName: 'Koramangala 5th Block (Flagship Café)',
-    type: 'Café & Bistro',
-    city: 'Bengaluru',
-    area: 'Koramangala',
-    status: 'ONLINE',
-    phone: '+91 98765 43210',
-    ordersActive: 12,
-    tablesCount: 18,
-    fssaiNumber: '11223344000123',
-    logoUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'outlet-2',
-    name: 'The Chai & Chaat Co.',
-    branchName: 'Indiranagar 100ft Rd (Express Counter)',
-    type: 'QSR & Coffee Kiosk',
-    city: 'Bengaluru',
-    area: 'Indiranagar',
-    status: 'ONLINE',
-    phone: '+91 98765 43211',
-    ordersActive: 7,
-    tablesCount: 8,
-    fssaiNumber: '11223344000124',
-    logoUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'outlet-3',
-    name: 'The Chai & Chaat Co.',
-    branchName: 'Whitefield ITPL (Cloud Kitchen)',
-    type: 'Cloud Kitchen & Delivery',
-    city: 'Bengaluru',
-    area: 'Whitefield',
-    status: 'ONLINE',
-    phone: '+91 98765 43212',
-    ordersActive: 4,
-    tablesCount: 0,
-    fssaiNumber: '11223344000125',
-    logoUrl: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=200&auto=format&fit=crop&q=80',
-  },
-];
-
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ProfileTabId>('overview');
-
-  // Multi-Outlet Cafe State
-  const [outlets, setOutlets] = useState<CafeOutlet[]>(() => {
-    try {
-      const saved = localStorage.getItem('swaad_cafe_outlets');
-      return saved ? JSON.parse(saved) : INITIAL_OUTLETS;
-    } catch {
-      return INITIAL_OUTLETS;
-    }
-  });
-
-  const [activeOutletId, setActiveOutletId] = useState<string>(() => {
-    return localStorage.getItem('swaad_active_outlet') || 'outlet-1';
-  });
-
-  const [isOutletSwitcherOpen, setIsOutletSwitcherOpen] = useState(false);
-
-  const activeOutlet = outlets.find(o => o.id === activeOutletId) || outlets[0];
 
   // 1. User Personal Information
   const [profile, setProfile] = useState<UserProfileData>(() => {
@@ -560,38 +489,6 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
   };
 
-  // Switch Outlet
-  const switchOutlet = (outletId: string) => {
-    const target = outlets.find(o => o.id === outletId);
-    if (!target) return;
-
-    setActiveOutletId(outletId);
-    localStorage.setItem('swaad_active_outlet', outletId);
-
-    // Update restaurantProfile to reflect switched branch
-    setRestaurantProfile(prev => ({
-      ...prev,
-      restaurantName: target.name,
-      restaurantType: target.type,
-      city: target.city,
-      address: `${target.area}, ${target.city}`,
-      phone: target.phone,
-      fssaiNumber: target.fssaiNumber,
-      logoUrl: target.logoUrl || prev.logoUrl,
-    }));
-
-    // Update global restaurant in localStorage for POS sync
-    const currentRest = localStorage.getItem('swaad_restaurant');
-    if (currentRest) {
-      try {
-        const parsed = JSON.parse(currentRest);
-        parsed.name = `${target.name} (${target.area})`;
-        parsed.city = target.city;
-        localStorage.setItem('swaad_restaurant', JSON.stringify(parsed));
-      } catch {}
-    }
-  };
-
   return (
     <ProfileContext.Provider
       value={{
@@ -609,11 +506,6 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
         notifications,
         updateNotifications,
         requestAccountDeletion,
-        outlets,
-        activeOutlet,
-        switchOutlet,
-        isOutletSwitcherOpen,
-        setIsOutletSwitcherOpen,
       }}
     >
       {children}

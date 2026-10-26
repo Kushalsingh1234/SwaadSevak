@@ -24,7 +24,6 @@ import {
 import { Restaurant, Manager } from '../types';
 import { Logo } from './Logo';
 import { useProfile } from '../context/ProfileContext';
-import { CafeOutletSwitcherModal } from './CafeOutletSwitcherModal';
 
 interface NavigationProps {
   currentTab: string;
@@ -51,13 +50,9 @@ export const Navigation: React.FC<NavigationProps> = ({
     profile,
     subscription,
     setActiveTab: setProfileTab,
-    outlets,
-    activeOutlet,
-    isOutletSwitcherOpen,
-    setIsOutletSwitcherOpen,
   } = useProfile();
 
-  const displayName = activeOutlet?.name || profile?.fullName || 'The Chai & Chaat Co.';
+  const displayName = restaurant?.name || profile?.fullName || 'The Chai & Chaat Co.';
   
   const getInitials = (name: string) => {
     if (!name) return 'SS';
@@ -168,32 +163,20 @@ export const Navigation: React.FC<NavigationProps> = ({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsOutletSwitcherOpen(true)}
-            className="w-full mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-white/[0.06] transition-all text-left cursor-pointer group"
-            title="Switch Cafe Outlet / Branch"
-          >
-            <div className="flex items-center gap-2.5 overflow-hidden pr-1">
-              <div className="w-8 h-8 rounded-xl overflow-hidden border border-orange-500/30 shrink-0 bg-[#251A12] flex items-center justify-center">
-                {activeOutlet.logoUrl ? (
-                  <img src={activeOutlet.logoUrl} alt={activeOutlet.name} className="w-full h-full object-cover" />
-                ) : (
-                  <Coffee className="w-4 h-4 text-orange-400" />
-                )}
-              </div>
-              <div className="overflow-hidden">
-                <p className="text-xs font-bold text-slate-200 truncate group-hover:text-orange-400 transition-colors">
-                  {activeOutlet.name}
-                </p>
-                <p className="text-[10px] text-stone-400 truncate flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {activeOutlet.area} • Switch Branch
-                </p>
-              </div>
+          <div className="w-full mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center gap-2.5 p-1.5 -mx-1.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-xl overflow-hidden border border-orange-500/30 shrink-0 bg-[#251A12] flex items-center justify-center">
+              <Coffee className="w-4 h-4 text-orange-400" />
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-400 group-hover:text-white transition-transform shrink-0" />
-          </button>
+            <div className="overflow-hidden min-w-0">
+              <p className="text-xs font-bold text-slate-200 truncate">
+                {restaurant?.name || 'The Chai & Chaat Co.'}
+              </p>
+              <p className="text-[10px] text-stone-400 truncate flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {restaurant?.city || 'Bengaluru'} • Operational
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Grouped Navigation Links */}
@@ -292,12 +275,12 @@ export const Navigation: React.FC<NavigationProps> = ({
             >
               <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-white truncate">{activeOutlet.name}</p>
+                  <p className="text-xs font-bold text-white truncate">{displayName}</p>
                   <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                     Online
                   </span>
                 </div>
-                <p className="text-[10px] text-stone-400 truncate">{activeOutlet.area}, {activeOutlet.city}</p>
+                <p className="text-[10px] text-stone-400 truncate">{restaurant?.city || 'Bengaluru'}, {restaurant?.state || 'Karnataka'}</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[10px] font-semibold text-emerald-400">
@@ -305,24 +288,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                   </span>
                 </div>
               </div>
-
-              {/* Cafe Branch Switcher in Menu */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  setIsOutletSwitcherOpen(true);
-                }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-orange-500/15 border border-orange-500/30 text-orange-300 hover:bg-orange-500/25 transition-colors cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Store className="w-4 h-4 text-orange-400 shrink-0" />
-                  <span className="truncate">Switch Café Outlet...</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/25 text-orange-400">
-                  {outlets.length} Branches
-                </span>
-              </button>
 
               <button
                 type="button"
@@ -403,25 +368,17 @@ export const Navigation: React.FC<NavigationProps> = ({
               title="Open Profile & Account Dashboard"
             >
               <div className="relative shrink-0">
-                {activeOutlet.logoUrl ? (
-                  <img
-                    src={activeOutlet.logoUrl}
-                    alt={activeOutlet.name}
-                    className="w-8 h-8 rounded-lg object-cover border border-orange-500/40 shadow-xs"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
-                    <Coffee className="w-4 h-4 text-white" />
-                  </div>
-                )}
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                  <Coffee className="w-4 h-4 text-white" />
+                </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-[#140C1D]" />
               </div>
               <div className="text-left overflow-hidden min-w-0">
                 <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition-colors">
-                  {activeOutlet.name}
+                  {displayName}
                 </p>
                 <p className="text-[10px] text-stone-400 truncate">
-                  {activeOutlet.area} • {subscription?.remainingDays || 180}d
+                  {restaurant?.city || 'Operational'} • {subscription?.remainingDays || 180}d
                 </p>
               </div>
             </button>
@@ -473,18 +430,10 @@ export const Navigation: React.FC<NavigationProps> = ({
             }`}
             aria-label="Profile and account"
           >
-            {activeOutlet.logoUrl ? (
-              <img
-                src={activeOutlet.logoUrl}
-                alt={activeOutlet.name}
-                className="w-5 h-5 rounded-md object-cover border border-orange-500/40"
-              />
-            ) : (
-              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-[10px]">
-                <Coffee className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className="text-xs font-semibold max-w-[80px] truncate hidden xs:inline">{activeOutlet.name}</span>
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-[10px]">
+              <Coffee className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-xs font-semibold max-w-[80px] truncate hidden xs:inline">{displayName}</span>
             <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
           </button>
           <button
@@ -642,12 +591,6 @@ export const Navigation: React.FC<NavigationProps> = ({
           );
         })}
       </nav>
-
-      {/* Global Cafe Outlet Switcher Modal */}
-      <CafeOutletSwitcherModal
-        isOpen={isOutletSwitcherOpen}
-        onClose={() => setIsOutletSwitcherOpen(false)}
-      />
     </>
   );
 };

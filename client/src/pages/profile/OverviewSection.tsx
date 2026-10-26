@@ -27,7 +27,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   onNavigateTab,
   onOpenRenewModal,
 }) => {
-  const { profile, restaurantProfile, subscription, activeOutlet, setIsOutletSwitcherOpen } = useProfile();
+  const { profile, restaurantProfile, subscription } = useProfile();
 
   const getInitials = (name: string) => {
     return name
@@ -85,17 +85,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           <div className="flex items-center gap-4 sm:gap-5">
             {/* Café Logo / Outlet Emblem */}
             <div className="relative shrink-0">
-              {activeOutlet.logoUrl ? (
-                <img
-                  src={activeOutlet.logoUrl}
-                  alt={activeOutlet.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-orange-500/40 shadow-xl"
-                />
-              ) : (
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-stone-950 font-black text-xl sm:text-2xl flex items-center justify-center shadow-xl">
-                  <Store className="w-8 h-8 text-stone-950" />
-                </div>
-              )}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-stone-950 font-black text-xl sm:text-2xl flex items-center justify-center shadow-xl">
+                <Store className="w-8 h-8 text-stone-950" />
+              </div>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#1A0F0A] flex items-center justify-center text-[10px] text-white" title="Outlet Active Online">
                 ✓
               </div>
@@ -105,46 +97,39 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  {activeOutlet.name}
+                  {restaurantProfile.restaurantName || 'The Chai & Chaat Co.'}
                 </h2>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 border border-orange-500/30 text-orange-400">
                   <Sparkles className="w-2.5 h-2.5" />
-                  RESTAURANT OUTLET
+                  RESTAURANT PROFILE
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {activeOutlet.area} Branch
+                  Active Restaurant
                 </span>
               </div>
               <p className="text-xs text-stone-400 font-mono">
-                Managed by @{profile.username} • {activeOutlet.type}
+                Managed by @{profile.username} • {restaurantProfile.restaurantType || 'Café & Bistro'}
               </p>
               <p className="text-xs text-stone-300 flex items-center gap-2 pt-0.5">
                 <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                <span>{activeOutlet.area}, {activeOutlet.city}</span>
+                <span>{restaurantProfile.address || 'Indiranagar'}, {restaurantProfile.city || 'Bengaluru'}</span>
                 <span className="text-stone-500">•</span>
                 <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                <span>{activeOutlet.phone}</span>
+                <span>{restaurantProfile.phone || profile.phone}</span>
               </p>
             </div>
           </div>
 
-          {/* Action CTAs: Switch Cafe Branch + Edit Details */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 self-stretch lg:self-auto">
+          {/* Action CTA: Manage Details */}
+          <div className="flex items-center gap-2.5 shrink-0 self-stretch lg:self-auto">
             <button
-              type="button"
-              onClick={() => setIsOutletSwitcherOpen(true)}
+              onClick={() => onNavigateTab('restaurant')}
               className="px-4 py-2.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold text-orange-300 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-orange-500/10"
             >
               <Store className="w-4 h-4 text-orange-400" />
-              <span>Switch Café Branch</span>
+              <span>Manage Restaurant Details</span>
               <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigateTab('restaurant')}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.1] text-xs font-bold text-white transition-all cursor-pointer text-center"
-            >
-              Outlet Details
             </button>
           </div>
         </div>
@@ -178,35 +163,29 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </button>
         </div>
 
-        {/* Card 2: Restaurant Outlet */}
+        {/* Card 2: Restaurant Profile */}
         <div className="p-5 rounded-2xl bg-[#1C120C]/90 border border-white/[0.08] relative overflow-hidden shadow-lg flex flex-col justify-between">
           <div className="flex items-start justify-between">
-            <span className="text-xs font-semibold text-stone-400">Active Outlet Branch</span>
+            <span className="text-xs font-semibold text-stone-400">Restaurant Profile</span>
             <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
               <Store className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-lg font-black text-white truncate" title={activeOutlet.branchName}>
-              {activeOutlet.name}
+            <h3 className="text-lg font-black text-white truncate" title={restaurantProfile.restaurantName || 'The Chai & Chaat Co.'}>
+              {restaurantProfile.restaurantName || 'The Chai & Chaat Co.'}
             </h3>
             <p className="text-xs text-stone-400 mt-1 truncate">
-              {activeOutlet.area} • {activeOutlet.type}
+              {restaurantProfile.city || 'Bengaluru'} • {restaurantProfile.restaurantType || 'Café & Bistro'}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold">
             <button
-              onClick={() => setIsOutletSwitcherOpen(true)}
+              onClick={() => onNavigateTab('restaurant')}
               className="text-orange-400 hover:text-orange-300 flex items-center gap-1 cursor-pointer"
             >
-              <span>Switch Branch</span>
+              <span>View Restaurant Info</span>
               <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigateTab('restaurant')}
-              className="text-stone-400 hover:text-stone-200 cursor-pointer"
-            >
-              Outlet Info
             </button>
           </div>
         </div>

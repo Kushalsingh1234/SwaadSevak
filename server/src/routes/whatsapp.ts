@@ -152,8 +152,9 @@ router.post('/send-pdf-receipt', async (req: AuthenticatedRequest, res: Response
         messageId: result.messageId
       });
     } else {
-      return res.status(400).json({
+      return res.json({
         success: false,
+        notConnected: result.error?.toLowerCase().includes('not connected') || false,
         message: result.error || 'Failed to dispatch WhatsApp PDF e-receipt.'
       });
     }

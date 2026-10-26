@@ -306,42 +306,78 @@ export async function downloadInvoicePdf(
 /**
  * Generates the official invoice PDF and sends it directly as an attached document
  * to the customer's WhatsApp number.
+ * If the automated WhatsApp bot is not paired, it seamlessly downloads the PDF
+ * and opens WhatsApp Web with the customer's chat and pre-filled invoice message.
  */
 export async function sendInvoicePdfWhatsApp(
   order: Order,
   bill: Bill | null,
   restaurant: Restaurant | null,
   recipientPhone: string
-): Promise<{ success: boolean; message: string; error?: string }> {
+): Promise<{ success: boolean; message: string; isFallback?: boolean; error?: string }> {
   try {
-    if (!recipientPhone || !recipientPhone.trim()) {
-      return { success: false, message: 'Please provide a valid recipient phone number.' };
+    const rawDigits = recipientPhone.replace(/\D/g, '');
+    const cleanPhone = rawDigits.slice(-10);
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      return { success: false, message: 'Please provide a valid 10-digit WhatsApp number.' };
     }
 
-    const { safeFilename, base64 } = await generateInvoicePdfDoc(order, bill, restaurant);
+    const { pdf, safeFilename, base64 } = await generateInvoicePdfDoc(order, bill, restaurant);
     const invoiceNumber = bill?.billNumber || `INV-${order.orderNumber.replace('#', '')}`;
     const grandTotal = Math.round((bill?.grandTotal ?? order.total ?? 0) * 100) / 100;
 
-    const caption = `🧾 *Official Tax Invoice* • ${restaurant?.name || 'Swaad Sevak'}\n\n` +
+    const itemsSummary = order.items
+      .map(it => `• ${it.quantity}x ${it.name} - ₹${it.price * it.quantity}`)
+      .join('\n');
+
+    const caption =
+      `🧾 *TAX INVOICE & RECEIPT* • *${restaurant?.name || 'Swaad Sevak'}*\n\n` +
       `• *Invoice #:* ${invoiceNumber}\n` +
       `• *Table / Ref:* ${order.tableNumber || 'Dine-In'}\n` +
       `• *Amount Settled:* ₹${grandTotal.toFixed(2)}\n\n` +
-      `Thank you for visiting us! Your official e-receipt PDF is attached above.`;
+      `*Order Breakdown:*\n${itemsSummary}\n\n` +
+      `Thank you for visiting us! Your official e-receipt has been generated.`;
 
-    const res = await api.sendWhatsAppPdfReceipt({
-      recipientPhone: recipientPhone.trim(),
-      pdfBase64: base64,
-      fileName: safeFilename,
-      caption,
-      orderId: order.id
-    });
+    // 1. First attempt: automated direct background bot dispatch
+    try {
+      const res = await api.sendWhatsAppPdfReceipt({
+        recipientPhone: cleanPhone,
+        pdfBase64: base64,
+        fileName: safeFilename,
+        caption,
+        orderId: order.id
+      });
 
-    return res;
+      if (res && res.success) {
+        return {
+          success: true,
+          message: `✓ Official PDF receipt sent to WhatsApp (+91 ${cleanPhone})!`
+        };
+      }
+    } catch (botErr: any) {
+      console.warn('[WhatsApp] Automated bot dispatch unavailable, using WhatsApp Web fallback:', botErr?.message);
+    }
+
+    // 2. Seamless Fallback: Download PDF receipt & open WhatsApp Web with bill message
+    try {
+      pdf.save(safeFilename);
+    } catch (saveErr) {
+      console.warn('Could not auto-save PDF:', saveErr);
+    }
+
+    const waWebUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(caption)}`;
+    window.open(waWebUrl, '_blank');
+
+    return {
+      success: true,
+      isFallback: true,
+      message: `✓ WhatsApp chat opened (+91 ${cleanPhone})! PDF receipt saved to Downloads.`
+    };
   } catch (err: any) {
     console.error('sendInvoicePdfWhatsApp error:', err);
     return {
       success: false,
-      message: err?.message || 'Failed to dispatch WhatsApp PDF receipt',
+      message: err?.message || 'Failed to dispatch WhatsApp receipt',
       error: err?.message
     };
   }

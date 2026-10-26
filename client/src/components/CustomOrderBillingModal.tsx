@@ -125,7 +125,7 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
       } else if (targetAction === 'WHATSAPP') {
         setStatusMessage({
           type: 'success',
-          text: 'Generating PDF receipt & sending to WhatsApp...'
+          text: 'Generating PDF receipt & preparing WhatsApp...'
         });
 
         const waRes = await sendInvoicePdfWhatsApp(
@@ -135,13 +135,9 @@ export const CustomOrderBillingModal: React.FC<CustomOrderBillingModalProps> = (
           cleanPhone
         );
 
-        if (!waRes.success) {
-          throw new Error(waRes.message || 'Failed to send WhatsApp document receipt');
-        }
-
         setStatusMessage({
           type: 'success',
-          text: `✓ Official PDF receipt sent to WhatsApp (+91 ${cleanPhone})!`
+          text: waRes.message || `✓ WhatsApp receipt processed for +91 ${cleanPhone}!`
         });
 
         setTimeout(() => {

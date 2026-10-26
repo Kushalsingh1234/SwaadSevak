@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Printer,
   Receipt,
@@ -1182,10 +1183,14 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
       )}
 
       {/* Settled Orders Right Drawer (Cleanly separated from active floor workflow) */}
-      {isSettledDrawerOpen && (
-        <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-96 bg-white border-l border-stone-200 shadow-xl flex flex-col">
-          {/* Drawer Header */}
-          <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/70">
+      {isSettledDrawerOpen && createPortal(
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setIsSettledDrawerOpen(false); }}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-2xs flex justify-end animate-fade-in"
+        >
+          <div className="w-full sm:w-96 bg-white border-l border-stone-200 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-200">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/70">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-brand-500" />
@@ -1260,7 +1265,9 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             )}
           </div>
         </div>
-      )}
+      </div>,
+      document.body
+    )}
 
       {/* Modals */}
       <KotModal

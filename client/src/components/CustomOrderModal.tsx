@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Plus,
@@ -304,12 +305,17 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-xs flex justify-end animate-fade-in">
-      <div className="w-full max-w-4xl lg:max-w-5xl bg-white h-full shadow-2xl flex flex-col border-l border-stone-200">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 md:p-6 overflow-hidden animate-fade-in"
+    >
+      <div className="w-full max-w-4xl lg:max-w-5xl bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col h-[90vh] max-h-[860px] overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         
         {/* Unified Top Header Bar */}
-        <div className="px-6 py-3.5 bg-white border-b border-stone-200 flex items-center justify-between gap-4 shrink-0">
+        <div className="px-6 py-4 bg-white border-b border-stone-200 flex items-center justify-between gap-4 shrink-0 rounded-t-2xl">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0">
               <ChefHat className="w-5 h-5 text-amber-600" />
@@ -771,6 +777,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

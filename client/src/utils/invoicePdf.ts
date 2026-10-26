@@ -250,7 +250,7 @@ export async function generateInvoicePdfDoc(
 
     // Render container to high-res canvas with STRICT width and height
     const canvas = await html2canvas(container, {
-      scale: 3, // 3x for ultra-sharp retina typography
+      scale: 2, // 2x for sharp retina typography and fast lightweight transfer
       useCORS: true,
       backgroundColor: '#ffffff',
       width: exactWidth,
@@ -262,7 +262,7 @@ export async function generateInvoicePdfDoc(
       logging: false
     });
 
-    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgData = canvas.toDataURL('image/png', 0.95);
 
     const pdfWidthMm = 90;
     const pdfHeightMm = (exactHeight * pdfWidthMm) / exactWidth;

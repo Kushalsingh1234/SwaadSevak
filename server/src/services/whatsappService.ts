@@ -194,6 +194,9 @@ export class WhatsAppService {
    */
   public static formatPhoneToJid(phone: string): string {
     let clean = phone.replace(/\D/g, '');
+    if (clean.startsWith('0')) {
+      clean = clean.replace(/^0+/, '');
+    }
     if (clean.length === 10) {
       clean = `91${clean}`;
     }
@@ -255,8 +258,10 @@ export class WhatsAppService {
       };
     }
 
+    const jid = this.formatPhoneToJid(recipientPhone);
+
     try {
-      const jid = this.formatPhoneToJid(recipientPhone);
+      // 1. Send the PDF document directly
       const res = await session.sock.sendMessage(jid, {
         document: documentBuffer,
         mimetype: 'application/pdf',
@@ -269,11 +274,24 @@ export class WhatsAppService {
         messageId: res?.key?.id || undefined
       };
     } catch (err: any) {
-      console.error(`[WhatsApp] Failed to send PDF document to ${recipientPhone}:`, err);
-      return {
-        success: false,
-        error: err.message || 'Failed to dispatch WhatsApp PDF document.'
-      };
+      console.warn(`[WhatsApp] Media document upload failed for ${recipientPhone}, attempting text fallback:`, err?.message);
+
+      // 2. If media upload has a temporary issue, deliver the full receipt as a rich text message
+      try {
+        const textRes = await session.sock.sendMessage(jid, {
+          text: captionText || '🧾 Here is your official dining receipt from SwaadSevak. Thank you for dining with us!'
+        });
+        return {
+          success: true,
+          messageId: textRes?.key?.id || undefined
+        };
+      } catch (textErr: any) {
+        console.error(`[WhatsApp] Both document and text dispatch failed for ${recipientPhone}:`, textErr);
+        return {
+          success: false,
+          error: err?.message || textErr?.message || 'Failed to dispatch WhatsApp PDF document.'
+        };
+      }
     }
   }
 

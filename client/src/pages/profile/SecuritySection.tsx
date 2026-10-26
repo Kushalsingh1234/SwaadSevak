@@ -248,22 +248,25 @@ export const SecuritySection: React.FC = () => {
       {/* Main 2-Column Balanced Symmetrical Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Left Column: Change Manager Password */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-6">
+        <div className="relative p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-[#FFFDF9] via-white to-white border border-amber-200/70 shadow-sm flex flex-col justify-between space-y-6 overflow-hidden">
+          {/* Subtle Golden Hairline Accent at Top */}
+          <div className="absolute top-0 inset-x-6 h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent rounded-full" />
+
           <div className="space-y-5">
-            {/* Header */}
-            <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-              <div className="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0 shadow-2xs">
-                <KeyRound className="w-5 h-5" />
+            {/* Header with Golden Shade */}
+            <div className="flex items-center gap-3.5 pb-4 border-b border-amber-100/60">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FFF9E6] via-[#FFF3D1] to-[#FFE8A3] border border-amber-300 text-amber-700 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/15 ring-2 ring-amber-400/20">
+                <KeyRound className="w-5 h-5 text-amber-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-base font-bold text-slate-900">Change Manager Password</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
-                    Manager Override
+                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Change Manager Password</h3>
+                  <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50/80 border border-amber-300/80 text-amber-800 text-[10px] font-extrabold tracking-wide shadow-2xs">
+                    Manager Override PIN
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Used for counter tablet logins and manager overrides.
+                  Required for counter tablet manager overrides &amp; refunds.
                 </p>
               </div>
             </div>
@@ -272,7 +275,7 @@ export const SecuritySection: React.FC = () => {
               {/* Current Password */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Current Password <span className="text-orange-500">*</span>
+                  Current Password <span className="text-amber-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -284,12 +287,12 @@ export const SecuritySection: React.FC = () => {
                     placeholder="Enter current password (demo: 1234)"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-3 focus:ring-orange-500/15 outline-none transition-all shadow-2xs"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200/90 text-slate-900 text-sm placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all shadow-2xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-amber-600 cursor-pointer"
                   >
                     {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -300,7 +303,7 @@ export const SecuritySection: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-slate-700">
-                    New Password <span className="text-orange-500">*</span>
+                    New Password <span className="text-amber-500">*</span>
                   </label>
                   {newPassword && (
                     <span className={`text-[11px] font-bold ${strengthInfo.text}`}>
@@ -318,31 +321,47 @@ export const SecuritySection: React.FC = () => {
                     placeholder="Enter secure new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-3 focus:ring-orange-500/15 outline-none transition-all shadow-2xs"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200/90 text-slate-900 text-sm placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all shadow-2xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNew(!showNew)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-amber-600 cursor-pointer"
                   >
                     {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Password Strength Meter Bar */}
-                <div className="mt-2.5 grid grid-cols-4 gap-1.5">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div
-                      key={step}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        step <= strengthScore ? strengthInfo.color : 'bg-slate-200'
-                      }`}
-                    />
-                  ))}
+                {/* Password Strength Meter - Thin Lines */}
+                <div className="mt-2.5 grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((step) => {
+                    const isFilled = step <= strengthScore;
+                    return (
+                      <div
+                        key={step}
+                        className="relative h-[2px] rounded-full overflow-hidden bg-slate-200/80"
+                      >
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            isFilled
+                              ? strengthScore <= 1
+                                ? 'bg-rose-500'
+                                : strengthScore === 2
+                                ? 'bg-amber-500'
+                                : strengthScore === 3
+                                ? 'bg-amber-400'
+                                : 'bg-emerald-500'
+                              : 'w-0'
+                          }`}
+                          style={{ width: isFilled ? '100%' : '0%' }}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Real-time Checklist */}
-                <div className="mt-3 p-3 rounded-xl bg-slate-50/90 border border-slate-200/80 grid grid-cols-2 gap-2 text-[11px]">
+                <div className="mt-3 p-3 rounded-2xl bg-slate-50/60 border border-slate-200/70 grid grid-cols-2 gap-2 text-[11px]">
                   <div
                     className={`flex items-center gap-1.5 transition-colors ${
                       hasMinLength ? 'text-emerald-700 font-semibold' : 'text-slate-400'
@@ -390,7 +409,7 @@ export const SecuritySection: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-slate-700">
-                    Confirm New Password <span className="text-orange-500">*</span>
+                    Confirm New Password <span className="text-amber-500">*</span>
                   </label>
                   {confirmPassword && (
                     <span
@@ -418,16 +437,16 @@ export const SecuritySection: React.FC = () => {
                     placeholder="Re-type new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/70 hover:bg-white focus:bg-white border text-slate-900 text-sm placeholder:text-slate-400 outline-none transition-all shadow-2xs ${
+                    className={`w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white border text-slate-900 text-sm placeholder:text-slate-400 outline-none transition-all shadow-2xs ${
                       confirmPassword && !passwordsMatch
-                        ? 'border-rose-400 focus:border-rose-500 focus:ring-3 focus:ring-rose-500/15'
-                        : 'border-slate-300 focus:border-orange-500 focus:ring-3 focus:ring-orange-500/15'
+                        ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15'
+                        : 'border-slate-200/90 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-amber-600 cursor-pointer"
                   >
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -439,16 +458,16 @@ export const SecuritySection: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isUpdating || !isPasswordValid || !passwordsMatch}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:via-amber-600 hover:to-orange-700 text-white font-bold text-xs tracking-wide shadow-md shadow-orange-500/20 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-amber-500/25 active:scale-[0.99] transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:border disabled:border-slate-200 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isUpdating ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
                       <span>Updating Password...</span>
                     </>
                   ) : (
                     <>
-                      <KeyRound className="w-4 h-4" />
+                      <KeyRound className="w-4 h-4 text-white" />
                       <span>Update Password</span>
                     </>
                   )}
@@ -457,8 +476,8 @@ export const SecuritySection: React.FC = () => {
             </form>
           </div>
 
-          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 text-[11px] text-slate-500 mt-3">
-            <Shield className="w-4 h-4 text-orange-500 shrink-0" />
+          <div className="p-3 rounded-2xl bg-amber-50/30 border border-amber-200/60 flex items-center gap-2.5 text-[11px] text-slate-600 mt-3">
+            <Shield className="w-4 h-4 text-amber-500 shrink-0" />
             <span>
               Firebase Architecture Ready: In production, password modification re-authenticates the current token with Firebase Auth before persistence.
             </span>

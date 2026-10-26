@@ -14,6 +14,12 @@ import {
   Save,
   RefreshCw,
   Sparkles,
+  Mail,
+  FileCheck,
+  Radio,
+  MapPin,
+  Shield,
+  Activity,
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
 
@@ -297,90 +303,175 @@ export const SecuritySection: React.FC = () => {
 
         {/* Right Column (Span 5): Account Security & Verification Badges */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="p-6 rounded-3xl bg-[#1C120C]/90 border border-white/[0.1] shadow-xl space-y-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-stone-300 pb-2 border-b border-white/[0.08]">
-              Account Verification Status
-            </h3>
+          {/* Account Verification Status Card */}
+          <div className="relative overflow-hidden p-6 rounded-3xl bg-gradient-to-b from-[#231710]/95 via-[#1B110B]/95 to-[#130C07]/95 border border-amber-900/35 shadow-2xl backdrop-blur-xl space-y-4">
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent pointer-events-none" />
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/[0.07] rounded-full blur-2xl pointer-events-none" />
 
-            {/* Google Account */}
-            <div className="flex items-start justify-between gap-3 p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
-                <div className="min-w-0">
-                  <span className="text-[11px] font-bold text-white block">Google Identity</span>
-                  <p className="text-[10px] text-stone-400 truncate">{profile.googleEmail}</p>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">
+                    Account Verification Status
+                  </h3>
+                  <p className="text-[10px] text-stone-400 font-medium">Enterprise Security Tier</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
-                Connected
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                4/4 Verified
               </span>
             </div>
 
-            {/* Email Verification */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs">
-              <div>
-                <span className="font-bold text-white block">Email Status</span>
-                <span className="text-[10px] text-stone-400">{profile.email}</span>
+            {/* Verification Rows */}
+            <div className="space-y-2.5">
+              {/* Google Account */}
+              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Google Identity</span>
+                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.googleEmail}</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Connected
+                </span>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3 h-3" />
-                Verified
-              </span>
-            </div>
 
-            {/* Phone Verification */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs">
-              <div>
-                <span className="font-bold text-white block">Phone Status</span>
-                <span className="text-[10px] text-stone-400">{profile.phone}</span>
+              {/* Email Verification */}
+              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/15 border border-sky-500/25 flex items-center justify-center text-sky-400 shrink-0">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Email Status</span>
+                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.email}</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Verified
+                </span>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3 h-3" />
-                SMS Verified
-              </span>
-            </div>
 
-            {/* Account KYC */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs">
-              <div>
-                <span className="font-bold text-white block">Hospitality KYC</span>
-                <span className="text-[10px] text-stone-400">GST &amp; FSSAI Validated</span>
+              {/* Phone Verification */}
+              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Phone Status</span>
+                    <p className="text-[11px] text-stone-400 font-mono truncate">{profile.phone}</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  SMS Verified
+                </span>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                Approved
-              </span>
+
+              {/* Account KYC */}
+              <div className="p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.14] transition-all duration-200 flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shrink-0">
+                    <FileCheck className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-stone-100 block group-hover:text-amber-300 transition-colors">Hospitality KYC</span>
+                    <p className="text-[11px] text-stone-400 truncate">GST &amp; FSSAI Validated</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-950/70 text-indigo-300 border border-indigo-500/35 shadow-[0_0_10px_rgba(99,102,241,0.18)] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+                  Approved
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Active Session & Last Login */}
-          <div className="p-6 rounded-3xl bg-[#1C120C]/90 border border-white/[0.1] shadow-xl space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-stone-300 pb-2 border-b border-white/[0.08]">
-              Active Shift Session
-            </h3>
+          {/* Active Shift Session Card */}
+          <div className="relative overflow-hidden p-6 rounded-3xl bg-gradient-to-b from-[#231710]/95 via-[#1B110B]/95 to-[#130C07]/95 border border-amber-900/35 shadow-2xl backdrop-blur-xl space-y-4">
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent pointer-events-none" />
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-orange-500/[0.07] rounded-full blur-2xl pointer-events-none" />
 
-            <div className="space-y-3 text-xs">
-              <div className="flex items-start gap-3">
-                <Laptop className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400 shrink-0 shadow-inner">
+                  <Activity className="w-4 h-4 animate-pulse" />
+                </div>
                 <div>
-                  <span className="font-bold text-white block">Current POS Terminal</span>
-                  <p className="text-[11px] text-stone-400">Chrome on macOS (Live Orders Active)</p>
-                  <p className="text-[10px] text-stone-500 font-mono">IP: 49.37.182.41 (Bengaluru, IN)</p>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">
+                    Active Shift Session
+                  </h3>
+                  <p className="text-[10px] text-stone-400 font-medium">Encrypted TLS v1.3 • AES-256</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.12)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                Active Now
+              </span>
+            </div>
+
+            {/* Session Details */}
+            <div className="space-y-2.5">
+              {/* POS Terminal */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.025] border border-white/[0.07] space-y-2.5">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400 shrink-0 mt-0.5">
+                    <Laptop className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-stone-100">Current POS Terminal</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                        This Device
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-300 font-medium pt-0.5">Chrome on macOS (Live Orders Active)</p>
+                    <div className="flex items-center gap-2 pt-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-stone-300 bg-black/50 px-2 py-0.5 rounded-md border border-white/[0.08]">
+                        <Globe className="w-3 h-3 text-stone-400" />
+                        49.37.182.41
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] text-stone-300 bg-black/50 px-2 py-0.5 rounded-md border border-white/[0.08]">
+                        <MapPin className="w-3 h-3 text-amber-400" />
+                        Bengaluru, IN
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 pt-2 border-t border-white/[0.06]">
-                <Clock className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-white block">Last Shift Login</span>
-                  <p className="text-[11px] text-stone-400">{formatDate(profile.lastLogin)}</p>
+              {/* Shift Sign-in */}
+              <div className="p-3 rounded-2xl bg-white/[0.025] border border-white/[0.07] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-stone-100 block">Last Shift Login</span>
+                    <p className="text-[11px] text-stone-400 truncate">{formatDate(profile.lastLogin)}</p>
+                  </div>
                 </div>
+                <span className="px-2 py-1 rounded-md text-[10px] font-semibold text-stone-300 bg-white/[0.04] border border-white/[0.08] shrink-0">
+                  Session Valid
+                </span>
               </div>
             </div>
           </div>

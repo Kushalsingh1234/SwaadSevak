@@ -377,6 +377,45 @@ export class CampaignScheduler {
   }
 
   /**
+   * Helper to format and retrieve restaurant zoned time details in Indian Standard Time (Asia/Kolkata)
+   */
+  public static getRestaurantZonedTime(date: Date = new Date(), timeZone: string = 'Asia/Kolkata') {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      weekday: 'long',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+
+    const parts = formatter.formatToParts(date);
+    const getPart = (type: string) => parts.find(p => p.type === type)?.value || '';
+
+    const weekday = getPart('weekday').toUpperCase(); // e.g. "SUNDAY"
+    const hour = parseInt(getPart('hour'), 10) || 0;
+    const minute = parseInt(getPart('minute'), 10) || 0;
+    const currentHHMM = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    const currentMinutes = hour * 60 + minute;
+    const year = getPart('year');
+    const month = getPart('month');
+    const day = getPart('day');
+    const dateKey = `${year}-${month}-${day}`;
+
+    return {
+      weekday,
+      hour,
+      minute,
+      currentHHMM,
+      currentMinutes,
+      dateKey
+    };
+  }
+
+  /**
    * Evaluate a CRM Automation rule and execute actions (e.g. Post-Visit Feedback, Win-Back)
    */
   public static async evaluateAndExecuteAutomation(
@@ -392,9 +431,12 @@ export class CampaignScheduler {
     let sent = 0;
     let failed = 0;
 
-    // Check Quiet Hours (Anti-Disturbance Protection)
+    // Timezone-aware calculation for restaurant local time (defaulting to Asia/Kolkata / IST)
+    const zonedNow = this.getRestaurantZonedTime(now);
+
+    // Check Quiet Hours in restaurant local time (Anti-Disturbance Protection)
     if (automation.timingConfig?.quietHoursEnabled) {
-      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const currentHHMM = zonedNow.currentHHMM;
       const start = automation.timingConfig.quietHoursStart || '10:00';
       const end = automation.timingConfig.quietHoursEnd || '21:30';
       if (currentHHMM < start || currentHHMM > end) {
@@ -608,14 +650,28 @@ export class CampaignScheduler {
         automation.triggerConfig?.value ||
         4
       );
+      const targetTimeStr = automation.timingConfig?.timeOfDay || automation.triggerConfig?.timeOfDay || '11:30';
+      const [targetHourStr, targetMinuteStr] = targetTimeStr.split(':');
+      const targetHour = parseInt(targetHourStr, 10) || 11;
+      const targetMinute = parseInt(targetMinuteStr, 10) || 0;
+      const targetMinutes = targetHour * 60 + targetMinute;
+
+      // Only dispatch recurring messages once preferred send time has arrived today in restaurant timezone (IST)
+      if (zonedNow.currentMinutes < targetMinutes) {
+        return { processed: 0, sent: 0, failed: 0 };
+      }
+
       const candidates = getCandidateCustomers();
 
       for (const cust of candidates) {
         if (!cust.phone) continue;
 
         const lastSent = db.getAutomationLastDispatchedToRecipient(automation.id, cust.phone);
-        if (lastSent && (now.getTime() - lastSent.getTime()) < frequencyDays * 86400000) {
-          continue;
+        if (lastSent) {
+          const daysSinceLast = (now.getTime() - lastSent.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSinceLast < (frequencyDays - 0.2)) {
+            continue;
+          }
         }
 
         processed++;
@@ -636,7 +692,7 @@ export class CampaignScheduler {
               id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               event: 'Recurring message dispatched',
               timestamp: now.toISOString(),
-              details: `Sent to ${cust.name} (${cust.phone}) [Every ${frequencyDays} days cycle]`,
+              details: `Sent to ${cust.name} (${cust.phone}) [Every ${frequencyDays} days cycle at ${zonedNow.currentHHMM} IST]`,
               type: 'SUCCESS' as const
             };
             db.updateAiAutomation(restaurantId, automation.id, {
@@ -652,21 +708,35 @@ export class CampaignScheduler {
       }
     }
 
-    // 3. DAY_OF_WEEK (e.g. Every Wednesday)
+    // 3. DAY_OF_WEEK (e.g. Every Sunday at 11:30 AM)
     else if (triggerType === 'DAY_OF_WEEK' || automation.triggerConfig?.dayOfWeek) {
       const targetDay = (automation.triggerConfig?.dayOfWeek || automation.timingConfig?.dayOfWeek || 'WEDNESDAY').toUpperCase();
-      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+      const targetTimeStr = automation.timingConfig?.timeOfDay || automation.triggerConfig?.timeOfDay || '11:30';
+      const [targetHourStr, targetMinuteStr] = targetTimeStr.split(':');
+      const targetHour = parseInt(targetHourStr, 10) || 11;
+      const targetMinute = parseInt(targetMinuteStr, 10) || 0;
+      const targetMinutes = targetHour * 60 + targetMinute;
 
-      if (currentDay === targetDay) {
+      // 1. Must match target day of week in Indian Standard Time (IST)
+      if (zonedNow.weekday === targetDay) {
+        // 2. Must not execute BEFORE the specified timeOfDay has arrived in IST
+        if (zonedNow.currentMinutes < targetMinutes) {
+          return { processed: 0, sent: 0, failed: 0 };
+        }
+
         const candidates = getCandidateCustomers();
 
         for (const cust of candidates) {
           if (!cust.phone) continue;
 
-          // Check if already dispatched today (within 20 hours)
+          // 3. Weekly cycle cooldown: Never send more than ONCE per weekly cycle
+          // Using 6 days (144h) ensures it fires on the target day once, and never repeats later on that day or on following days until next week.
           const lastSent = db.getAutomationLastDispatchedToRecipient(automation.id, cust.phone);
-          if (lastSent && (now.getTime() - lastSent.getTime()) < 20 * 3600000) {
-            continue;
+          if (lastSent) {
+            const daysSinceLast = (now.getTime() - lastSent.getTime()) / (1000 * 60 * 60 * 24);
+            if (daysSinceLast < 6) {
+              continue;
+            }
           }
 
           processed++;
@@ -688,7 +758,7 @@ export class CampaignScheduler {
                 id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
                 event: `Weekly ${targetDay} message sent`,
                 timestamp: now.toISOString(),
-                details: `Dispatched weekly offer to ${cust.name} (${cust.phone})`,
+                details: `Dispatched weekly offer to ${cust.name} (${cust.phone}) at ${zonedNow.currentHHMM} IST`,
                 type: 'SUCCESS' as const
               };
               db.updateAiAutomation(restaurantId, automation.id, {

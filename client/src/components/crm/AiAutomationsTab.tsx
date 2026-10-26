@@ -821,7 +821,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         value: finalTriggerValue,
         unit: finalTriggerUnit,
         dayOfWeek: wizardTriggerType === 'DAY_OF_WEEK' ? wizardDayOfWeek : undefined,
-        timeOfDay: wizardTriggerType === 'DAY_OF_WEEK' ? wizardTimeOfDay : undefined,
+        timeOfDay: (wizardTriggerType === 'DAY_OF_WEEK' || wizardTriggerType === 'RECURRING_DAYS') ? wizardTimeOfDay : undefined,
         description: triggerDescription
       },
       audienceConfig: {
@@ -847,6 +847,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
         delayMinutes: wizardDelayMinutes,
         frequencyDays: wizardTriggerType === 'RECURRING_DAYS' ? wizardRecurringDays : undefined,
         dayOfWeek: wizardTriggerType === 'DAY_OF_WEEK' ? wizardDayOfWeek : undefined,
+        timeOfDay: (wizardTriggerType === 'DAY_OF_WEEK' || wizardTriggerType === 'RECURRING_DAYS') ? wizardTimeOfDay : undefined,
         quietHoursEnabled: wizardQuietHoursEnabled,
         quietHoursStart: wizardQuietHoursStart,
         quietHoursEnd: wizardQuietHoursEnd,
@@ -2202,6 +2203,16 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                                 <span className="text-[10px] text-slate-500 font-semibold">Days</span>
                               </div>
                             </div>
+                            <div className="flex items-center gap-2 pt-1.5">
+                              <span className="text-[11px] text-slate-600 font-semibold">Preferred Send Time:</span>
+                              <input
+                                type="time"
+                                value={wizardTimeOfDay}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => setWizardTimeOfDay(e.target.value)}
+                                className="px-2 py-1 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2424,7 +2435,7 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                           {wizardTriggerType === 'ORDER_COMPLETED'
                             ? `${wizardDelayMinutes} minutes after order completed`
                             : wizardTriggerType === 'RECURRING_DAYS'
-                            ? `Every ${wizardRecurringDays} days recurring`
+                            ? `Every ${wizardRecurringDays} days recurring at ${wizardTimeOfDay}`
                             : wizardTriggerType === 'DAY_OF_WEEK'
                             ? `Every ${wizardDayOfWeek} at ${wizardTimeOfDay}`
                             : wizardTriggerType === 'INACTIVITY_DAYS'

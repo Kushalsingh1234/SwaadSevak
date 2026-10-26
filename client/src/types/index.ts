@@ -859,6 +859,7 @@ export interface AiAutomation {
     delayMinutes?: number;
     frequencyDays?: number;
     dayOfWeek?: string;
+    timeOfDay?: string;
     quietHoursEnabled?: boolean;
     quietHoursStart?: string;
     quietHoursEnd?: string;

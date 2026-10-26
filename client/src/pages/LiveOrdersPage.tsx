@@ -1308,9 +1308,6 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
             setFilterSource('ALL');
           }
         }}
-        onTriggerKot={(order) => {
-          setSelectedKotOrder(order);
-        }}
       />
 
       <CustomOrderBillingModal

@@ -7,15 +7,19 @@ import {
   Utensils,
   ChefHat,
   Search,
-  Loader2,
-  CheckCircle2,
   ShoppingBag,
   Bike,
-  Sparkles
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 import { MenuItem, MenuCategory, TableItem, Restaurant, PrinterConfig, Order } from '../types';
 import { api } from '../services/api';
 import { kotPrinter } from '../utils/kotPrinter';
+
+// Module-level cache so reopening the drawer renders instantaneously with zero loading spinner
+let cachedMenuItems: MenuItem[] = [];
+let cachedCategories: MenuCategory[] = [];
+let cachedTables: TableItem[] = [];
 
 interface CustomOrderModalProps {
   isOpen: boolean;
@@ -23,7 +27,6 @@ interface CustomOrderModalProps {
   restaurant: Restaurant | null;
   printerConfig?: PrinterConfig;
   onOrderCreated: (order: Order) => void;
-  onTriggerKot?: (order: Order) => void;
 }
 
 interface CartItem {
@@ -42,14 +45,13 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
   onClose,
   restaurant,
   printerConfig,
-  onOrderCreated,
-  onTriggerKot
+  onOrderCreated
 }) => {
-  // Data state
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [tables, setTables] = useState<TableItem[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  // Data state with instant cache fallback
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(cachedMenuItems);
+  const [categories, setCategories] = useState<MenuCategory[]>(cachedCategories);
+  const [tables, setTables] = useState<TableItem[]>(cachedTables);
+  const [isLoadingData, setIsLoadingData] = useState(cachedMenuItems.length === 0);
 
   // Order meta state
   const [orderSource, setOrderSource] = useState<'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'>('DINE_IN');
@@ -72,7 +74,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Load menu items, categories, and tables on open
+  // Load menu items, categories, and tables
   useEffect(() => {
     if (!isOpen) {
       resetForm();
@@ -80,7 +82,9 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
     }
 
     let isMounted = true;
-    setIsLoadingData(true);
+    if (cachedMenuItems.length === 0) {
+      setIsLoadingData(true);
+    }
 
     Promise.all([
       api.getMenuItems().catch(() => ({ items: [] })),
@@ -89,15 +93,19 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
     ])
       .then(([itemsRes, catsRes, tablesRes]) => {
         if (!isMounted) return;
-        const items = itemsRes?.items || itemsRes || [];
-        const cats = catsRes?.categories || catsRes || [];
-        const tbls = tablesRes?.tables || tablesRes || [];
+        const items: MenuItem[] = itemsRes?.items || (Array.isArray(itemsRes) ? itemsRes : []);
+        const cats: MenuCategory[] = catsRes?.categories || (Array.isArray(catsRes) ? catsRes : []);
+        const tbls: TableItem[] = tablesRes?.tables || (Array.isArray(tablesRes) ? tablesRes : []);
 
-        setMenuItems(Array.isArray(items) ? items : []);
-        setCategories(Array.isArray(cats) ? cats : []);
-        setTables(Array.isArray(tbls) ? tbls : []);
+        cachedMenuItems = items;
+        cachedCategories = cats;
+        cachedTables = tbls;
 
-        if (Array.isArray(tbls) && tbls.length > 0 && !selectedTableId) {
+        setMenuItems(items);
+        setCategories(cats);
+        setTables(tbls);
+
+        if (tbls.length > 0 && !selectedTableId) {
           setSelectedTableId(tbls[0].id);
         }
       })
@@ -216,7 +224,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
     setShowCustomItemRow(false);
   };
 
-  // Submit Order: Send directly to kitchen and trigger KOT
+  // Submit Order: Send directly to kitchen and trigger KOT silently to kitchen printer
   const handleSendToKitchen = async () => {
     if (cartItems.length === 0) {
       setErrorMessage('Please add at least one item before sending to kitchen.');
@@ -269,7 +277,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
 
       const createdOrder: Order = res.order;
 
-      // Automatically trigger KOT print
+      // Automatically dispatch KOT to kitchen printer silently (no on-screen preview modal)
       kotPrinter.printOrderKot(
         restaurant,
         createdOrder,
@@ -279,18 +287,13 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
           paperWidth: '80mm',
           autoPrintKot: true,
           printerType: 'BROWSER'
-        },
-        { interactiveModal: true }
+        }
       );
-
-      if (onTriggerKot) {
-        onTriggerKot(createdOrder);
-      }
 
       // Notify parent to refresh orders board
       onOrderCreated(createdOrder);
 
-      // Cleanly close drawer
+      // Cleanly close drawer immediately
       onClose();
     } catch (err: any) {
       console.error('Failed to dispatch custom order to kitchen:', err);
@@ -303,113 +306,117 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-xs flex justify-end animate-fade-in">
-      <div className="w-full max-w-3xl bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-l border-stone-200">
-        {/* Header */}
-        <div className="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center">
-              <ChefHat className="w-5 h-5 text-brand-400" />
+      <div className="w-full max-w-4xl lg:max-w-5xl bg-white h-full shadow-2xl flex flex-col border-l border-stone-200">
+        
+        {/* Unified Top Header Bar */}
+        <div className="px-6 py-3.5 bg-white border-b border-stone-200 flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <ChefHat className="w-5 h-5 text-amber-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white tracking-tight">New Custom Order</h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-brand-500 text-white">
+                <h2 className="text-base font-bold text-slate-900">Custom Order</h2>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-stone-200">
                   Kitchen Dispatch
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Sends order directly to kitchen with KOT. Finalize bill and customer receipt once cooked!
+              <p className="text-[11px] text-slate-500">
+                Dispatches directly to kitchen printer • Bill finalized once cooked
               </p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Close Drawer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          {/* Order Type & Table Selector */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Segmented Source Controls */}
+            <div className="flex items-center p-1 bg-stone-100 rounded-xl border border-stone-200/80">
+              <button
+                type="button"
+                onClick={() => setOrderSource('DINE_IN')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  orderSource === 'DINE_IN'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Utensils className="w-3.5 h-3.5 text-amber-600" />
+                <span>Dine-In</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrderSource('TAKEAWAY')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  orderSource === 'TAKEAWAY'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5 text-slate-600" />
+                <span>Takeaway</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrderSource('DELIVERY')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  orderSource === 'DELIVERY'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Bike className="w-3.5 h-3.5 text-slate-600" />
+                <span>Delivery</span>
+              </button>
+            </div>
 
-        {/* Source Switch & Table Selection */}
-        <div className="px-6 py-3.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-4 flex-wrap shrink-0">
-          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-stone-200 shadow-xs">
+            {/* Table Dropdown (if Dine-in) */}
+            {orderSource === 'DINE_IN' && (
+              <div className="relative">
+                {tables.length > 0 ? (
+                  <select
+                    value={selectedTableId}
+                    onChange={e => {
+                      setSelectedTableId(e.target.value);
+                      setCustomTableNumber('');
+                    }}
+                    className="appearance-none pl-3 pr-8 py-1.5 bg-stone-100 border border-stone-200 rounded-xl text-xs font-bold text-slate-900 shadow-2xs focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
+                  >
+                    {tables.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.tableNumber} {t.status === 'OCCUPIED' ? '(Occupied)' : ''}
+                      </option>
+                    ))}
+                    <option value="">Custom Table...</option>
+                  </select>
+                ) : null}
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+
+                {(!selectedTableId || tables.length === 0) && (
+                  <input
+                    type="text"
+                    placeholder="Table #"
+                    value={customTableNumber}
+                    onChange={e => setCustomTableNumber(e.target.value)}
+                    className="w-24 ml-2 px-2.5 py-1.5 bg-stone-100 border border-stone-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Close Button */}
             <button
-              type="button"
-              onClick={() => setOrderSource('DINE_IN')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                orderSource === 'DINE_IN'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-stone-50'
-              }`}
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-stone-100 transition-colors ml-1"
+              title="Close Drawer"
             >
-              <Utensils className="w-3.5 h-3.5" />
-              <span>Dine-In</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setOrderSource('TAKEAWAY')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                orderSource === 'TAKEAWAY'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-stone-50'
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Takeaway / Counter</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setOrderSource('DELIVERY')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                orderSource === 'DELIVERY'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-stone-50'
-              }`}
-            >
-              <Bike className="w-3.5 h-3.5" />
-              <span>Direct Delivery</span>
+              <X className="w-5 h-5" />
             </button>
           </div>
-
-          {orderSource === 'DINE_IN' && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-600">Table:</span>
-              {tables.length > 0 ? (
-                <select
-                  value={selectedTableId}
-                  onChange={e => {
-                    setSelectedTableId(e.target.value);
-                    setCustomTableNumber('');
-                  }}
-                  className="px-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-bold text-slate-800 shadow-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                >
-                  {tables.map(t => (
-                    <option key={t.id} value={t.id}>
-                      {t.tableNumber} ({t.status === 'OCCUPIED' ? 'Occupied' : 'Available'})
-                    </option>
-                  ))}
-                  <option value="">Other / Custom Table</option>
-                </select>
-              ) : null}
-
-              {(!selectedTableId || tables.length === 0) && (
-                <input
-                  type="text"
-                  placeholder="e.g. Table 12"
-                  value={customTableNumber}
-                  onChange={e => setCustomTableNumber(e.target.value)}
-                  className="w-28 px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-bold text-slate-800 shadow-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                />
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Error message banner */}
+        {/* Error Notification */}
         {errorMessage && (
-          <div className="mx-6 mt-3 px-3 py-2 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
+          <div className="mx-6 mt-3 px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
             <span>{errorMessage}</span>
             <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
               <X className="w-4 h-4" />
@@ -417,21 +424,47 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
           </div>
         )}
 
-        {/* Main 2-column layout: Left Menu Explorer / Right Kitchen Tray */}
+        {/* Workspace Body: 2 Columns */}
         <div className="flex-1 min-h-0 flex overflow-hidden">
-          {/* Left Column: Menu items picker */}
-          <div className="flex-1 flex flex-col border-r border-stone-200 overflow-hidden bg-stone-50/50">
-            {/* Search & Categories */}
-            <div className="p-4 border-b border-stone-200 bg-white space-y-3 shrink-0">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search dishes, drinks, appetizers..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                />
+          
+          {/* Left Column: Menu Catalog (62% width) */}
+          <div className="flex-1 flex flex-col border-r border-stone-200 overflow-hidden bg-white">
+            
+            {/* Search & Categories Bar */}
+            <div className="p-4 border-b border-stone-100 space-y-3 shrink-0 bg-stone-50/50">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search dishes or drinks..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-stone-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all shadow-2xs"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* + Add Off-Menu Custom Item Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowCustomItemRow(v => !v)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
+                    showCustomItemRow
+                      ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                      : 'bg-white text-slate-700 border-stone-200 hover:border-amber-400 hover:bg-amber-50/50 shadow-2xs'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>+ Custom Dish</span>
+                </button>
               </div>
 
               {/* Category Pills */}
@@ -439,204 +472,180 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedCategory('ALL')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-colors ${
                     selectedCategory === 'ALL'
-                      ? 'bg-slate-900 text-white'
+                      ? 'bg-slate-900 text-white shadow-2xs'
                       : 'bg-stone-100 text-slate-600 hover:bg-stone-200'
                   }`}
                 >
                   All ({menuItems.length})
                 </button>
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold shrink-0 transition-colors ${
-                      selectedCategory === cat.id
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-stone-100 text-slate-600 hover:bg-stone-200'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {categories.map(cat => {
+                  const count = menuItems.filter(i => i.categoryId === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-colors ${
+                        selectedCategory === cat.id
+                          ? 'bg-slate-900 text-white shadow-2xs'
+                          : 'bg-stone-100 text-slate-600 hover:bg-stone-200'
+                      }`}
+                    >
+                      {cat.name} {count > 0 ? `(${count})` : ''}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Menu Item Cards */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {isLoadingData ? (
-                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-                  <Loader2 className="w-6 h-6 animate-spin text-brand-500 mb-2" />
-                  <p className="text-xs">Loading restaurant menu...</p>
+            {/* Custom Off-Menu Item Inline Panel */}
+            {showCustomItemRow && (
+              <div className="p-3 mx-4 mt-3 rounded-xl bg-amber-50/80 border border-amber-200 shadow-xs space-y-2 animate-slide-up">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    Add Off-Menu Custom Dish
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomItemRow(false)}
+                    className="text-amber-700 hover:text-amber-900 text-xs font-medium"
+                  >
+                    Cancel
+                  </button>
                 </div>
-              ) : filteredMenuItems.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">
-                  <Utensils className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-xs font-semibold">No dishes match your search</p>
-                  <p className="text-[11px] text-slate-400 mt-1">Try another keyword or add a custom dish below.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Dish Name (e.g. Garlic Naan)"
+                    value={customItemName}
+                    onChange={e => setCustomItemName(e.target.value)}
+                    className="sm:col-span-2 px-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-medium text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={customItemPrice}
+                      onChange={e => setCustomItemPrice(e.target.value)}
+                      className="w-full pl-6 pr-2 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddCustomOffMenuItem}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Dish</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Menu Items Grid */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {filteredMenuItems.length === 0 ? (
+                <div className="py-16 text-center text-slate-400">
+                  <Utensils className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                  <p className="text-xs font-semibold text-slate-600">No dishes match your selection</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Try another category or add a custom dish above.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                   {filteredMenuItems.map(item => {
                     const cartEntry = cartItems.find(i => i.menuItemId === item.id);
                     return (
                       <div
                         key={item.id}
-                        className="bg-white p-3 rounded-xl border border-stone-200 hover:border-brand-300 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                        className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
+                          cartEntry
+                            ? 'bg-amber-50/40 border-amber-300 shadow-2xs'
+                            : 'bg-white border-stone-200/90 hover:border-stone-300 hover:shadow-xs'
+                        }`}
                       >
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span
                               className={`w-2 h-2 rounded-full shrink-0 ${
-                                item.isVeg ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-rose-500 ring-2 ring-rose-200'
+                                item.isVeg ? 'bg-emerald-500' : 'bg-rose-500'
                               }`}
                             />
-                            <h4 className="text-xs font-bold text-slate-900 truncate">{item.name}</h4>
+                            <h4 className="text-xs font-bold text-slate-900 truncate" title={item.name}>
+                              {item.name}
+                            </h4>
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs font-bold text-slate-700">₹{item.price}</span>
-                            {item.portion && (
-                              <span className="text-[10px] text-slate-400 bg-stone-100 px-1.5 py-0.2 rounded">
-                                {item.portion}
-                              </span>
-                            )}
-                          </div>
+                          {item.portion && (
+                            <span className="text-[10px] text-slate-400 bg-stone-100 px-1.5 py-0.2 rounded mt-1 inline-block">
+                              {item.portion}
+                            </span>
+                          )}
                         </div>
 
-                        {cartEntry ? (
-                          <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+                        <div className="flex items-center justify-between pt-1 border-t border-stone-100">
+                          <span className="text-xs font-bold text-slate-900 tabular-nums">₹{item.price}</span>
+
+                          {cartEntry ? (
+                            <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-stone-200 shadow-2xs">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const idx = cartItems.findIndex(i => i.menuItemId === item.id);
+                                  if (idx !== -1) handleUpdateQuantity(idx, -1);
+                                }}
+                                className="w-5 h-5 rounded flex items-center justify-center text-slate-700 hover:bg-stone-100 transition-colors"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-5 text-center text-xs font-bold text-slate-900">
+                                {cartEntry.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const idx = cartItems.findIndex(i => i.menuItemId === item.id);
+                                  if (idx !== -1) handleUpdateQuantity(idx, 1);
+                                }}
+                                className="w-5 h-5 rounded flex items-center justify-center text-slate-700 hover:bg-stone-100 transition-colors"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
                             <button
                               type="button"
-                              onClick={() => {
-                                const idx = cartItems.findIndex(i => i.menuItemId === item.id);
-                                if (idx !== -1) handleUpdateQuantity(idx, -1);
-                              }}
-                              className="w-6 h-6 rounded flex items-center justify-center text-slate-700 hover:bg-white transition-colors"
+                              onClick={() => handleAddToCart(item)}
+                              className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-slate-900 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center gap-1"
                             >
-                              <Minus className="w-3 h-3" />
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add</span>
                             </button>
-                            <span className="w-5 text-center text-xs font-bold text-slate-900">
-                              {cartEntry.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const idx = cartItems.findIndex(i => i.menuItemId === item.id);
-                                if (idx !== -1) handleUpdateQuantity(idx, 1);
-                              }}
-                              className="w-6 h-6 rounded flex items-center justify-center text-slate-700 hover:bg-white transition-colors"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(item)}
-                            className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-brand-500 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center gap-1 shrink-0"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>Add</span>
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               )}
-
-              {/* Add Custom Off-Menu Item Button & Expandable Row */}
-              <div className="pt-2">
-                {!showCustomItemRow ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomItemRow(true)}
-                    className="w-full py-2.5 px-3 rounded-xl border border-dashed border-stone-300 hover:border-brand-400 hover:bg-brand-50/50 text-xs font-semibold text-slate-600 hover:text-brand-700 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-                    <span>+ Add Custom Off-Menu Dish</span>
-                  </button>
-                ) : (
-                  <div className="bg-white p-3 rounded-xl border border-brand-300 ring-2 ring-brand-400/20 space-y-2.5 animate-slide-up">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-                        Custom Special Dish
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomItemRow(false)}
-                        className="text-slate-400 hover:text-slate-600 text-xs"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <input
-                        type="text"
-                        placeholder="Item name (e.g. Garlic Naan)"
-                        value={customItemName}
-                        onChange={e => setCustomItemName(e.target.value)}
-                        className="sm:col-span-2 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                      />
-                      <div className="relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
-                        <input
-                          type="number"
-                          placeholder="Price"
-                          value={customItemPrice}
-                          onChange={e => setCustomItemPrice(e.target.value)}
-                          className="w-full pl-6 pr-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-slate-500 font-semibold">Qty:</span>
-                        <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200">
-                          <button
-                            type="button"
-                            onClick={() => setCustomItemQty(q => Math.max(1, q - 1))}
-                            className="w-5 h-5 rounded flex items-center justify-center text-slate-700 hover:bg-white"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="w-4 text-center text-xs font-bold text-slate-900">{customItemQty}</span>
-                          <button
-                            type="button"
-                            onClick={() => setCustomItemQty(q => q + 1)}
-                            className="w-5 h-5 rounded flex items-center justify-center text-slate-700 hover:bg-white"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleAddCustomOffMenuItem}
-                        className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
-                      >
-                        Add to Order
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
-          {/* Right Column: Order Items & Kitchen Dispatch */}
-          <div className="w-80 flex flex-col bg-white overflow-hidden shrink-0">
-            <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/80 flex items-center justify-between shrink-0">
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <ChefHat className="w-4 h-4 text-brand-600" />
-                Kitchen Tray ({cartItems.reduce((acc, it) => acc + it.quantity, 0)} items)
-              </span>
+          {/* Right Column: Kitchen Order Tray (38% width) */}
+          <div className="w-80 lg:w-96 flex flex-col bg-stone-50/70 border-l border-stone-200 shrink-0">
+            
+            {/* Tray Header */}
+            <div className="px-5 py-3.5 border-b border-stone-200 bg-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <ChefHat className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-bold text-slate-900">Kitchen Tray</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                  {cartItems.reduce((acc, it) => acc + it.quantity, 0)}
+                </span>
+              </div>
               {cartItems.length > 0 && (
                 <button
                   type="button"
@@ -648,36 +657,32 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               )}
             </div>
 
-            {/* Cart Items List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+            {/* Tray Items List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {cartItems.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center py-10">
-                  <div className="w-12 h-12 rounded-2xl bg-stone-100 flex items-center justify-center mb-2">
-                    <ShoppingBag className="w-6 h-6 text-slate-300" />
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center py-12">
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mb-2">
+                    <ShoppingBag className="w-5 h-5 text-slate-300" />
                   </div>
-                  <p className="text-xs font-bold text-slate-600">Kitchen Tray is Empty</p>
-                  <p className="text-[11px] text-slate-400 max-w-[190px] mt-1 leading-relaxed">
-                    Select dishes from the menu on the left to dispatch to kitchen.
+                  <p className="text-xs font-bold text-slate-600">No items in tray</p>
+                  <p className="text-[11px] text-slate-400 max-w-[180px] mt-0.5">
+                    Click + on any dish from the catalog to add to order.
                   </p>
                 </div>
               ) : (
                 cartItems.map((item, idx) => (
                   <div
                     key={item.id}
-                    className="p-2.5 rounded-xl border border-stone-200/90 bg-white hover:border-stone-300 transition-all space-y-2 shadow-2xs"
+                    className="p-2.5 rounded-xl border border-stone-200/90 bg-white hover:border-stone-300 transition-all space-y-1.5 shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <h5 className="text-xs font-bold text-slate-900 leading-tight">{item.name}</h5>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] font-semibold text-slate-700">₹{item.price}</span>
-                          {item.portion && (
-                            <span className="text-[10px] text-slate-400 bg-stone-100 px-1 rounded">
-                              {item.portion}
-                            </span>
-                          )}
+                        <h5 className="text-xs font-bold text-slate-900 leading-tight truncate">{item.name}</h5>
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
+                          <span>₹{item.price} each</span>
+                          {item.portion && <span>• {item.portion}</span>}
                           {item.isCustom && (
-                            <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-1 rounded">
+                            <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1 rounded">
                               Custom
                             </span>
                           )}
@@ -720,60 +725,47 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                   </div>
                 ))
               )}
-
-              {/* Kitchen / Special Cooking Notes */}
-              {cartItems.length > 0 && (
-                <div className="pt-2">
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                    <ChefHat className="w-3 h-3 text-brand-600" />
-                    Kitchen Cooking Notes / Instructions:
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. Less spicy, crisp naan, serve salad first..."
-                    value={customerNotes}
-                    onChange={e => setCustomerNotes(e.target.value)}
-                    className="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                  />
-                </div>
-              )}
             </div>
 
-            {/* Tray Footer: Bill Breakdown & Send To Kitchen CTA */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50/80 space-y-3 shrink-0">
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-600">
+            {/* Tray Footer: Instructions, Totals & Send CTA */}
+            <div className="p-4 border-t border-stone-200 bg-white space-y-3 shrink-0 shadow-xs">
+              
+              {/* Cooking Instructions */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Kitchen note (e.g. Less spicy, extra crisp)..."
+                  value={customerNotes}
+                  onChange={e => setCustomerNotes(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Price Calculation */}
+              <div className="space-y-1 text-xs pt-1">
+                <div className="flex justify-between text-slate-500">
                   <span>Subtotal</span>
                   <span className="font-semibold text-slate-900 tabular-nums">₹{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-slate-500">
                   <span>GST / Taxes ({gstTier})</span>
                   <span className="font-semibold text-slate-900 tabular-nums">₹{tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-slate-900 pt-1.5 border-t border-stone-200">
-                  <span>Estimated Total</span>
+                <div className="flex justify-between text-sm font-bold text-slate-900 pt-1.5 border-t border-stone-100">
+                  <span>Grand Total</span>
                   <span className="text-base font-extrabold text-slate-900 tabular-nums">₹{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* Primary CTA: Send to Kitchen */}
+              {/* Primary Action Button: Send to Kitchen */}
               <button
                 type="button"
                 onClick={handleSendToKitchen}
                 disabled={isSubmitting || cartItems.length === 0}
-                className="w-full py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Dispatching to Kitchen...</span>
-                  </>
-                ) : (
-                  <>
-                    <ChefHat className="w-4 h-4" />
-                    <span>Send to Kitchen & Print KOT</span>
-                  </>
-                )}
+                <ChefHat className="w-4 h-4 text-amber-400" />
+                <span>{isSubmitting ? 'Sending to Kitchen...' : 'Send Order to Kitchen'}</span>
               </button>
             </div>
           </div>

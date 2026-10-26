@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Store,
   MapPin,
@@ -8,14 +8,27 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
-  Upload,
-  Camera,
   RefreshCw,
   Building2,
   Receipt,
   Sparkles,
+  UtensilsCrossed,
+  ChefHat,
+  Coffee,
+  Flame,
+  Crown,
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
+
+const BRAND_SYMBOLS = [
+  { id: 'store', label: 'Bistro & Cafe', icon: Store, color: 'from-orange-500 to-amber-500', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  { id: 'utensils', label: 'Fine Dining', icon: UtensilsCrossed, color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  { id: 'chef', label: 'Culinary Kitchen', icon: ChefHat, color: 'from-rose-500 to-orange-500', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+  { id: 'coffee', label: 'Roastery & Cafe', icon: Coffee, color: 'from-amber-700 to-stone-800', bg: 'bg-amber-50', text: 'text-amber-900', border: 'border-amber-300' },
+  { id: 'flame', label: 'Barbecue & Tandoor', icon: Flame, color: 'from-red-500 to-orange-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  { id: 'crown', label: 'Heritage Grand', icon: Crown, color: 'from-purple-600 to-indigo-600', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  { id: 'sparkles', label: 'Gourmet Lounge', icon: Sparkles, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+];
 
 export const RestaurantDetailsSection: React.FC = () => {
   const { restaurantProfile, updateRestaurantProfile } = useProfile();
@@ -25,34 +38,8 @@ export const RestaurantDetailsSection: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setFormData(prev => ({ ...prev, logoUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setFormData(prev => ({ ...prev, coverImageUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const currentBrandSymbol = BRAND_SYMBOLS.find(s => s.id === formData.logoUrl) || BRAND_SYMBOLS[0];
+  const BrandIcon = currentBrandSymbol.icon;
 
   const handleCancel = () => {
     setFormData({ ...restaurantProfile });
@@ -164,89 +151,80 @@ export const RestaurantDetailsSection: React.FC = () => {
         </div>
       )}
 
-      {/* Brand Visual Assets: Cover Image & Logo */}
-      <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 bg-white shadow-sm">
-        {/* Cover Image */}
-        <div className="relative h-44 sm:h-52 w-full bg-slate-100 overflow-hidden">
-          {formData.coverImageUrl ? (
-            <img
-              src={formData.coverImageUrl}
-              alt="Restaurant Cover"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center text-slate-400 text-xs">
-              No Cover Image Selected
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-          {isEditing && (
-            <button
-              type="button"
-              onClick={() => coverInputRef.current?.click()}
-              className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <Camera className="w-3.5 h-3.5" />
-              <span>Change Cover</span>
-            </button>
-          )}
-
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleCoverUpload}
-          />
-        </div>
-
-        {/* Logo overlapping Cover */}
-        <div className="p-6 sm:p-7 pt-0 relative flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-12 sm:-mt-14">
-          <div className="flex items-end gap-4">
-            <div className="relative">
-              {formData.logoUrl ? (
-                <img
-                  src={formData.logoUrl}
-                  alt={formData.restaurantName}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl object-cover border-4 border-white shadow-md bg-slate-100"
-                />
-              ) : (
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black text-2xl sm:text-3xl flex items-center justify-center border-4 border-white shadow-md">
-                  {formData.restaurantName.charAt(0)}
-                </div>
-              )}
-
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={() => logoInputRef.current?.click()}
-                  className="absolute bottom-1 right-1 p-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-md cursor-pointer transition-transform hover:scale-105"
-                  title="Upload Logo"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
-              )}
-
-              <input
-                ref={logoInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleLogoUpload}
-              />
+      {/* Brand Identity: Symbol Emblem & Status Header */}
+      <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 bg-white shadow-sm p-6 sm:p-7 space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <div className={`w-20 h-20 sm:w-22 sm:h-22 rounded-3xl bg-gradient-to-br ${currentBrandSymbol.color} text-white flex items-center justify-center shadow-lg ring-4 ring-orange-500/10`}>
+                <BrandIcon className="w-10 h-10 sm:w-11 sm:h-11 text-white drop-shadow-xs" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[9px] font-bold shadow-xs">
+                ✓
+              </span>
             </div>
 
-            <div className="space-y-0.5 pb-2">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                {formData.restaurantName}
-              </h3>
-              <p className="text-xs text-orange-600 font-semibold">
-                {formData.restaurantType} • {formData.category}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {formData.restaurantName}
+                </h3>
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${currentBrandSymbol.bg} ${currentBrandSymbol.text} ${currentBrandSymbol.border}`}>
+                  {currentBrandSymbol.label}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium">
+                {formData.restaurantType} • {formData.category} • {formData.city}, {formData.state}
               </p>
+              <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  GST &amp; FSSAI Validated
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                  Live QR Ordering Active
+                </span>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* When in editing mode: Symbol Picker Toggle */}
+        {isEditing && (
+          <div className="pt-4 border-t border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Select Brand Symbol Emblem
+              </label>
+              <span className="text-xs font-bold text-orange-600">
+                Current: {currentBrandSymbol.label}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+              {BRAND_SYMBOLS.map((sym) => {
+                const SymIcon = sym.icon;
+                const isSelected = (formData.logoUrl || 'store') === sym.id;
+                return (
+                  <button
+                    key={sym.id}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, logoUrl: sym.id }))}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-orange-50/90 border-orange-500 text-orange-950 ring-2 ring-orange-500/20 shadow-xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${sym.color} flex items-center justify-center text-white mb-1.5 shadow-xs`}>
+                      <SymIcon className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-[11px] font-bold leading-tight">{sym.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Details Form */}

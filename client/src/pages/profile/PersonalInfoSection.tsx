@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   User,
   Mail,
   Phone,
   Calendar,
-  Camera,
   CheckCircle2,
   AlertCircle,
   Save,
@@ -12,9 +11,21 @@ import {
   ShieldCheck,
   Sparkles,
   RefreshCw,
-  Upload,
+  Crown,
+  ChefHat,
+  UserCheck,
+  Zap,
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
+
+const MANAGER_SYMBOLS = [
+  { id: 'shield', label: 'Verified Manager', icon: ShieldCheck, color: 'from-orange-500 to-amber-500', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  { id: 'crown', label: 'Executive Owner', icon: Crown, color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  { id: 'chef', label: 'Culinary Lead', icon: ChefHat, color: 'from-rose-500 to-orange-500', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+  { id: 'sparkles', label: 'Hospitality Lead', icon: Sparkles, color: 'from-purple-500 to-indigo-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  { id: 'user', label: 'Shift Supervisor', icon: UserCheck, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  { id: 'zap', label: 'Operations Lead', icon: Zap, color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+];
 
 export const PersonalInfoSection: React.FC = () => {
   const { profile, updateUserProfile } = useProfile();
@@ -25,29 +36,13 @@ export const PersonalInfoSection: React.FC = () => {
   const [email, setEmail] = useState(profile.email);
   const [phone, setPhone] = useState(profile.phone);
   const [altPhone, setAltPhone] = useState(profile.altPhone);
-  const [photoUrl, setPhotoUrl] = useState(profile.photoUrl);
+  const [selectedSymbol, setSelectedSymbol] = useState(profile.photoUrl || 'shield');
 
   const [isSaving, setIsSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        setStatusMsg({ type: 'error', text: 'Image size must be less than 3MB.' });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setPhotoUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const currentSymbol = MANAGER_SYMBOLS.find(s => s.id === selectedSymbol) || MANAGER_SYMBOLS[0];
+  const CurrentIcon = currentSymbol.icon;
 
   const handleCancel = () => {
     setFullName(profile.fullName);
@@ -55,7 +50,7 @@ export const PersonalInfoSection: React.FC = () => {
     setEmail(profile.email);
     setPhone(profile.phone);
     setAltPhone(profile.altPhone);
-    setPhotoUrl(profile.photoUrl);
+    setSelectedSymbol(profile.photoUrl || 'shield');
     setIsEditing(false);
     setStatusMsg(null);
   };
@@ -72,7 +67,7 @@ export const PersonalInfoSection: React.FC = () => {
         email,
         phone,
         altPhone,
-        photoUrl,
+        photoUrl: selectedSymbol,
       });
 
       if (res.success) {
@@ -174,71 +169,69 @@ export const PersonalInfoSection: React.FC = () => {
         </div>
       )}
 
-      {/* Profile Avatar Card */}
-      <div className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          <div className="relative">
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={fullName}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl object-cover border-2 border-orange-400 shadow-md"
-              />
-            ) : (
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-600 text-white font-black text-3xl flex items-center justify-center shadow-md">
-                {fullName.charAt(0)}
-              </div>
-            )}
-
-            {isEditing && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-md cursor-pointer transition-transform hover:scale-105"
-                title="Upload Photo"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handlePhotoUpload}
-            />
+      {/* Premium Profile Emblem Card */}
+      <div className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="relative shrink-0">
+            <div className={`w-20 h-20 sm:w-22 sm:h-22 rounded-3xl bg-gradient-to-br ${currentSymbol.color} text-white flex items-center justify-center shadow-lg ring-4 ring-orange-500/10`}>
+              <CurrentIcon className="w-10 h-10 sm:w-11 sm:h-11 text-white drop-shadow-xs" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shadow-xs">
+              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-slate-900">{fullName}</h3>
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{fullName}</h3>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${currentSymbol.bg} ${currentSymbol.text} ${currentSymbol.border}`}>
+                <CurrentIcon className="w-3.5 h-3.5" />
+                {currentSymbol.label}
+              </span>
+            </div>
             <p className="text-xs text-slate-500 font-mono">@{username}</p>
-            {isEditing && (
-              <div className="pt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer border border-slate-200 shadow-xs"
-                >
-                  <Upload className="w-3.5 h-3.5 text-orange-500" />
-                  <span>Upload New Picture</span>
-                </button>
-                {photoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setPhotoUrl('')}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-red-600 cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            )}
-            <p className="text-[11px] text-slate-400 pt-1">
-              Recommended: JPG or PNG square image, at least 400x400 pixels.
+            <p className="text-[11px] text-slate-400">
+              Verified Manager Profile • Secure Restaurant Session
             </p>
           </div>
         </div>
+
+        {/* When in editing mode: Premium Symbol Selector Toggle */}
+        {isEditing && (
+          <div className="pt-4 border-t border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Select Profile Symbol
+              </span>
+              <span className="text-xs font-bold text-orange-600">
+                {currentSymbol.label}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {MANAGER_SYMBOLS.map((sym) => {
+                const SymIcon = sym.icon;
+                const isSelected = selectedSymbol === sym.id;
+                return (
+                  <button
+                    key={sym.id}
+                    type="button"
+                    onClick={() => setSelectedSymbol(sym.id)}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-2xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-orange-50/90 border-orange-500 text-orange-950 ring-2 ring-orange-500/20 font-bold shadow-xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-xl bg-gradient-to-br ${sym.color} flex items-center justify-center text-white shrink-0 shadow-xs`}>
+                      <SymIcon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <span className="text-[11px] leading-tight truncate">{sym.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Profile Details Form / View */}

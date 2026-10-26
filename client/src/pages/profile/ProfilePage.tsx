@@ -14,7 +14,22 @@ import {
   ArrowLeft,
   ChevronRight,
   Sparkles,
+  UtensilsCrossed,
+  ChefHat,
+  Coffee,
+  Flame,
+  Crown,
 } from 'lucide-react';
+
+const BRAND_SYMBOLS_MAP: Record<string, { icon: any; color: string }> = {
+  store: { icon: Store, color: 'from-orange-500 to-amber-500' },
+  utensils: { icon: UtensilsCrossed, color: 'from-amber-500 to-yellow-500' },
+  chef: { icon: ChefHat, color: 'from-rose-500 to-orange-500' },
+  coffee: { icon: Coffee, color: 'from-amber-700 to-stone-800' },
+  flame: { icon: Flame, color: 'from-red-500 to-orange-500' },
+  crown: { icon: Crown, color: 'from-purple-600 to-indigo-600' },
+  sparkles: { icon: Sparkles, color: 'from-emerald-500 to-teal-500' },
+};
 
 import { OverviewSection } from './OverviewSection';
 import { PersonalInfoSection } from './PersonalInfoSection';
@@ -210,9 +225,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
             <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3">
               <div className="flex items-center gap-3.5">
                 <div className="relative shrink-0">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
-                    <Store className="w-6 h-6 text-white" />
-                  </div>
+                  {(() => {
+                    const brandSym = BRAND_SYMBOLS_MAP[restaurantProfile.logoUrl || 'store'] || BRAND_SYMBOLS_MAP.store;
+                    const BrandSymIcon = brandSym.icon;
+                    return (
+                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${brandSym.color} flex items-center justify-center text-white font-extrabold text-sm shadow-md`}>
+                        <BrandSymIcon className="w-6 h-6 text-white" />
+                      </div>
+                    );
+                  })()}
                   <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" />
                 </div>
                 <div className="min-w-0 flex-1">

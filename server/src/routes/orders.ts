@@ -169,6 +169,9 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     const kotData = PrinterService.generateKotData(restaurant, order, printerConfig);
     const thermalText = PrinterService.generateThermalText(kotData);
 
+    order.kotGenerated = true;
+    order.kotNumber = kotData.kotNumber;
+
     // If network printer is configured, auto-dispatch
     if (printerConfig?.printerType === 'NETWORK' && printerConfig.printerIp) {
       PrinterService.sendToNetworkPrinter(printerConfig.printerIp, thermalText).catch(err => {

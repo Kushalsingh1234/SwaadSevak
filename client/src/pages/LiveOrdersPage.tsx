@@ -390,6 +390,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
           {[
             { id: 'ALL', label: 'All', count: orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
             { id: 'DINE_IN', label: 'Dine-In', count: orders.filter(o => o.source === 'DINE_IN' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
+            { id: 'OTHER', label: 'Takeaway / Direct', count: orders.filter(o => o.source === 'OTHER' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
             { id: 'SWIGGY', label: 'Swiggy', count: orders.filter(o => o.source === 'SWIGGY' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
             { id: 'ZOMATO', label: 'Zomato', count: orders.filter(o => o.source === 'ZOMATO' && o.status !== 'COMPLETED' && o.status !== 'REJECTED' && o.status !== 'DELIVERED').length },
           ].map(tab => (
@@ -1262,6 +1263,9 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         printerConfig={printerConfig}
         onOrderCreated={(createdOrder, bill) => {
           onRefreshOrders();
+          if (filterSource !== 'ALL' && filterSource !== createdOrder.source) {
+            setFilterSource('ALL');
+          }
         }}
         onTriggerKot={(order) => {
           setSelectedKotOrder(order);

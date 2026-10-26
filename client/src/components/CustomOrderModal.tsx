@@ -358,7 +358,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
       onClick={e => {
         if (e.target === e.currentTarget && !isSubmitting) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto no-scrollbar"
     >
       <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh]">
         {/* Modal Header */}
@@ -389,9 +389,9 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
         </div>
 
         {/* Modal Body: Two column layout on desktop */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-stone-200">
+        <div className="flex-1 overflow-y-auto no-scrollbar grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-stone-200">
           {/* Left Column: Order Setup & Menu Selection (7 cols) */}
-          <div className="lg:col-span-7 p-4 sm:p-5 space-y-4 overflow-y-auto">
+          <div className="lg:col-span-7 p-4 sm:p-5 space-y-4 overflow-y-auto no-scrollbar">
             {/* 1. Channel Selector */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Order Channel</label>
@@ -581,7 +581,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               </div>
 
               {/* Menu Items Grid */}
-              <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+              <div className="max-h-56 overflow-y-auto no-scrollbar space-y-1.5 pr-1">
                 {isLoadingData ? (
                   <div className="text-center py-6 text-xs text-slate-400">
                     <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1 text-brand-500" />
@@ -676,7 +676,7 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                   <p className="text-[11px] text-slate-400 mt-0.5">Click + on items or add a custom item to start</p>
                 </div>
               ) : (
-                <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                <div className="max-h-56 overflow-y-auto no-scrollbar space-y-1.5 pr-1">
                   {cartItems.map((item, idx) => (
                     <div
                       key={item.id}

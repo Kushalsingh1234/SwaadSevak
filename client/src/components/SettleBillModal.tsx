@@ -39,7 +39,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto no-scrollbar"
     >
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
         {/* Header */}
@@ -58,7 +58,7 @@ export const SettleBillModal: React.FC<SettleBillModalProps> = ({
 
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Order Items Snapshot */}
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-36 sm:max-h-40 overflow-y-auto space-y-1.5 text-xs">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-36 sm:max-h-40 overflow-y-auto no-scrollbar space-y-1.5 text-xs">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex justify-between items-center text-gray-700">
                 <span className="truncate pr-2">

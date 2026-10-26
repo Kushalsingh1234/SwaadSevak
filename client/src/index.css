@@ -101,10 +101,15 @@
     touch-action: manipulation;
   }
 
-  /* Firefox custom dark scrollbar */
+  /* Clean modern scrollbars across the platform */
   * {
-    scrollbar-color: #4A2D1E #1A0F0A;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    height: 0px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -135,30 +140,40 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom Sleek Scrollbars matching Luxury Dark Espresso */
+/* Global Clean Scrollbar Elimination - No ugly native tracks or buttons */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #1A0F0A;
-}
-::-webkit-scrollbar-thumb {
-  background: #4A2D1E;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #F25C05;
+  display: none;
+  width: 0px;
+  height: 0px;
 }
 
-/* Hide scrollbars for horizontal tag sliders */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-.no-scrollbar {
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0px;
+  height: 0px;
+}
+
+/* Universal no-scrollbar utility */
+.no-scrollbar,
+.scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  height: 0px;
 }
 
 /* Mobile Safe-Area Bottom Utility */

@@ -68,7 +68,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto no-scrollbar"
     >
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
         {/* Top bar */}
@@ -91,7 +91,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         </div>
 
         {/* Invoice Body */}
-        <div className="p-3 sm:p-6 overflow-y-auto max-h-[70dvh] sm:max-h-[70vh]">
+        <div className="p-3 sm:p-6 overflow-y-auto no-scrollbar max-h-[70dvh] sm:max-h-[70vh]">
           {waStatus && (
             <div className={`mb-3 p-2.5 rounded-lg text-xs font-medium flex items-center justify-between ${
               waStatus.type === 'success'

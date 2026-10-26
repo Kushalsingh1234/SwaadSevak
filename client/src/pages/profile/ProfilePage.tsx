@@ -284,25 +284,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout, onNavigateTa
               </div>
             </div>
 
-            {/* Quick Status Pill */}
-            <div className="p-4 rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50/50 border border-orange-200/80 text-xs space-y-2 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-slate-600">Active License</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  {subscription.remainingDays}d Left
-                </span>
+            {/* Quick Status Pill - only visible in My Subscription tab */}
+            {activeTab === 'subscription' && (
+              <div className="p-4 rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50/50 border border-orange-200/80 text-xs space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-600">Active License</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    {subscription.remainingDays}d Left
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-800 font-bold">
+                  {subscription.planName}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsRenewModalOpen(true)}
+                  className="w-full mt-1 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs"
+                >
+                  Renew Subscription
+                </button>
               </div>
-              <p className="text-[11px] text-slate-800 font-bold">
-                {subscription.planName}
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsRenewModalOpen(true)}
-                className="w-full mt-1 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs"
-              >
-                Renew Subscription
-              </button>
-            </div>
+            )}
           </aside>
 
           {/* Right Main Content Pane */}

@@ -433,6 +433,26 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     if (showWizard && wizardStep === 1) {
       let cancelled = false;
       setLiveEstimating(true);
+
+      // Instant local estimate if customers directory is loaded
+      if (customers && customers.length > 0) {
+        let count = 0;
+        if (wizardAudienceSegment === 'ALL') {
+          count = customers.filter(c => c.phone && c.phone.trim().length >= 10).length;
+        } else if (wizardAudienceSegment === 'INACTIVE') {
+          count = customers.filter(c => c.status === 'INACTIVE' || c.status === 'AT_RISK' || (c.lastVisit && (Date.now() - new Date(c.lastVisit).getTime()) >= 14 * 86400000)).length;
+        } else if (wizardAudienceSegment === 'VIP') {
+          count = customers.filter(c => c.status === 'VIP' || (c.totalSpent || 0) >= 3000).length;
+        } else if (wizardAudienceSegment === 'LOYAL') {
+          count = customers.filter(c => c.status === 'REGULAR' || (c.totalOrders || 0) >= 3).length;
+        } else if (wizardAudienceSegment === 'NEW') {
+          count = customers.filter(c => (c.totalOrders || 0) <= 1).length;
+        } else if (wizardAudienceSegment === 'SPECIFIC_CUSTOMER') {
+          count = wizardSpecificCustomerId ? 1 : 0;
+        }
+        setLiveEligibleCount(count);
+      }
+
       api.estimateAutomationAudience({
         triggerConfig: {
           type: wizardTriggerType,
@@ -442,8 +462,8 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
           segment: wizardAudienceSegment,
           specificCustomerId: wizardSpecificCustomerId,
           specificCustomerPhone: wizardSpecificCustomerPhone,
-          minOrders: wizardMinOrders,
-          minSpend: wizardMinSpend,
+          minOrders: wizardAudienceSegment === 'ALL' ? 0 : wizardMinOrders,
+          minSpend: wizardAudienceSegment === 'ALL' ? 0 : wizardMinSpend,
           vipOnly: wizardAudienceSegment === 'VIP'
         }
       })
@@ -453,7 +473,9 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
           }
         })
         .catch(() => {
-          if (!cancelled) setLiveEligibleCount(null);
+          if (!cancelled && (!customers || customers.length === 0)) {
+            setLiveEligibleCount(null);
+          }
         })
         .finally(() => {
           if (!cancelled) setLiveEstimating(false);
@@ -473,7 +495,8 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
     wizardSpecificCustomerId,
     wizardSpecificCustomerPhone,
     wizardMinOrders,
-    wizardMinSpend
+    wizardMinSpend,
+    customers
   ]);
 
   const formatCurrency = (amount: number) => {
@@ -1740,6 +1763,10 @@ export const AiAutomationsTab: React.FC<AiAutomationsTabProps> = ({
                             key={cat.id}
                             onClick={() => {
                               setWizardAudienceSegment(cat.id);
+                              if (cat.id === 'ALL') {
+                                setWizardMinOrders(0);
+                                setWizardMinSpend(0);
+                              }
                               if (cat.id !== 'SPECIFIC_CUSTOMER') {
                                 setWizardSpecificCustomerId('');
                                 setWizardSpecificCustomerName('');

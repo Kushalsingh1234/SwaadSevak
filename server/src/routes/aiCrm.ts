@@ -316,53 +316,46 @@ router.post('/automations/estimate-audience', (req: AuthenticatedRequest, res: R
       return false;
     }
 
-    // Inactivity days filter
-    const triggerType = triggerConfig?.type;
-    const inactivityDays = Number(triggerConfig?.value) || 15;
-    if (triggerType === 'INACTIVITY_DAYS') {
-      const lastVisitMs = c.lastVisit ? new Date(c.lastVisit).getTime() : new Date(c.createdAt).getTime();
-      const daysSince = (now - lastVisitMs) / (1000 * 60 * 60 * 24);
-      if (daysSince < inactivityDays) return false;
+    // Must have a valid phone number to receive automated WhatsApp/SMS communications
+    if (!c.phone || c.phone.trim().length < 10) {
+      return false;
     }
 
-    // Visit milestone
-    if (triggerType === 'VISIT_MILESTONE') {
-      const targetVisits = Number(triggerConfig?.value) || 5;
-      if (c.totalOrders < targetVisits) return false;
+    const seg = audienceConfig?.segment || 'ALL';
+
+    // "All Customers" targets every customer in the CRM with a valid phone number
+    if (seg === 'ALL') {
+      return true;
     }
 
-    // First order
-    if (triggerType === 'FIRST_ORDER') {
-      if (c.totalOrders !== 1) return false;
-    }
-
-    // Audience segment check
-    const seg = audienceConfig?.segment;
+    // Inactivity filter (applies only to INACTIVE segment or when trigger is specifically inactivity)
     if (seg === 'INACTIVE') {
+      const inactivityDays = Number(triggerConfig?.value) || 14;
       const lastVisitMs = c.lastVisit ? new Date(c.lastVisit).getTime() : new Date(c.createdAt).getTime();
       const daysSince = (now - lastVisitMs) / (1000 * 60 * 60 * 24);
-      if (c.status !== 'INACTIVE' && c.status !== 'AT_RISK' && daysSince < 14) return false;
-    } else if (seg === 'VIP') {
-      if (c.status !== 'VIP' && c.totalSpent < 3000) return false;
-    } else if (seg === 'LOYAL') {
-      if (c.status !== 'REGULAR' && c.totalOrders < 3) return false;
-    } else if (seg === 'NEW') {
-      if (c.totalOrders > 1) return false;
+      return c.status === 'INACTIVE' || c.status === 'AT_RISK' || daysSince >= inactivityDays;
     }
 
-    // Audience min orders
-    if (audienceConfig?.minOrders && c.totalOrders < Number(audienceConfig.minOrders)) {
-      return false;
+    if (seg === 'VIP') {
+      return c.status === 'VIP' || (c.totalSpent || 0) >= 3000;
     }
 
-    // Audience min spend
-    if (audienceConfig?.minSpend && c.totalSpent < Number(audienceConfig.minSpend)) {
-      return false;
+    if (seg === 'LOYAL') {
+      return c.status === 'REGULAR' || (c.totalOrders || 0) >= 3;
     }
 
-    // VIP filter
-    if (audienceConfig?.vipOnly) {
-      if (c.totalSpent < 3000 && c.totalOrders < 4) return false;
+    if (seg === 'NEW') {
+      return (c.totalOrders || 0) <= 1 || c.status === 'NEW';
+    }
+
+    // Audience min orders (only if explicitly specified and not 0)
+    if (audienceConfig?.minOrders && Number(audienceConfig.minOrders) > 0) {
+      if (c.totalOrders < Number(audienceConfig.minOrders)) return false;
+    }
+
+    // Audience min spend (only if explicitly specified and not 0)
+    if (audienceConfig?.minSpend && Number(audienceConfig.minSpend) > 0) {
+      if (c.totalSpent < Number(audienceConfig.minSpend)) return false;
     }
 
     return true;

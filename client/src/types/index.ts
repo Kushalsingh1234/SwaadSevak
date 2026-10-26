@@ -93,6 +93,7 @@ export interface Order {
   additions?: OrderAddition[];
   estimatedPrepTime?: number;
   settled?: boolean;
+  isCustomOrder?: boolean;
   customerId?: string;
   customerName?: string;
   customerPhone?: string;

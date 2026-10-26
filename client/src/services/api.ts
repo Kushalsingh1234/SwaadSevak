@@ -524,6 +524,11 @@ export const api = {
     request<{ success: boolean; message: string; order: any; bill?: any; kotData?: any; thermalText?: string }>('/orders', {
       method: 'POST',
       body: JSON.stringify(orderData)
+    }),
+  finalizeCustomOrderBill: (orderId: string, data: { customerName?: string; customerPhone?: string; paymentMode: string }) =>
+    request<{ success: boolean; message: string; order: any; bill: any; customer?: any }>(`/orders/${orderId}/finalize-custom-billing`, {
+      method: 'POST',
+      body: JSON.stringify(data)
     })
 };
 

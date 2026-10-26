@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
-import { emitOrderStatus, emitCustomerCoinsUpdated, emitNewOrder } from '../realtime/socket.js';
+import { emitOrderStatus, emitCustomerCoinsUpdated, emitNewOrder, emitBillGenerated } from '../realtime/socket.js';
 import { PrinterService } from '../printing/printerService.js';
 import { OrderStatus } from '../types/index.js';
 import { aggregatorManager } from '../aggregators/aggregatorManager.js';
@@ -143,6 +143,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       coinsUsed: 0,
       coinsEarned: 0,
       coinDiscount: discountAmount,
+      isCustomOrder: true,
       items: verifiedItems
     });
 
@@ -190,6 +191,96 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   } catch (error: any) {
     console.error('Error creating custom order:', error);
     return res.status(500).json({ success: false, message: error.message || 'Failed to create order.' });
+  }
+});
+
+/**
+ * POST /api/orders/:id/finalize-custom-billing
+ * Finalize billing for custom order, link customer to CRM directory, settle bill and complete order.
+ */
+router.post('/:id/finalize-custom-billing', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const orderId = req.params.id as string;
+    const { customerName, customerPhone, paymentMode } = req.body as {
+      customerName?: string;
+      customerPhone?: string;
+      paymentMode?: 'CASH' | 'UPI' | 'CARD';
+    };
+
+    const order = db.getOrder(restaurantId, orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    // 1. If phone is provided, create or link customer in CRM directory
+    let customer: any = null;
+    if (customerPhone && String(customerPhone).trim().length >= 10) {
+      const rawDigits = String(customerPhone).trim().replace(/[^0-9]/g, '');
+      const cleanPhone = rawDigits.slice(-10);
+      const existing = db.getCustomerByPhone(restaurantId, cleanPhone);
+      if (existing) {
+        if (customerName && customerName.trim() && (existing.name === 'Valued Guest' || existing.name === 'Guest')) {
+          existing.name = customerName.trim();
+        }
+        customer = existing;
+      } else {
+        const created = db.createCustomer(restaurantId, {
+          name: customerName && customerName.trim() ? customerName.trim() : 'Valued Guest',
+          phone: cleanPhone
+        });
+        customer = created.customer;
+      }
+
+      order.customerId = customer.id;
+      order.customerName = customer.name;
+      order.customerPhone = customer.phone;
+    } else if (customerName && customerName.trim()) {
+      order.customerName = customerName.trim();
+    }
+
+    // 2. Generate or fetch bill
+    let bill = db.getBillByOrder(order.id);
+    if (!bill) {
+      bill = db.createBill(restaurantId, order.id) || null;
+    }
+
+    if (!bill) {
+      return res.status(500).json({ success: false, message: 'Could not generate bill for order.' });
+    }
+
+    // 3. Settle bill with payment mode
+    const mode = (paymentMode || 'UPI').toUpperCase();
+    const payStatus = mode === 'CARD' ? 'PAID_CARD' : mode === 'CASH' ? 'PAID_CASH' : 'PAID_UPI';
+    const settledBill = db.settleBill(restaurantId, bill.id, payStatus);
+
+    // 4. Update order state
+    order.status = 'COMPLETED';
+    order.settled = true;
+    order.completedAt = new Date();
+
+    // 5. Broadcast real-time events
+    emitBillGenerated(restaurantId, order.tableId, settledBill || bill);
+    emitOrderStatus(restaurantId, order.tableId, order);
+    if (customer) {
+      emitCustomerCoinsUpdated(restaurantId, customer);
+    }
+
+    // 6. Trigger background automations if configured
+    CampaignScheduler.processAutomations().catch(err => {
+      console.error('[Scheduler] Error processing automations on custom billing:', err);
+    });
+
+    return res.json({
+      success: true,
+      message: 'Order bill finalized and customer saved to directory successfully!',
+      order,
+      bill: settledBill || bill,
+      customer
+    });
+  } catch (error: any) {
+    console.error('Error finalizing custom billing:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to finalize bill.' });
   }
 });
 

@@ -32,6 +32,7 @@ import { InvoiceModal } from '../components/InvoiceModal';
 import { SettleBillModal } from '../components/SettleBillModal';
 import { AcceptOnlineOrderModal } from '../components/AcceptOnlineOrderModal';
 import { CustomOrderModal } from '../components/CustomOrderModal';
+import { CustomOrderBillingModal } from '../components/CustomOrderBillingModal';
 import { Plus } from 'lucide-react';
 
 interface LiveOrdersPageProps {
@@ -87,6 +88,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
 
   // Custom Order Modal State
   const [isCustomOrderModalOpen, setIsCustomOrderModalOpen] = useState(false);
+  const [customBillingOrder, setCustomBillingOrder] = useState<Order | null>(null);
 
   // Elapsed time tracker (refreshes every 30s)
   const [now, setNow] = useState(Date.now());
@@ -763,6 +765,11 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                   <span className="text-[11px] text-slate-500 font-mono font-medium">
                                     {formatOrderNumber(order.orderNumber)}
                                   </span>
+                                  {order.isCustomOrder && (
+                                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                      Custom
+                                    </span>
+                                  )}
                                   {acceptedAdditionsCount > 0 && (
                                     <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                       +{acceptedAdditionsCount} Add-on
@@ -844,7 +851,15 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                 >
                                   <Printer className="w-4 h-4 text-slate-500" />
                                 </button>
-                                {order.source && order.source !== 'DINE_IN' ? (
+                                {order.isCustomOrder ? (
+                                  <button
+                                    onClick={() => onUpdateOrderStatus(order.id, 'READY')}
+                                    className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>Mark Ready</span>
+                                  </button>
+                                ) : order.source && order.source !== 'DINE_IN' ? (
                                   <button
                                     onClick={() => onUpdateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}
                                     className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
@@ -919,6 +934,11 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                   <span className="text-[11px] text-slate-500 font-mono font-medium">
                                     {formatOrderNumber(order.orderNumber)}
                                   </span>
+                                  {order.isCustomOrder && (
+                                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                      Custom
+                                    </span>
+                                  )}
                                 </div>
                                 <span className="text-[10px] text-slate-400 block mt-1">
                                   Ordered at {orderTime}
@@ -1020,8 +1040,8 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                               </div>
 
                               <div className="flex items-center gap-1.5">
-                                {/* When READY: Mark as Served (moves to served state without settling) */}
-                                {isReady && (
+                                {/* CUSTOM ORDERS: Direct Finalize Bill button (opens CustomOrderBillingModal) */}
+                                {order.isCustomOrder ? (
                                   <>
                                     <button
                                       onClick={() => handleOpenKot(order)}
@@ -1031,45 +1051,67 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
                                       <Printer className="w-4 h-4 text-slate-500" />
                                     </button>
                                     <button
-                                      onClick={() => onUpdateOrderStatus(order.id, 'SERVED')}
-                                      className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                      onClick={() => setCustomBillingOrder(order)}
+                                      className="min-h-[38px] px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                                     >
-                                      <UtensilsCrossed className="w-3.5 h-3.5" />
-                                      <span>Mark as Served</span>
+                                      <Receipt className="w-3.5 h-3.5" />
+                                      <span>Finalize Bill</span>
                                     </button>
                                   </>
-                                )}
-
-                                {/* When SERVED: Kept on the floor; option to settle bill permanently */}
-                                {isServed && (
+                                ) : (
                                   <>
-                                    <button
-                                      onClick={() => handleOpenInvoice(order)}
-                                      className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-700 hover:bg-stone-50 text-xs font-semibold flex items-center gap-1 transition-colors"
-                                      title="View Invoice / Bill"
-                                    >
-                                      <Receipt className="w-3.5 h-3.5 text-slate-500" />
-                                      <span className="hidden sm:inline">Receipt</span>
-                                    </button>
-                                    <button
-                                      onClick={() => setSettleOrder(order)}
-                                      className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
-                                    >
-                                      <Check className="w-3.5 h-3.5" />
-                                      <span>Settle Bill</span>
-                                    </button>
-                                  </>
-                                )}
+                                    {/* When READY: Mark as Served (moves to served state without settling) */}
+                                    {isReady && (
+                                      <>
+                                        <button
+                                          onClick={() => handleOpenKot(order)}
+                                          className="min-h-[38px] p-2 rounded-lg border border-stone-200 text-slate-600 hover:bg-stone-50 transition-colors"
+                                          title="Print KOT"
+                                        >
+                                          <Printer className="w-4 h-4 text-slate-500" />
+                                        </button>
+                                        <button
+                                          onClick={() => onUpdateOrderStatus(order.id, 'SERVED')}
+                                          className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                        >
+                                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                                          <span>Mark as Served</span>
+                                        </button>
+                                      </>
+                                    )}
 
-                                {/* When OUT_FOR_DELIVERY: Deliver & Settle order */}
-                                {order.status === 'OUT_FOR_DELIVERY' && (
-                                  <button
-                                    onClick={() => onUpdateOrderStatus(order.id, 'DELIVERED')}
-                                    className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
-                                  >
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span>Mark Delivered & Settled</span>
-                                  </button>
+                                    {/* When SERVED: Kept on the floor; option to settle bill permanently */}
+                                    {isServed && (
+                                      <>
+                                        <button
+                                          onClick={() => handleOpenInvoice(order)}
+                                          className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-stone-200 text-slate-700 hover:bg-stone-50 text-xs font-semibold flex items-center gap-1 transition-colors"
+                                          title="View Invoice / Bill"
+                                        >
+                                          <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                                          <span className="hidden sm:inline">Receipt</span>
+                                        </button>
+                                        <button
+                                          onClick={() => setSettleOrder(order)}
+                                          className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                        >
+                                          <Check className="w-3.5 h-3.5" />
+                                          <span>Settle Bill</span>
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {/* When OUT_FOR_DELIVERY: Deliver & Settle order */}
+                                    {order.status === 'OUT_FOR_DELIVERY' && (
+                                      <button
+                                        onClick={() => onUpdateOrderStatus(order.id, 'DELIVERED')}
+                                        className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        <span>Mark Delivered & Settled</span>
+                                      </button>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </div>
@@ -1260,7 +1302,7 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         onClose={() => setIsCustomOrderModalOpen(false)}
         restaurant={restaurant}
         printerConfig={printerConfig}
-        onOrderCreated={(createdOrder, bill) => {
+        onOrderCreated={(createdOrder) => {
           onRefreshOrders();
           if (filterSource !== 'ALL' && filterSource !== createdOrder.source) {
             setFilterSource('ALL');
@@ -1269,9 +1311,20 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         onTriggerKot={(order) => {
           setSelectedKotOrder(order);
         }}
-        onTriggerInvoice={(order, bill) => {
-          setSelectedInvoiceOrder(order);
-          setActiveBill(bill || null);
+      />
+
+      <CustomOrderBillingModal
+        isOpen={Boolean(customBillingOrder)}
+        onClose={() => setCustomBillingOrder(null)}
+        order={customBillingOrder}
+        restaurant={restaurant}
+        printerConfig={printerConfig}
+        onOrderFinalized={() => {
+          onRefreshOrders();
+        }}
+        onOpenInvoiceModal={(finalizedOrder, bill) => {
+          setSelectedInvoiceOrder(finalizedOrder);
+          setActiveBill(bill);
         }}
       />
     </div>

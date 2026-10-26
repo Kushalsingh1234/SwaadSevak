@@ -512,6 +512,18 @@ export const api = {
     request<{ success: boolean; message: string; messageId?: string }>('/whatsapp/test-send', {
       method: 'POST',
       body: JSON.stringify({ targetPhone })
+    }),
+  sendWhatsAppPdfReceipt: (data: { recipientPhone: string; pdfBase64: string; fileName?: string; caption?: string; orderId?: string }) =>
+    request<{ success: boolean; message: string; messageId?: string }>('/whatsapp/send-pdf-receipt', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  // Orders Management
+  createCustomOrder: (orderData: any) =>
+    request<{ success: boolean; message: string; order: any; bill?: any; kotData?: any; thermalText?: string }>('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
     })
 };
 

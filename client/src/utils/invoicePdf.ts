@@ -1,17 +1,26 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { Order, Restaurant, Bill } from '../types';
+import { api } from '../services/api';
+
+export interface GeneratedInvoiceResult {
+  pdf: jsPDF;
+  safeFilename: string;
+  base64: string;
+  dataUri: string;
+}
 
 /**
  * Generates an authentic, executive restaurant dining invoice / receipt.
  * Redesigned with clean typographic hierarchy and classic receipt dividers,
  * completely eliminating colored container boxes so text never sticks to bottom edges.
+ * Returns the jsPDF instance, safe filename, and base64 string for downloading or WhatsApp sending.
  */
-export async function downloadInvoicePdf(
+export async function generateInvoicePdfDoc(
   order: Order,
   bill: Bill | null,
   restaurant: Restaurant | null
-): Promise<void> {
+): Promise<GeneratedInvoiceResult> {
   const invoiceNumber = bill?.billNumber || `INV-${order.orderNumber.replace('#', '')}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit',
@@ -122,6 +131,13 @@ export async function downloadInvoicePdf(
         <span>Order ID: <b style="color: #334155;">${order.orderNumber}</b></span>
         <span>${orderDate} • ${orderTime}</span>
       </div>
+      ${
+        order.customerNotes
+          ? `<div style="margin-top: 4px; font-size: 10.5px; color: #475569; background: #f8fafc; padding: 4px 6px; border-radius: 4px;">
+               <strong>Notes:</strong> ${order.customerNotes}
+             </div>`
+          : ''
+      }
     </div>
 
     <!-- Itemized List Table -->
@@ -260,12 +276,74 @@ export async function downloadInvoicePdf(
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
 
     const safeFilename = `Invoice-${invoiceNumber.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
-    pdf.save(safeFilename);
-  } catch (error) {
-    console.error('Failed to generate canvas invoice PDF:', error);
+    const dataUri = pdf.output('datauristring');
+    const base64 = dataUri.split(',')[1] || '';
+
+    return { pdf, safeFilename, base64, dataUri };
   } finally {
     if (document.body.contains(container)) {
       document.body.removeChild(container);
     }
   }
 }
+
+/**
+ * Downloads the invoice PDF to customer or manager machine.
+ */
+export async function downloadInvoicePdf(
+  order: Order,
+  bill: Bill | null,
+  restaurant: Restaurant | null
+): Promise<void> {
+  try {
+    const { pdf, safeFilename } = await generateInvoicePdfDoc(order, bill, restaurant);
+    pdf.save(safeFilename);
+  } catch (error) {
+    console.error('Failed to generate canvas invoice PDF:', error);
+  }
+}
+
+/**
+ * Generates the official invoice PDF and sends it directly as an attached document
+ * to the customer's WhatsApp number.
+ */
+export async function sendInvoicePdfWhatsApp(
+  order: Order,
+  bill: Bill | null,
+  restaurant: Restaurant | null,
+  recipientPhone: string
+): Promise<{ success: boolean; message: string; error?: string }> {
+  try {
+    if (!recipientPhone || !recipientPhone.trim()) {
+      return { success: false, message: 'Please provide a valid recipient phone number.' };
+    }
+
+    const { safeFilename, base64 } = await generateInvoicePdfDoc(order, bill, restaurant);
+    const invoiceNumber = bill?.billNumber || `INV-${order.orderNumber.replace('#', '')}`;
+    const grandTotal = Math.round((bill?.grandTotal ?? order.total ?? 0) * 100) / 100;
+
+    const caption = `🧾 *Official Tax Invoice* • ${restaurant?.name || 'Swaad Sevak'}\n\n` +
+      `• *Invoice #:* ${invoiceNumber}\n` +
+      `• *Table / Ref:* ${order.tableNumber || 'Dine-In'}\n` +
+      `• *Amount Settled:* ₹${grandTotal.toFixed(2)}\n\n` +
+      `Thank you for visiting us! Your official e-receipt PDF is attached above.`;
+
+    const res = await api.sendWhatsAppPdfReceipt({
+      recipientPhone: recipientPhone.trim(),
+      pdfBase64: base64,
+      fileName: safeFilename,
+      caption,
+      orderId: order.id
+    });
+
+    return res;
+  } catch (err: any) {
+    console.error('sendInvoicePdfWhatsApp error:', err);
+    return {
+      success: false,
+      message: err?.message || 'Failed to dispatch WhatsApp PDF receipt',
+      error: err?.message
+    };
+  }
+}
+

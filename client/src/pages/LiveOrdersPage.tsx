@@ -31,6 +31,8 @@ import { KotModal } from '../components/KotModal';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { SettleBillModal } from '../components/SettleBillModal';
 import { AcceptOnlineOrderModal } from '../components/AcceptOnlineOrderModal';
+import { CustomOrderModal } from '../components/CustomOrderModal';
+import { Plus } from 'lucide-react';
 
 interface LiveOrdersPageProps {
   restaurant: Restaurant | null;
@@ -82,6 +84,9 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
   // Completed / Settled Orders Right Drawer
   const [isSettledDrawerOpen, setIsSettledDrawerOpen] = useState(false);
   const [settledSearchQuery, setSettledSearchQuery] = useState('');
+
+  // Custom Order Modal State
+  const [isCustomOrderModalOpen, setIsCustomOrderModalOpen] = useState(false);
 
   // Elapsed time tracker (refreshes every 30s)
   const [now, setNow] = useState(Date.now());
@@ -407,6 +412,17 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
               )}
             </button>
           ))}
+
+          {/* Custom Order Add Option (Manager Quick Punch) */}
+          <div className="h-4 w-[1px] bg-stone-300 mx-1 shrink-0 hidden sm:block" />
+          <button
+            onClick={() => setIsCustomOrderModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
+            title="Add a custom manual order (Dine-in, Takeaway, Delivery) with instant KOT & WhatsApp e-receipt"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Custom Order</span>
+          </button>
         </div>
 
         {/* Search Input */}
@@ -1237,6 +1253,23 @@ export const LiveOrdersPage: React.FC<LiveOrdersPageProps> = ({
         order={orderToAcceptOnline}
         onClose={() => setOrderToAcceptOnline(null)}
         onConfirmAccept={handleConfirmOnlineAccept}
+      />
+
+      <CustomOrderModal
+        isOpen={isCustomOrderModalOpen}
+        onClose={() => setIsCustomOrderModalOpen(false)}
+        restaurant={restaurant}
+        printerConfig={printerConfig}
+        onOrderCreated={(createdOrder, bill) => {
+          onRefreshOrders();
+        }}
+        onTriggerKot={(order) => {
+          setSelectedKotOrder(order);
+        }}
+        onTriggerInvoice={(order, bill) => {
+          setSelectedInvoiceOrder(order);
+          setActiveBill(bill || null);
+        }}
       />
     </div>
   );

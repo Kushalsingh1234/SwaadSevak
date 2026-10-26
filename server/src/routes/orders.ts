@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth, AuthenticatedRequest } from '../auth/jwt.js';
-import { emitOrderStatus, emitCustomerCoinsUpdated } from '../realtime/socket.js';
+import { emitOrderStatus, emitCustomerCoinsUpdated, emitNewOrder } from '../realtime/socket.js';
 import { PrinterService } from '../printing/printerService.js';
 import { OrderStatus } from '../types/index.js';
 import { aggregatorManager } from '../aggregators/aggregatorManager.js';
 import { CampaignScheduler } from '../services/campaignScheduler.js';
+import crypto from 'crypto';
 
 const router = Router();
 router.use(requireAuth);
@@ -26,6 +27,167 @@ router.get('/', (req: AuthenticatedRequest, res: Response) => {
   }
 
   return res.json({ success: true, orders });
+});
+
+/**
+ * POST /api/orders
+ * Create a custom manual order from the manager dashboard (Dine-in, Takeaway, or Delivery)
+ */
+router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const restaurant = db.getRestaurant(restaurantId);
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: 'Restaurant not found.' });
+    }
+
+    const {
+      tableId,
+      tableNumber,
+      source,
+      items,
+      customerName,
+      customerPhone,
+      customerNotes,
+      status: initialStatus,
+      paymentMode,
+      paymentStatus,
+      discount
+    } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please add at least one item to the order.' });
+    }
+
+    // Resolve table
+    let resolvedTableId = tableId;
+    let resolvedTableNumber = tableNumber || 'Takeaway';
+    const allTables = db.getTables(restaurantId);
+    if (resolvedTableId) {
+      const existingTable = allTables.find(t => t.id === resolvedTableId);
+      if (existingTable) {
+        resolvedTableNumber = existingTable.tableNumber;
+      }
+    } else if (source === 'DINE_IN' && tableNumber) {
+      const found = allTables.find(t => t.tableNumber.toLowerCase() === String(tableNumber).toLowerCase());
+      if (found) {
+        resolvedTableId = found.id;
+        resolvedTableNumber = found.tableNumber;
+      } else {
+        resolvedTableId = `tbl_manual_${Date.now()}`;
+      }
+    } else {
+      resolvedTableId = `tbl_counter_${Date.now()}`;
+      resolvedTableNumber = tableNumber || (source === 'DELIVERY' ? 'Delivery' : 'Takeaway / Counter');
+    }
+
+    // Format and calculate items
+    const verifiedItems = items.map((it: any) => ({
+      id: it.id || `item_${crypto.randomUUID()}`,
+      orderId: '',
+      menuItemId: it.menuItemId || it.id || `custom_${Date.now()}`,
+      name: it.name || 'Custom Item',
+      price: Number(it.price) || 0,
+      quantity: Number(it.quantity) || 1,
+      portion: it.portion || 'Standard',
+      notes: it.notes || undefined
+    }));
+
+    const subtotal = verifiedItems.reduce((sum: number, it: any) => sum + (it.price * it.quantity), 0);
+    
+    // Tax calculation based on restaurant GST tier
+    const gstTier = restaurant.gstTier || '5%';
+    let tax = 0;
+    if (gstTier === '18%') {
+      tax = Math.round(subtotal * 0.18 * 100) / 100;
+    } else if (gstTier === 'inclusive' || gstTier === '0%' || gstTier === '0') {
+      tax = 0;
+    } else {
+      tax = Math.round(subtotal * 0.05 * 100) / 100;
+    }
+
+    const discountAmount = Number(discount) || 0;
+    const total = Math.max(0, Math.round((subtotal + tax - discountAmount) * 100) / 100);
+
+    // Check or find/create customer in CRM if phone is provided
+    let customerId: string | undefined = undefined;
+    if (customerPhone && String(customerPhone).trim().length >= 10) {
+      const cleanPhone = String(customerPhone).trim();
+      const existingCust = db.getCustomerByPhone(restaurantId, cleanPhone);
+      if (existingCust) {
+        customerId = existingCust.id;
+      } else {
+        const newCust = db.createCustomer(restaurantId, {
+          name: customerName ? String(customerName).trim() : 'Guest',
+          phone: cleanPhone
+        });
+        customerId = newCust?.customer?.id;
+      }
+    }
+
+    const orderStatus = initialStatus || 'PREPARING'; // Default to preparing for manual kitchen dispatch
+
+    const order = db.createOrder({
+      restaurantId,
+      tableId: resolvedTableId,
+      tableNumber: resolvedTableNumber,
+      source: source || 'DINE_IN',
+      status: orderStatus,
+      customerNotes: customerNotes ? String(customerNotes).trim() : undefined,
+      subtotal,
+      tax,
+      total,
+      customerId,
+      customerName: customerName ? String(customerName).trim() : undefined,
+      customerPhone: customerPhone ? String(customerPhone).trim() : undefined,
+      coinsUsed: 0,
+      coinsEarned: 0,
+      coinDiscount: discountAmount,
+      items: verifiedItems
+    });
+
+    for (const item of order.items) {
+      item.orderId = order.id;
+    }
+
+    // Broadcast new order via real-time WebSocket to kitchen/floor
+    emitNewOrder(restaurantId, order);
+
+    // If bill / receipt was marked settled or paid immediately (e.g. cash/UPI at counter)
+    let bill = null;
+    if (paymentStatus === 'PAID') {
+      const mode = (paymentMode || 'CASH').toUpperCase();
+      const createdBill = db.createBill(restaurantId, order.id);
+      if (createdBill) {
+        const payStatus = mode === 'CARD' ? 'PAID_CARD' : mode === 'UPI' ? 'PAID_UPI' : 'PAID_CASH';
+        bill = db.settleBill(restaurantId, createdBill.id, payStatus as any);
+      }
+    }
+
+    // Auto-generate KOT data
+    const printerConfig = db.getPrinterConfig(restaurantId);
+    const kotData = PrinterService.generateKotData(restaurant, order, printerConfig);
+    const thermalText = PrinterService.generateThermalText(kotData);
+
+    // If network printer is configured, auto-dispatch
+    if (printerConfig?.printerType === 'NETWORK' && printerConfig.printerIp) {
+      PrinterService.sendToNetworkPrinter(printerConfig.printerIp, thermalText).catch(err => {
+        console.warn('[OrdersRoute] Network print dispatch error:', err);
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Custom order created successfully!',
+      order,
+      bill,
+      kotData,
+      thermalText
+    });
+  } catch (error: any) {
+    console.error('Error creating custom order:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to create order.' });
+  }
 });
 
 // Update order status (Accept, Reject, Preparing, Ready, Completed)

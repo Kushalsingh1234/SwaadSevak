@@ -237,6 +237,47 @@ export class WhatsAppService {
   }
 
   /**
+   * Send a WhatsApp document / PDF message through the restaurant's connected session
+   */
+  public static async sendDocumentMessage(
+    restaurantId: string,
+    recipientPhone: string,
+    documentBuffer: Buffer,
+    fileName: string,
+    captionText?: string
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const session = this.sessions.get(restaurantId);
+
+    if (!session || !session.sock || session.state.status !== 'CONNECTED') {
+      return {
+        success: false,
+        error: 'WhatsApp is not connected for this restaurant. Please scan the QR code in Settings / CRM to pair your WhatsApp number.'
+      };
+    }
+
+    try {
+      const jid = this.formatPhoneToJid(recipientPhone);
+      const res = await session.sock.sendMessage(jid, {
+        document: documentBuffer,
+        mimetype: 'application/pdf',
+        fileName: fileName || 'Receipt.pdf',
+        caption: captionText || undefined
+      });
+
+      return {
+        success: true,
+        messageId: res?.key?.id || undefined
+      };
+    } catch (err: any) {
+      console.error(`[WhatsApp] Failed to send PDF document to ${recipientPhone}:`, err);
+      return {
+        success: false,
+        error: err.message || 'Failed to dispatch WhatsApp PDF document.'
+      };
+    }
+  }
+
+  /**
    * Disconnect and clear session credentials for a restaurant
    */
   public static async disconnect(restaurantId: string): Promise<boolean> {

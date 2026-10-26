@@ -107,4 +107,60 @@ router.post('/test-send', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+/**
+ * POST /api/whatsapp/send-pdf-receipt
+ * Send an authentic PDF e-receipt document directly to customer's WhatsApp
+ */
+router.post('/send-pdf-receipt', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.manager!.restaurantId;
+    const { recipientPhone, pdfBase64, fileName, caption } = req.body;
+
+    if (!recipientPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer WhatsApp phone number is required.'
+      });
+    }
+
+    if (!pdfBase64) {
+      return res.status(400).json({
+        success: false,
+        message: 'PDF document content is required.'
+      });
+    }
+
+    // Clean base64 header if present (data:application/pdf;base64,...)
+    const cleanBase64 = String(pdfBase64).replace(/^data:application\/pdf[^;]*;base64,/, '');
+    const buffer = Buffer.from(cleanBase64, 'base64');
+
+    const restaurant = db.getRestaurant(restaurantId);
+    const resolvedCaption = caption || `Here is your official dining receipt from ${restaurant?.name || 'SwaadSevak'}. Thank you for dining with us! ❤️`;
+
+    const result = await WhatsAppService.sendDocumentMessage(
+      restaurantId,
+      recipientPhone,
+      buffer,
+      fileName || 'Dining-Invoice.pdf',
+      resolvedCaption
+    );
+
+    if (result.success) {
+      return res.json({
+        success: true,
+        message: `Official PDF e-receipt sent to +${recipientPhone.replace(/\D/g, '')} via WhatsApp!`,
+        messageId: result.messageId
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: result.error || 'Failed to dispatch WhatsApp PDF e-receipt.'
+      });
+    }
+  } catch (error: any) {
+    console.error('WhatsApp send-pdf-receipt error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;
